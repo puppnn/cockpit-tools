@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PlatformInstancesContent } from '../components/platform/PlatformInstancesContent';
 import { useCodexInstanceStore } from '../stores/useCodexInstanceStore';
@@ -8,6 +9,10 @@ import {
   buildCodexAccountPresentation,
   buildQuotaPreviewLines,
 } from '../presentation/platformAccountPresentation';
+import {
+  CODEX_CODE_REVIEW_QUOTA_VISIBILITY_CHANGED_EVENT,
+  isCodexCodeReviewQuotaVisibleByDefault,
+} from '../utils/codexPreferences';
 
 /**
  * Codex 多开实例内容组件（不包含 header）
@@ -23,9 +28,40 @@ export function CodexInstancesContent({ accountsForSelect }: CodexInstancesConte
   const { accounts: storeAccounts, fetchAccounts } = useCodexAccountStore();
   const accounts = accountsForSelect ?? storeAccounts;
   const isSupportedPlatform = usePlatformRuntimeSupport('macos-only');
+  const [showCodeReviewQuota, setShowCodeReviewQuota] = useState<boolean>(
+    isCodexCodeReviewQuotaVisibleByDefault,
+  );
+
+  useEffect(() => {
+    const syncCodeReviewVisibility = () => {
+      setShowCodeReviewQuota(isCodexCodeReviewQuotaVisibleByDefault());
+    };
+
+    window.addEventListener(
+      CODEX_CODE_REVIEW_QUOTA_VISIBILITY_CHANGED_EVENT,
+      syncCodeReviewVisibility as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        CODEX_CODE_REVIEW_QUOTA_VISIBILITY_CHANGED_EVENT,
+        syncCodeReviewVisibility as EventListener,
+      );
+    };
+  }, []);
+
+  const resolvePresentation = (account: CodexAccount) => {
+    const presentation = buildCodexAccountPresentation(account, t);
+    if (showCodeReviewQuota) {
+      return presentation;
+    }
+    return {
+      ...presentation,
+      quotaItems: presentation.quotaItems.filter((item) => item.key !== 'code_review'),
+    };
+  };
 
   const renderCodexQuotaPreview = (account: CodexAccount) => {
-    const presentation = buildCodexAccountPresentation(account, t);
+    const presentation = resolvePresentation(account);
     const lines = buildQuotaPreviewLines(presentation.quotaItems, 3);
     if (lines.length === 0) {
       return <span className="account-quota-empty">{t('instances.quota.empty', '暂无配额缓存')}</span>;
@@ -45,7 +81,7 @@ export function CodexInstancesContent({ accountsForSelect }: CodexInstancesConte
   };
 
   const renderCodexPlanBadge = (account: CodexAccount) => {
-    const presentation = buildCodexAccountPresentation(account, t);
+    const presentation = resolvePresentation(account);
     return <span className={`instance-plan-badge ${presentation.planClass}`}>{presentation.planLabel}</span>;
   };
 
@@ -57,7 +93,7 @@ export function CodexInstancesContent({ accountsForSelect }: CodexInstancesConte
       renderAccountQuotaPreview={renderCodexQuotaPreview}
       renderAccountBadge={renderCodexPlanBadge}
       getAccountSearchText={(account) => {
-        const presentation = buildCodexAccountPresentation(account, t);
+        const presentation = resolvePresentation(account);
         return `${presentation.displayName} ${presentation.planLabel}`;
       }}
       appType="codex"

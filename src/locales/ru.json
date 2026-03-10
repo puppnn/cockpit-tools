@@ -1191,7 +1191,10 @@
     "filterTagsCount": "Теги",
     "noAvailableTags": "Нет доступных тегов",
     "clearFilter": "Очистить фильтр",
-    "editTags": "Редактировать теги"
+    "editTags": "Редактировать теги",
+    "account": {
+      "personal": "Личный аккаунт"
+    }
   },
   "githubCopilot": {
     "title": "Управление аккаунтами GitHub Copilot",

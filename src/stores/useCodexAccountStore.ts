@@ -1,9 +1,18 @@
 import { create } from 'zustand';
-import { CodexAccount, CodexQuota } from '../types/codex';
+import {
+  CodexAccount,
+  CodexQuota,
+  hasCodexAccountStructure,
+  hasCodexAccountName,
+  isCodexTeamLikePlan,
+} from '../types/codex';
 import * as codexService from '../services/codexService';
 
 const CODEX_ACCOUNTS_CACHE_KEY = 'agtools.codex.accounts.cache';
 const CODEX_CURRENT_ACCOUNT_CACHE_KEY = 'agtools.codex.accounts.current';
+const CODEX_PROFILE_SYNC_IN_FLIGHT = new Set<string>();
+const CODEX_PROFILE_SYNC_LAST_ATTEMPT = new Map<string, number>();
+const CODEX_PROFILE_SYNC_RETRY_INTERVAL_MS = 5 * 60 * 1000;
 
 const loadCachedCodexAccounts = () => {
   try {
@@ -46,6 +55,10 @@ const persistCodexCurrentAccountCache = (account: CodexAccount | null) => {
   }
 };
 
+const shouldHydrateCodexProfile = (account: CodexAccount): boolean =>
+  !hasCodexAccountStructure(account) ||
+  (isCodexTeamLikePlan(account.plan_type) && !hasCodexAccountName(account));
+
 interface CodexAccountState {
   accounts: CodexAccount[];
   currentAccount: CodexAccount | null;
@@ -60,6 +73,7 @@ interface CodexAccountState {
   deleteAccounts: (accountIds: string[]) => Promise<void>;
   refreshQuota: (accountId: string) => Promise<CodexQuota>;
   refreshAllQuotas: () => Promise<number>;
+  hydrateAccountProfilesIfNeeded: (accountIds?: string[]) => Promise<void>;
   importFromLocal: () => Promise<CodexAccount>;
   importFromJson: (jsonContent: string) => Promise<CodexAccount[]>;
   updateAccountTags: (accountId: string, tags: string[]) => Promise<CodexAccount>;
@@ -77,6 +91,7 @@ export const useCodexAccountStore = create<CodexAccountState>((set, get) => ({
       const accounts = await codexService.listCodexAccounts();
       set({ accounts, loading: false });
       persistCodexAccountsCache(accounts);
+      void get().hydrateAccountProfilesIfNeeded(accounts.map((account) => account.id));
     } catch (e) {
       set({ error: String(e), loading: false });
     }
@@ -121,6 +136,48 @@ export const useCodexAccountStore = create<CodexAccountState>((set, get) => ({
     const successCount = await codexService.refreshAllCodexQuotas();
     await get().fetchAccounts();
     return successCount;
+  },
+
+  hydrateAccountProfilesIfNeeded: async (accountIds?: string[]) => {
+    const now = Date.now();
+    const scope = accountIds ? new Set(accountIds) : null;
+    const candidates = get().accounts.filter(
+      (account) =>
+        (!scope || scope.has(account.id)) &&
+        shouldHydrateCodexProfile(account) &&
+        !CODEX_PROFILE_SYNC_IN_FLIGHT.has(account.id) &&
+        now - (CODEX_PROFILE_SYNC_LAST_ATTEMPT.get(account.id) ?? 0) >=
+          CODEX_PROFILE_SYNC_RETRY_INTERVAL_MS,
+    );
+
+    for (const account of candidates) {
+      CODEX_PROFILE_SYNC_IN_FLIGHT.add(account.id);
+      CODEX_PROFILE_SYNC_LAST_ATTEMPT.set(account.id, now);
+      try {
+        const updatedAccount = await codexService.refreshCodexAccountProfile(account.id);
+        set((state) => {
+          const nextAccounts = state.accounts.map((item) =>
+            item.id === updatedAccount.id ? { ...item, ...updatedAccount } : item,
+          );
+          const nextCurrentAccount =
+            state.currentAccount?.id === updatedAccount.id
+              ? { ...state.currentAccount, ...updatedAccount }
+              : state.currentAccount;
+
+          persistCodexAccountsCache(nextAccounts);
+          persistCodexCurrentAccountCache(nextCurrentAccount);
+
+          return {
+            accounts: nextAccounts,
+            currentAccount: nextCurrentAccount,
+          };
+        });
+      } catch (e) {
+        console.warn('刷新 Codex 账号资料失败:', account.id, e);
+      } finally {
+        CODEX_PROFILE_SYNC_IN_FLIGHT.delete(account.id);
+      }
+    }
   },
   
   importFromLocal: async () => {

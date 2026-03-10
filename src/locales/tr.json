@@ -1191,7 +1191,10 @@
     "filterTagsCount": "Etiketler",
     "noAvailableTags": "Kullanılabilir etiket yok",
     "clearFilter": "Filtreyi temizle",
-    "editTags": "Etiketleri düzenle"
+    "editTags": "Etiketleri düzenle",
+    "account": {
+      "personal": "Kişisel hesap"
+    }
   },
   "githubCopilot": {
     "title": "GitHub Copilot Hesap Yönetimi",

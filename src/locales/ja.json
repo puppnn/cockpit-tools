@@ -1191,7 +1191,10 @@
     "filterTagsCount": "タグ",
     "noAvailableTags": "利用可能なタグはありません",
     "clearFilter": "フィルターをクリア",
-    "editTags": "タグを編集"
+    "editTags": "タグを編集",
+    "account": {
+      "personal": "個人アカウント"
+    }
   },
   "githubCopilot": {
     "title": "GitHub Copilot アカウント管理",

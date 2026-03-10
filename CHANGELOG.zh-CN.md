@@ -7,6 +7,17 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
 ---
+## [0.12.1] - 2026-03-10
+
+### 新增
+- **Codex 账号资料支持官方 account-check 接口回填**：新增 `refresh_codex_account_profile` 前后端链路，用于拉取并持久化 `account_name` 与 `account_structure`。
+- **Codex 团队类账号自动资料补全机制**：针对缺少结构/名称信息的账号，新增 store 侧后台资料补全，并带并发去重与 5 分钟重试间隔。
+
+### 变更
+- **Codex 账号卡片与表格新增“账号上下文”展示**：账号行会基于结构、套餐类型与 workspace 元数据展示“个人账户”或团队/工作区名称。
+- **Codex 实例页配额预览遵循 Code Review 可见性偏好**：当偏好设置隐藏 Code Review 配额后，实例页徽标、搜索文本与配额预览会一致隐藏该项。
+
+---
 ## [0.12.0] - 2026-03-10
 
 ### 新增

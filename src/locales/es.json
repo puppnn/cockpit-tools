@@ -1191,7 +1191,10 @@
     "filterTagsCount": "Etiquetas",
     "noAvailableTags": "No hay etiquetas disponibles",
     "clearFilter": "Limpiar filtro",
-    "editTags": "Editar etiquetas"
+    "editTags": "Editar etiquetas",
+    "account": {
+      "personal": "Cuenta personal"
+    }
   },
   "githubCopilot": {
     "title": "Gestión de cuentas de GitHub Copilot",

@@ -17,6 +17,12 @@ pub fn get_current_codex_account() -> Result<Option<CodexAccount>, String> {
     Ok(codex_account::get_current_account())
 }
 
+/// 刷新账号资料（团队名/结构）
+#[tauri::command]
+pub async fn refresh_codex_account_profile(account_id: String) -> Result<CodexAccount, String> {
+    codex_account::refresh_account_profile(&account_id).await
+}
+
 /// 切换 Codex 账号（包含 token 刷新检查）
 #[tauri::command]
 pub async fn switch_codex_account(

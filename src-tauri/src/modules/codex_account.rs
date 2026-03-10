@@ -4,6 +4,7 @@ use crate::models::codex::{
 };
 use crate::modules::{codex_oauth, logger};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -12,6 +13,196 @@ use std::sync::Mutex;
 static CODEX_QUOTA_ALERT_LAST_SENT: std::sync::LazyLock<Mutex<HashMap<String, i64>>> =
     std::sync::LazyLock::new(|| Mutex::new(HashMap::new()));
 const CODEX_QUOTA_ALERT_COOLDOWN_SECONDS: i64 = 300;
+const ACCOUNT_CHECK_URL: &str = "https://chatgpt.com/backend-api/wham/accounts/check";
+
+fn normalize_optional_json_str(value: Option<&serde_json::Value>) -> Option<String> {
+    normalize_optional_ref(value.and_then(|item| item.as_str()))
+}
+
+fn extract_account_record_field(
+    record: &serde_json::Map<String, serde_json::Value>,
+    keys: &[&str],
+) -> Option<String> {
+    for key in keys {
+        if let Some(value) = normalize_optional_json_str(record.get(*key)) {
+            return Some(value);
+        }
+    }
+    None
+}
+
+fn collect_account_records(payload: &serde_json::Value) -> Vec<serde_json::Value> {
+    let mut records = Vec::new();
+
+    if let Some(accounts_value) = payload.get("accounts") {
+        if let Some(array) = accounts_value.as_array() {
+            for item in array {
+                if item.is_object() {
+                    records.push(item.clone());
+                }
+            }
+        } else if let Some(object) = accounts_value.as_object() {
+            for value in object.values() {
+                if value.is_object() {
+                    records.push(value.clone());
+                }
+            }
+        }
+    }
+
+    if records.is_empty() {
+        if let Some(array) = payload.as_array() {
+            for item in array {
+                if item.is_object() {
+                    records.push(item.clone());
+                }
+            }
+        }
+    }
+
+    records
+}
+
+fn parse_account_profile_from_check_response(
+    payload: &serde_json::Value,
+    account: &CodexAccount,
+) -> (Option<String>, Option<String>, Option<String>) {
+    let records = collect_account_records(payload);
+    if records.is_empty() {
+        return (None, None, None);
+    }
+
+    let ordering_first_id = payload
+        .get("account_ordering")
+        .and_then(|value| value.as_array())
+        .and_then(|items| items.first())
+        .and_then(|value| value.as_str())
+        .and_then(|value| normalize_optional_ref(Some(value)));
+    let expected_account_id = normalize_optional_ref(account.account_id.as_deref())
+        .or_else(|| extract_chatgpt_account_id_from_access_token(&account.tokens.access_token));
+    let expected_org_id = normalize_optional_ref(account.organization_id.as_deref());
+
+    let mut selected_record: Option<serde_json::Value> = None;
+
+    if let Some(expected_id) = expected_account_id.as_deref() {
+        selected_record = records.iter().find(|item| {
+            let Some(record) = item.as_object() else {
+                return false;
+            };
+            let candidate_id = extract_account_record_field(
+                record,
+                &["id", "account_id", "chatgpt_account_id", "workspace_id"],
+            );
+            normalize_optional_ref(candidate_id.as_deref()) == Some(expected_id.to_string())
+        }).cloned();
+    }
+
+    if selected_record.is_none() {
+        if let Some(ordering_id) = ordering_first_id.as_deref() {
+            selected_record = records
+                .iter()
+                .find(|item| {
+                    let Some(record) = item.as_object() else {
+                        return false;
+                    };
+                    let candidate_id = extract_account_record_field(
+                        record,
+                        &["id", "account_id", "chatgpt_account_id", "workspace_id"],
+                    );
+                    normalize_optional_ref(candidate_id.as_deref()) == Some(ordering_id.to_string())
+                })
+                .cloned();
+        }
+    }
+
+    if selected_record.is_none() {
+        if let Some(org_id) = expected_org_id.as_deref() {
+            selected_record = records
+                .iter()
+                .find(|item| {
+                    let Some(record) = item.as_object() else {
+                        return false;
+                    };
+                    let candidate_org = extract_account_record_field(
+                        record,
+                        &["organization_id", "org_id", "workspace_id"],
+                    );
+                    normalize_optional_ref(candidate_org.as_deref()) == Some(org_id.to_string())
+                })
+                .cloned();
+        }
+    }
+
+    let selected = selected_record.unwrap_or_else(|| records[0].clone());
+    let Some(record) = selected.as_object() else {
+        return (None, None, None);
+    };
+
+    let account_name = extract_account_record_field(
+        record,
+        &[
+            "name",
+            "display_name",
+            "account_name",
+            "organization_name",
+            "workspace_name",
+            "title",
+        ],
+    );
+    let account_structure = extract_account_record_field(
+        record,
+        &["structure", "account_structure", "kind", "type", "account_type"],
+    );
+    let account_id = extract_account_record_field(
+        record,
+        &["id", "account_id", "chatgpt_account_id", "workspace_id"],
+    );
+
+    (account_name, account_structure, account_id)
+}
+
+async fn fetch_remote_account_profile(
+    account: &CodexAccount,
+) -> Result<(Option<String>, Option<String>, Option<String>), String> {
+    let client = reqwest::Client::new();
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&format!("Bearer {}", account.tokens.access_token))
+            .map_err(|e| format!("构建 Authorization 头失败: {}", e))?,
+    );
+    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
+
+    if let Some(account_id) = normalize_optional_ref(account.account_id.as_deref()).or_else(|| {
+        extract_chatgpt_account_id_from_access_token(&account.tokens.access_token)
+    }) {
+        headers.insert(
+            "ChatGPT-Account-Id",
+            HeaderValue::from_str(&account_id)
+                .map_err(|e| format!("构建 ChatGPT-Account-Id 头失败: {}", e))?,
+        );
+    }
+
+    let response = client
+        .get(ACCOUNT_CHECK_URL)
+        .headers(headers)
+        .send()
+        .await
+        .map_err(|e| format!("请求账号信息失败: {}", e))?;
+    let status = response.status();
+    let body = response
+        .text()
+        .await
+        .map_err(|e| format!("读取账号信息响应失败: {}", e))?;
+
+    if !status.is_success() {
+        return Err(format!("账号信息接口返回错误 {}: {}", status, body));
+    }
+
+    let payload: serde_json::Value =
+        serde_json::from_str(&body).map_err(|e| format!("账号信息 JSON 解析失败: {}", e))?;
+    Ok(parse_account_profile_from_check_response(&payload, account))
+}
 
 /// 获取 Codex 数据目录
 pub fn get_codex_home() -> PathBuf {
@@ -293,6 +484,42 @@ pub fn list_accounts() -> Vec<CodexAccount> {
         .iter()
         .filter_map(|summary| load_account(&summary.id))
         .collect()
+}
+
+/// 刷新账号资料（团队名/结构）
+pub async fn refresh_account_profile(account_id: &str) -> Result<CodexAccount, String> {
+    let mut account = prepare_account_for_injection(account_id).await?;
+    let (account_name, account_structure, account_id_from_remote) =
+        fetch_remote_account_profile(&account).await?;
+
+    let mut changed = false;
+
+    if let Some(remote_account_id) = normalize_optional_value(account_id_from_remote) {
+        if normalize_optional_ref(account.account_id.as_deref()) != Some(remote_account_id.clone()) {
+            account.account_id = Some(remote_account_id);
+            changed = true;
+        }
+    }
+
+    if let Some(name) = normalize_optional_value(account_name) {
+        if normalize_optional_ref(account.account_name.as_deref()) != Some(name.clone()) {
+            account.account_name = Some(name);
+            changed = true;
+        }
+    }
+
+    if let Some(structure) = normalize_optional_value(account_structure) {
+        if normalize_optional_ref(account.account_structure.as_deref()) != Some(structure.clone()) {
+            account.account_structure = Some(structure);
+            changed = true;
+        }
+    }
+
+    if changed {
+        save_account(&account)?;
+    }
+
+    Ok(account)
 }
 
 /// 添加或更新账号

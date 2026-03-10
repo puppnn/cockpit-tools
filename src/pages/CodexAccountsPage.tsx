@@ -31,8 +31,11 @@ import * as codexService from '../services/codexService';
 import { TagEditModal } from '../components/TagEditModal';
 import { ExportJsonModal } from '../components/ExportJsonModal';
 import {
+  hasCodexAccountStructure,
   formatCodexLoginProvider,
   getCodexAuthMetadata,
+  hasCodexAccountName,
+  isCodexTeamLikePlan,
   type CodexQuotaErrorInfo,
 } from '../types/codex';
 import { buildCodexAccountPresentation } from '../presentation/platformAccountPresentation';
@@ -121,7 +124,16 @@ export function CodexAccountsPage() {
     formatDate, normalizeTag,
   } = page;
 
-  const { accounts, loading, currentAccount, fetchAccounts, fetchCurrentAccount, switchAccount, refreshQuota } = store;
+  const {
+    accounts,
+    loading,
+    currentAccount,
+    fetchAccounts,
+    fetchCurrentAccount,
+    switchAccount,
+    refreshQuota,
+    hydrateAccountProfilesIfNeeded,
+  } = store;
 
   // ─── Codex-specific: OAuth via Tauri events ──────────────────────────
 
@@ -481,12 +493,30 @@ export function CodexAccountsPage() {
         chatgptAccountId: string;
         signedInWithText: string;
         userId: string;
+        accountContextText: string;
       }
     >();
     const noneText = t('common.none', '暂无');
 
     accounts.forEach((account) => {
       const metadata = getCodexAuthMetadata(account);
+      const organizationId = (account.organization_id || '').trim();
+      const matchedWorkspace = organizationId
+        ? metadata.workspaces.find((workspace) => (workspace.id || '').trim() === organizationId)
+        : null;
+      const defaultWorkspace = metadata.workspaces.find((workspace) => workspace.is_default);
+      const fallbackWorkspace = matchedWorkspace || defaultWorkspace || metadata.workspaces[0] || null;
+      const workspaceTitle = fallbackWorkspace?.title?.trim() || '';
+      const accountName = (account.account_name || '').trim();
+      const structure = (account.account_structure || '').trim().toLowerCase();
+      const isTeamLikePlan = isCodexTeamLikePlan(account.plan_type);
+      const isPersonalStructure = structure.includes('personal');
+      const accountContextText =
+        isPersonalStructure
+          ? t('codex.account.personal', '个人账户')
+          : !structure && !isTeamLikePlan
+            ? t('codex.account.personal', '个人账户')
+            : accountName || workspaceTitle || '';
       const loginProvider =
         formatCodexLoginProvider(metadata.authProvider) ||
         t('kiro.account.providerUnknown', 'Unknown');
@@ -499,6 +529,7 @@ export function CodexAccountsPage() {
         chatgptAccountId: (metadata.chatgptAccountId || account.account_id || '').trim() || noneText,
         signedInWithText,
         userId,
+        accountContextText,
       });
     });
 
@@ -514,6 +545,7 @@ export function CodexAccountsPage() {
           defaultValue: 'Signed in with {{provider}}',
         }),
         userId: t('common.none', '暂无'),
+        accountContextText: '',
       },
     [accountMetaMap, t],
   );
@@ -584,6 +616,18 @@ export function CodexAccountsPage() {
     return Array.from(groups.entries()).sort(([a], [b]) => { if (a === untaggedKey) return 1; if (b === untaggedKey) return -1; return a.localeCompare(b); });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter, untaggedKey]);
 
+  useEffect(() => {
+    const teamAccountIds = filteredAccounts
+      .filter(
+        (account) =>
+          !hasCodexAccountStructure(account) ||
+          (isCodexTeamLikePlan(account.plan_type) && !hasCodexAccountName(account)),
+      )
+      .map((account) => account.id);
+    if (teamAccountIds.length === 0) return;
+    void hydrateAccountProfilesIfNeeded(teamAccountIds);
+  }, [filteredAccounts, hydrateAccountProfilesIfNeeded]);
+
   const resolveGroupLabel = (groupKey: string) => groupKey === untaggedKey ? t('accounts.defaultGroup', '默认分组') : groupKey;
 
   // ─── Render helpers ──────────────────────────────────────────────────
@@ -617,6 +661,13 @@ export function CodexAccountsPage() {
             {hasQuotaError && (<span className="codex-status-pill quota-error" title={quotaErrorMeta.rawMessage}><CircleAlert size={12} />{quotaErrorMeta.statusCode || t('codex.quotaError.badge', '配额异常')}</span>)}
             <span className={`tier-badge ${planClass}`}>{presentation.planLabel}</span>
           </div>
+          {meta.accountContextText && (
+            <div className="account-sub-line">
+              <span className="codex-login-subline" title={meta.accountContextText}>
+                {meta.accountContextText}
+              </span>
+            </div>
+          )}
           <div className="account-sub-line">
             <span className="codex-login-subline" title={signInLine}>
               {meta.signedInWithText} | {accountIdLabel}: {maskAccountText(accountIdText)}
@@ -678,6 +729,13 @@ export function CodexAccountsPage() {
           <td><input type="checkbox" checked={selected.has(account.id)} onChange={() => toggleSelect(account.id)} /></td>
           <td><div className="account-cell"><div className="account-main-line"><span className="account-email-text" title={maskAccountText(presentation.displayName)}>{maskAccountText(presentation.displayName)}</span>
             {isCurrent && <span className="mini-tag current">{t('codex.current', '当前')}</span>}</div>
+            {meta.accountContextText && (
+              <div className="account-sub-line codex-account-meta-inline">
+                <span className="codex-login-subline" title={meta.accountContextText}>
+                  {meta.accountContextText}
+                </span>
+              </div>
+            )}
             <div className="account-sub-line codex-account-meta-inline">
               <span className="codex-login-subline" title={signInLine}>
                 {meta.signedInWithText} | {accountIdLabel}: {maskAccountText(accountIdText)}

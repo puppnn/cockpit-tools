@@ -1191,7 +1191,10 @@
     "filterTagsCount": "Thẻ",
     "noAvailableTags": "Không có thẻ nào",
     "clearFilter": "Xóa bộ lọc",
-    "editTags": "Chỉnh sửa thẻ"
+    "editTags": "Chỉnh sửa thẻ",
+    "account": {
+      "personal": "Tài khoản cá nhân"
+    }
   },
   "githubCopilot": {
     "title": "Quản lý tài khoản GitHub Copilot",

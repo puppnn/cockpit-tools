@@ -1191,7 +1191,10 @@
     "filterTagsCount": "Schlagworte",
     "noAvailableTags": "Keine verfügbaren Tags",
     "clearFilter": "Filter löschen",
-    "editTags": "Tags bearbeiten"
+    "editTags": "Tags bearbeiten",
+    "account": {
+      "personal": "Persönliches Konto"
+    }
   },
   "githubCopilot": {
     "title": "GitHub Copilot-Konten verwalten",

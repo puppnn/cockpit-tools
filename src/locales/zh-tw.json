@@ -1191,7 +1191,10 @@
     "filterTagsCount": "標籤",
     "noAvailableTags": "目前沒有可用標籤",
     "clearFilter": "清除篩選",
-    "editTags": "編輯標籤"
+    "editTags": "編輯標籤",
+    "account": {
+      "personal": "個人帳戶"
+    }
   },
   "githubCopilot": {
     "title": "GitHub Copilot 帳號管理",

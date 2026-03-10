@@ -1109,6 +1109,9 @@
     "switched": "已切换至 {{email}}",
     "switchFailed": "切换失败: {{error}}",
     "current": "当前",
+    "account": {
+      "personal": "个人账户"
+    },
     "empty": {
       "description": "点击\"添加账号\"开始管理您的 Codex 账号"
     },

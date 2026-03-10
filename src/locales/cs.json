@@ -1191,7 +1191,10 @@
     "filterTagsCount": "Štítky",
     "noAvailableTags": "Žádné dostupné štítky",
     "clearFilter": "Vymazat filtr",
-    "editTags": "Upravit štítky"
+    "editTags": "Upravit štítky",
+    "account": {
+      "personal": "Osobní účet"
+    }
   },
   "githubCopilot": {
     "title": "Správa účtů GitHub Copilot",

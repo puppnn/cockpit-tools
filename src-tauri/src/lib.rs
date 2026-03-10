@@ -265,6 +265,7 @@ pub fn run() {
             // Codex Commands
             commands::codex::list_codex_accounts,
             commands::codex::get_current_codex_account,
+            commands::codex::refresh_codex_account_profile,
             commands::codex::switch_codex_account,
             commands::codex::delete_codex_account,
             commands::codex::delete_codex_accounts,

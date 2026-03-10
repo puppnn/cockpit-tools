@@ -9,6 +9,10 @@ pub struct CodexAccount {
     pub plan_type: Option<String>,
     pub account_id: Option<String>,
     pub organization_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_structure: Option<String>,
     pub tokens: CodexTokens,
     pub quota: Option<CodexQuota>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -152,6 +156,8 @@ impl CodexAccount {
             plan_type: None,
             account_id: None,
             organization_id: None,
+            account_name: None,
+            account_structure: None,
             tokens,
             quota: None,
             quota_error: None,

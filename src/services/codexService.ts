@@ -16,6 +16,11 @@ export async function getCurrentCodexAccount(): Promise<CodexAccount | null> {
   return await invoke('get_current_codex_account');
 }
 
+/** 刷新 Codex 账号资料（团队名/结构） */
+export async function refreshCodexAccountProfile(accountId: string): Promise<CodexAccount> {
+  return await invoke('refresh_codex_account_profile', { accountId });
+}
+
 /** 切换 Codex 账号 */
 export async function switchCodexAccount(accountId: string): Promise<CodexAccount> {
   return await invoke('switch_codex_account', { accountId });

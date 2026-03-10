@@ -7,6 +7,17 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.12.1] - 2026-03-10
+
+### Added
+- **Codex account profile hydration from official account-check endpoint**: Added a `refresh_codex_account_profile` backend/frontend flow to fetch and persist `account_name` and `account_structure`.
+- **Automatic profile hydration for team-like Codex accounts**: Added store-level background hydration for accounts missing structure/name metadata, with in-flight de-duplication and a 5-minute retry interval.
+
+### Changed
+- **Codex account cards and tables now display account context**: account rows now show “Personal account” or hydrated team/workspace names based on structure, plan type, and workspace metadata.
+- **Codex instance quota preview now follows Code Review visibility preference**: when Code Review quota is hidden in preferences, instance-page badges, search text, and quota preview now hide it consistently.
+
+---
 ## [0.12.0] - 2026-03-10
 
 ### Added

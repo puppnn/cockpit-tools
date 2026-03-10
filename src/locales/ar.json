@@ -1191,7 +1191,10 @@
     "filterTagsCount": "العلامات",
     "noAvailableTags": "لا توجد علامات متاحة",
     "clearFilter": "مسح التصفية",
-    "editTags": "تحرير العلامات"
+    "editTags": "تحرير العلامات",
+    "account": {
+      "personal": "حساب شخصي"
+    }
   },
   "githubCopilot": {
     "title": "إدارة حسابات GitHub Copilot",

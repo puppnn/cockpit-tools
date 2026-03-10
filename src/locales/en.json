@@ -1109,6 +1109,9 @@
     "switched": "Switched to {{email}}",
     "switchFailed": "Switch failed: {{error}}",
     "current": "Current",
+    "account": {
+      "personal": "Personal account"
+    },
     "empty": {
       "description": "Click \"Add Account\" to get started"
     },

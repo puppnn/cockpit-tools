@@ -1191,7 +1191,10 @@
     "filterTagsCount": "태그",
     "noAvailableTags": "사용 가능한 태그가 없습니다",
     "clearFilter": "필터 지우기",
-    "editTags": "태그 편집"
+    "editTags": "태그 편집",
+    "account": {
+      "personal": "개인 계정"
+    }
   },
   "githubCopilot": {
     "title": "GitHub Copilot 계정 관리",

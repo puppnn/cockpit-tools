@@ -6,6 +6,8 @@ export interface CodexAccount {
   plan_type?: string;
   account_id?: string;
   organization_id?: string;
+  account_name?: string;
+  account_structure?: string;
   tokens: CodexTokens;
   quota?: CodexQuota;
   quota_error?: CodexQuotaErrorInfo;
@@ -246,6 +248,27 @@ export function getCodexPlanDisplayName(planType?: string): string {
   if (upper.includes('PLUS')) return 'PLUS';
   if (upper.includes('PRO')) return 'PRO';
   return upper;
+}
+
+export function isCodexTeamLikePlan(planType?: string): boolean {
+  if (!planType) return false;
+  const upper = planType.toUpperCase();
+  return (
+    upper.includes('TEAM') ||
+    upper.includes('BUSINESS') ||
+    upper.includes('ENTERPRISE') ||
+    upper.includes('EDU')
+  );
+}
+
+export function hasCodexAccountName(account: CodexAccount): boolean {
+  return typeof account.account_name === 'string' && account.account_name.trim().length > 0;
+}
+
+export function hasCodexAccountStructure(account: CodexAccount): boolean {
+  return (
+    typeof account.account_structure === 'string' && account.account_structure.trim().length > 0
+  );
 }
 
 /** 获取配额百分比的样式类名 */
