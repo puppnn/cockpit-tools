@@ -7,6 +7,12 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.14.3] - 2026-03-14
+
+### Fixed
+- **OAuth add-account dialogs now reliably re-open for repeated sign-ins across platforms**: after OAuth success, Codex and shared provider OAuth flows now clear pending-session/UI residue (auth URL, timeout/polling/manual-callback state) immediately and on modal close/tab change, preventing subsequent logins from stalling after `OAuth start`.
+
+---
 ## [0.14.2] - 2026-03-14
 
 ### Fixed

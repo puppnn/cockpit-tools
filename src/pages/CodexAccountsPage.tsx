@@ -219,6 +219,11 @@ export function CodexAccountsPage() {
     oauthActiveRef.current = false;
     oauthCompletingRef.current = false;
     oauthLoginIdRef.current = null;
+    setOauthUrl('');
+    setOauthUrlCopied(false);
+    setOauthPrepareError(null);
+    setOauthPortInUse(null);
+    setOauthTimeoutInfo(null);
     setOauthCallbackInput('');
     setOauthCallbackSubmitting(false);
     setOauthCallbackError(null);
@@ -327,7 +332,15 @@ export function CodexAccountsPage() {
   useEffect(() => {
     if (showAddModal && addTab === 'oauth') return;
     const loginId = oauthLoginIdRef.current ?? undefined;
-    if (!loginId && !oauthActiveRef.current && !oauthCompletingRef.current) return;
+    const hasOauthUiResidue = Boolean(oauthUrl)
+      || Boolean(oauthTimeoutInfo)
+      || oauthCallbackInput.length > 0
+      || oauthCallbackSubmitting
+      || Boolean(oauthCallbackError)
+      || Boolean(oauthPrepareError)
+      || oauthPortInUse !== null
+      || oauthUrlCopied;
+    if (!loginId && !oauthActiveRef.current && !oauthCompletingRef.current && !hasOauthUiResidue) return;
     oauthAttemptSeqRef.current += 1;
     if (loginId) {
       codexService.cancelCodexOAuthLogin(loginId).catch(() => { });
@@ -341,7 +354,18 @@ export function CodexAccountsPage() {
     setOauthCallbackInput('');
     setOauthCallbackSubmitting(false);
     setOauthCallbackError(null);
-  }, [showAddModal, addTab]);
+  }, [
+    showAddModal,
+    addTab,
+    oauthUrl,
+    oauthTimeoutInfo,
+    oauthCallbackInput,
+    oauthCallbackSubmitting,
+    oauthCallbackError,
+    oauthPrepareError,
+    oauthPortInUse,
+    oauthUrlCopied,
+  ]);
 
   useEffect(
     () => () => {

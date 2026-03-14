@@ -861,6 +861,15 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     oauthLoginIdRef.current = null;
     oauthActiveRef.current = false;
     oauthCompletingRef.current = false;
+    setOauthUrl(null);
+    setOauthCallbackUrl(null);
+    setOauthUrlCopied(false);
+    setOauthUserCode(null);
+    setOauthUserCodeCopied(false);
+    setOauthMeta(null);
+    setOauthPrepareError(null);
+    setOauthCompleteError(null);
+    setOauthTimedOut(false);
     setOauthPolling(false);
     setOauthManualCallbackSubmitting(false);
     setOauthManualCallbackError(null);
@@ -998,7 +1007,20 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   useEffect(() => {
     if (showAddModal && oauthTabKeys.includes(addTab)) return;
     const loginId = oauthLoginIdRef.current ?? undefined;
-    if (!loginId && !oauthActiveRef.current && !oauthCompletingRef.current) return;
+    const hasOauthUiResidue = Boolean(oauthUrl)
+      || Boolean(oauthCallbackUrl)
+      || oauthUrlCopied
+      || Boolean(oauthUserCode)
+      || oauthUserCodeCopied
+      || oauthMeta !== null
+      || Boolean(oauthPrepareError)
+      || Boolean(oauthCompleteError)
+      || oauthTimedOut
+      || oauthPolling
+      || oauthManualCallbackInput.length > 0
+      || oauthManualCallbackSubmitting
+      || Boolean(oauthManualCallbackError);
+    if (!loginId && !oauthActiveRef.current && !oauthCompletingRef.current && !hasOauthUiResidue) return;
     oauthAttemptSeqRef.current += 1;
     if (loginId) {
       oauthLog('弹框关闭或切换标签，准备取消授权流程', { loginId });
@@ -1020,7 +1042,26 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     setOauthManualCallbackInput('');
     setOauthManualCallbackSubmitting(false);
     setOauthManualCallbackError(null);
-  }, [showAddModal, addTab, oauthLog, oauthService, oauthTabKeys]);
+  }, [
+    showAddModal,
+    addTab,
+    oauthLog,
+    oauthService,
+    oauthTabKeys,
+    oauthUrl,
+    oauthCallbackUrl,
+    oauthUrlCopied,
+    oauthUserCode,
+    oauthUserCodeCopied,
+    oauthMeta,
+    oauthPrepareError,
+    oauthCompleteError,
+    oauthTimedOut,
+    oauthPolling,
+    oauthManualCallbackInput,
+    oauthManualCallbackSubmitting,
+    oauthManualCallbackError,
+  ]);
 
   useEffect(
     () => () => {
