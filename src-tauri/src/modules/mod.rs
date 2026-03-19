@@ -36,6 +36,7 @@ pub mod logger;
 pub mod oauth;
 pub mod oauth_pending_state;
 pub mod oauth_server;
+pub mod openclaw_auth;
 pub mod opencode_auth;
 pub mod process;
 pub mod qoder_account;

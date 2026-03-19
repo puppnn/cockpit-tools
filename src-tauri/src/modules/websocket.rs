@@ -793,6 +793,7 @@ fn handle_set_language(language: &str, source: Option<&str>) -> Result<String, S
         workbuddy_app_path: current.workbuddy_app_path,
         opencode_sync_on_switch: current.opencode_sync_on_switch,
         opencode_auth_overwrite_on_switch: current.opencode_auth_overwrite_on_switch,
+        openclaw_auth_overwrite_on_switch: current.openclaw_auth_overwrite_on_switch,
         codex_launch_on_switch: current.codex_launch_on_switch,
         auto_switch_enabled: current.auto_switch_enabled,
         auto_switch_threshold: current.auto_switch_threshold,

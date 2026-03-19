@@ -97,6 +97,8 @@ pub struct GeneralConfig {
     pub opencode_sync_on_switch: bool,
     /// 切换 Codex 时是否覆盖 OpenCode 登录信息
     pub opencode_auth_overwrite_on_switch: bool,
+    /// 切换 Codex 时是否覆盖 OpenClaw 登录信息
+    pub openclaw_auth_overwrite_on_switch: bool,
     /// 切换 Codex 时是否自动启动/重启 Codex App
     pub codex_launch_on_switch: bool,
     /// 是否启用自动切号
@@ -304,6 +306,7 @@ pub fn save_network_config(
         workbuddy_app_path: current.workbuddy_app_path,
         opencode_sync_on_switch: current.opencode_sync_on_switch,
         opencode_auth_overwrite_on_switch: current.opencode_auth_overwrite_on_switch,
+        openclaw_auth_overwrite_on_switch: current.openclaw_auth_overwrite_on_switch,
         codex_launch_on_switch: current.codex_launch_on_switch,
         auto_switch_enabled: current.auto_switch_enabled,
         auto_switch_threshold: current.auto_switch_threshold,
@@ -390,6 +393,7 @@ pub fn get_general_config() -> Result<GeneralConfig, String> {
         trae_app_path: user_config.trae_app_path,
         opencode_sync_on_switch: user_config.opencode_sync_on_switch,
         opencode_auth_overwrite_on_switch: user_config.opencode_auth_overwrite_on_switch,
+        openclaw_auth_overwrite_on_switch: user_config.openclaw_auth_overwrite_on_switch,
         codex_launch_on_switch: user_config.codex_launch_on_switch,
         auto_switch_enabled: user_config.auto_switch_enabled,
         auto_switch_threshold: user_config.auto_switch_threshold,
@@ -477,6 +481,7 @@ pub fn save_general_config(
     workbuddy_app_path: Option<String>,
     opencode_sync_on_switch: bool,
     opencode_auth_overwrite_on_switch: Option<bool>,
+    openclaw_auth_overwrite_on_switch: Option<bool>,
     codex_launch_on_switch: bool,
     auto_switch_enabled: Option<bool>,
     auto_switch_threshold: Option<i32>,
@@ -609,6 +614,8 @@ pub fn save_general_config(
         opencode_sync_on_switch,
         opencode_auth_overwrite_on_switch: opencode_auth_overwrite_on_switch
             .unwrap_or(current.opencode_auth_overwrite_on_switch),
+        openclaw_auth_overwrite_on_switch: openclaw_auth_overwrite_on_switch
+            .unwrap_or(current.openclaw_auth_overwrite_on_switch),
         codex_launch_on_switch,
         auto_switch_enabled: auto_switch_enabled.unwrap_or(current.auto_switch_enabled),
         auto_switch_threshold: auto_switch_threshold.unwrap_or(current.auto_switch_threshold),

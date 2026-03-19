@@ -73,6 +73,7 @@ interface GeneralConfig {
   trae_quota_alert_threshold: number;
   opencode_sync_on_switch: boolean;
   opencode_auth_overwrite_on_switch: boolean;
+  openclaw_auth_overwrite_on_switch: boolean;
   codex_launch_on_switch: boolean;
   auto_switch_enabled: boolean;
   auto_switch_threshold: number;
@@ -218,6 +219,7 @@ export function SettingsPage() {
   const [appPathResetDetectingTargets, setAppPathResetDetectingTargets] = useState<Set<AppPathTarget>>(new Set());
   const [opencodeSyncOnSwitch, setOpencodeSyncOnSwitch] = useState(true);
   const [opencodeAuthOverwriteOnSwitch, setOpencodeAuthOverwriteOnSwitch] = useState(true);
+  const [openclawAuthOverwriteOnSwitch, setOpenclawAuthOverwriteOnSwitch] = useState(false);
   const [codexLaunchOnSwitch, setCodexLaunchOnSwitch] = useState(true);
   const [autoSwitchEnabled, setAutoSwitchEnabled] = useState(false);
   const [autoSwitchThreshold, setAutoSwitchThreshold] = useState('20');
@@ -462,6 +464,7 @@ export function SettingsPage() {
           workbuddyAppPath,
           opencodeSyncOnSwitch,
           opencodeAuthOverwriteOnSwitch,
+          openclawAuthOverwriteOnSwitch,
           codexLaunchOnSwitch,
           autoSwitchEnabled,
           autoSwitchThreshold: Number.isNaN(parsedAutoSwitchThreshold) ? 20 : parsedAutoSwitchThreshold,
@@ -550,6 +553,7 @@ export function SettingsPage() {
     workbuddyAppPath,
     opencodeSyncOnSwitch,
     opencodeAuthOverwriteOnSwitch,
+    openclawAuthOverwriteOnSwitch,
     codexLaunchOnSwitch,
     autoSwitchEnabled,
     autoSwitchThreshold,
@@ -772,6 +776,7 @@ export function SettingsPage() {
       setTraeQuotaAlertThreshold(String(config.trae_quota_alert_threshold ?? 20));
       setOpencodeSyncOnSwitch(config.opencode_sync_on_switch ?? true);
       setOpencodeAuthOverwriteOnSwitch(config.opencode_auth_overwrite_on_switch ?? true);
+      setOpenclawAuthOverwriteOnSwitch(config.openclaw_auth_overwrite_on_switch ?? false);
       setCodexLaunchOnSwitch(config.codex_launch_on_switch ?? true);
       setAutoSwitchEnabled(config.auto_switch_enabled ?? false);
       setAutoSwitchThreshold(String(config.auto_switch_threshold ?? 20));
@@ -1612,6 +1617,23 @@ export function SettingsPage() {
                       type="checkbox"
                       checked={opencodeAuthOverwriteOnSwitch}
                       onChange={(e) => setOpencodeAuthOverwriteOnSwitch(e.target.checked)}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('settings.general.openclawAuthOverwrite')}</div>
+                  <div className="row-desc">{t('settings.general.openclawAuthOverwriteDesc')}</div>
+                </div>
+                <div className="row-control">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={openclawAuthOverwriteOnSwitch}
+                      onChange={(e) => setOpenclawAuthOverwriteOnSwitch(e.target.checked)}
                     />
                     <span className="slider"></span>
                   </label>

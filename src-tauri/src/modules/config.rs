@@ -148,6 +148,9 @@ pub struct UserConfig {
     /// 切换 Codex 时是否覆盖 OpenCode 登录信息
     #[serde(default = "default_opencode_auth_overwrite_on_switch")]
     pub opencode_auth_overwrite_on_switch: bool,
+    /// 切换 Codex 时是否覆盖 OpenClaw 登录信息
+    #[serde(default = "default_openclaw_auth_overwrite_on_switch")]
+    pub openclaw_auth_overwrite_on_switch: bool,
     /// 切换 Codex 时是否自动启动/重启 Codex App
     #[serde(default = "default_codex_launch_on_switch")]
     pub codex_launch_on_switch: bool,
@@ -388,6 +391,9 @@ fn default_opencode_sync_on_switch() -> bool {
 fn default_opencode_auth_overwrite_on_switch() -> bool {
     true
 }
+fn default_openclaw_auth_overwrite_on_switch() -> bool {
+    false
+}
 fn default_codex_launch_on_switch() -> bool {
     true
 }
@@ -524,6 +530,7 @@ impl Default for UserConfig {
             workbuddy_app_path: default_workbuddy_app_path(),
             opencode_sync_on_switch: default_opencode_sync_on_switch(),
             opencode_auth_overwrite_on_switch: default_opencode_auth_overwrite_on_switch(),
+            openclaw_auth_overwrite_on_switch: default_openclaw_auth_overwrite_on_switch(),
             codex_launch_on_switch: default_codex_launch_on_switch(),
             auto_switch_enabled: default_auto_switch_enabled(),
             auto_switch_threshold: default_auto_switch_threshold(),

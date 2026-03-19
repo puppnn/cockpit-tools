@@ -44,6 +44,7 @@ interface GeneralConfig {
   workbuddy_app_path: string;
   opencode_sync_on_switch: boolean;
   opencode_auth_overwrite_on_switch: boolean;
+  openclaw_auth_overwrite_on_switch: boolean;
   codex_launch_on_switch: boolean;
   auto_switch_enabled: boolean;
   auto_switch_threshold: number;
@@ -272,6 +273,7 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
           workbuddyAppPath: merged.workbuddy_app_path,
           opencodeSyncOnSwitch: merged.opencode_sync_on_switch,
           opencodeAuthOverwriteOnSwitch: merged.opencode_auth_overwrite_on_switch,
+          openclawAuthOverwriteOnSwitch: merged.openclaw_auth_overwrite_on_switch,
           codexLaunchOnSwitch: merged.codex_launch_on_switch,
           autoSwitchEnabled: merged.auto_switch_enabled,
           autoSwitchThreshold: merged.auto_switch_threshold,
@@ -1117,6 +1119,30 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
                         type="checkbox"
                         checked={config.codex_launch_on_switch}
                         onChange={(e) => saveConfig({ codex_launch_on_switch: e.target.checked })}
+                      />
+                      <span className="qs-switch-slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="qs-row">
+                  <div className="qs-row-label">
+                    <Zap size={15} />
+                    <span>
+                      {t(
+                        'settings.general.openclawAuthOverwrite',
+                        '切换 Codex 时覆盖 OpenClaw 登录信息'
+                      )}
+                    </span>
+                  </div>
+                  <div className="qs-row-control">
+                    <label className="qs-switch">
+                      <input
+                        type="checkbox"
+                        checked={config.openclaw_auth_overwrite_on_switch}
+                        onChange={(e) =>
+                          saveConfig({ openclaw_auth_overwrite_on_switch: e.target.checked })
+                        }
                       />
                       <span className="qs-switch-slider"></span>
                     </label>

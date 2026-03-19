@@ -7,6 +7,17 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
 ---
+## [0.17.0] - 2026-03-19
+
+### 新增
+- **Codex 切号新增可选的 OpenClaw 登录覆盖开关**：设置页与快捷设置新增 `openclaw_auth_overwrite_on_switch`；关闭时仅切换 Codex，不改写 OpenClaw 当前登录态。
+
+### 变更
+- **Codex 到 OpenClaw 的凭据同步升级为 `openai-codex:default` 全链路写入与校验**：切号时会更新 OpenClaw `auth-profiles.json`、清理旧 `openai-codex:*` 档案、同步候选路径，并校验账号/邮箱/过期时间与 Codex 凭据一致。
+- **macOS 上 Codex 切号会同时更新 Keychain 的 `Codex Auth` 记录**：保证 external-cli/OpenClaw 读取到的凭据与当前 Codex 账号一致。
+- **OpenClaw 同步后的运行态刷新增加重试机制以加快生效**：同步后会尝试执行 `secrets reload` 与 `gateway restart`，失败时自动再试一次并输出可诊断日志。
+
+---
 ## [0.16.3] - 2026-03-19
 
 ### 新增

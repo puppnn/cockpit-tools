@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Để trống để dùng đường dẫn mặc định",
       "workbuddyAppPathPlaceholder": "Đường dẫn mặc định",
       "workbuddyPathSelect": "Chọn",
-      "workbuddyPathReset": "Đặt lại mặc định"
+      "workbuddyPathReset": "Đặt lại mặc định",
+      "openclawAuthOverwrite": "Ghi đè đăng nhập OpenClaw khi chuyển đổi Codex",
+      "openclawAuthOverwriteDesc": "Khi tắt, chỉ Codex được chuyển đổi và OpenClaw giữ trạng thái đăng nhập hiện tại"
     },
     "network": {
       "apiTitle": "API Antigravity Cockpit",

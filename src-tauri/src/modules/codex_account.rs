@@ -5,6 +5,7 @@ use crate::models::codex::{
 use crate::modules::{codex_oauth, logger};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -22,6 +23,8 @@ const API_KEY_EMAIL_PREFIX: &str = "api-key";
 const API_KEY_AUTH_MODE: &str = "apikey";
 const CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const CODEX_CONFIG_BASE_URL_KEY: &str = "base_url";
+#[cfg(target_os = "macos")]
+const CODEX_KEYCHAIN_SERVICE: &str = "Codex Auth";
 
 fn is_auth_mode_apikey(value: Option<&str>) -> bool {
     matches!(
@@ -1045,6 +1048,70 @@ fn build_auth_file_value(account: &CodexAccount) -> Result<serde_json::Value, St
     .map_err(|e| format!("auth.json 序列化失败: {}", e))
 }
 
+#[cfg(target_os = "macos")]
+fn build_codex_keychain_account(base_dir: &Path) -> String {
+    let resolved_home = fs::canonicalize(base_dir).unwrap_or_else(|_| base_dir.to_path_buf());
+    let mut hasher = Sha256::new();
+    hasher.update(resolved_home.to_string_lossy().as_bytes());
+    let digest = hasher.finalize();
+    let digest_hex = format!("{:x}", digest);
+    format!("cli|{}", &digest_hex[..16])
+}
+
+#[cfg(target_os = "macos")]
+fn write_codex_keychain_to_dir(base_dir: &Path, account: &CodexAccount) -> Result<(), String> {
+    if account.is_api_key_auth() {
+        return Ok(());
+    }
+
+    let payload = build_auth_file_value(account)?;
+    let secret =
+        serde_json::to_string(&payload).map_err(|e| format!("序列化 Codex keychain 数据失败: {}", e))?;
+    let keychain_account = build_codex_keychain_account(base_dir);
+
+    let output = std::process::Command::new("security")
+        .arg("add-generic-password")
+        .arg("-U")
+        .arg("-s")
+        .arg(CODEX_KEYCHAIN_SERVICE)
+        .arg("-a")
+        .arg(&keychain_account)
+        .arg("-w")
+        .arg(&secret)
+        .output()
+        .map_err(|e| format!("执行 security 命令失败: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        return Err(format!(
+            "写入 Codex keychain 失败: status={}, stderr={}, stdout={}",
+            output.status,
+            if stderr.trim().is_empty() {
+                "<empty>"
+            } else {
+                stderr.trim()
+            },
+            if stdout.trim().is_empty() {
+                "<empty>"
+            } else {
+                stdout.trim()
+            }
+        ));
+    }
+
+    logger::log_info(&format!(
+        "[Codex切号] 已更新 keychain 登录信息: service={}, account={}",
+        CODEX_KEYCHAIN_SERVICE, keychain_account
+    ));
+    Ok(())
+}
+
+#[cfg(not(target_os = "macos"))]
+fn write_codex_keychain_to_dir(_base_dir: &Path, _account: &CodexAccount) -> Result<(), String> {
+    Ok(())
+}
+
 pub fn write_auth_file_to_dir(base_dir: &Path, account: &CodexAccount) -> Result<(), String> {
     let auth_path = base_dir.join("auth.json");
     logger::log_info(&format!(
@@ -1134,6 +1201,12 @@ pub fn switch_account(account_id: &str) -> Result<CodexAccount, String> {
         codex_home.display()
     ));
     write_auth_file_to_dir(&codex_home, &account)?;
+    if let Err(err) = write_codex_keychain_to_dir(&codex_home, &account) {
+        logger::log_warn(&format!(
+            "[Codex切号] 写入 keychain 失败，可能影响 OpenClaw external-cli 同步: {}",
+            err
+        ));
+    }
     logger::log_info(&format!(
         "[Codex切号] 已替换目录登录信息: target_dir={}, target_file={}",
         codex_home.display(),
@@ -1647,6 +1720,12 @@ pub fn update_api_key_credentials(
     if was_current {
         let codex_home = get_codex_home();
         write_auth_file_to_dir(&codex_home, &account)?;
+        if let Err(err) = write_codex_keychain_to_dir(&codex_home, &account) {
+            logger::log_warn(&format!(
+                "Codex API Key 账号编辑后写入 keychain 失败: {}",
+                err
+            ));
+        }
     }
 
     logger::log_info(&format!(

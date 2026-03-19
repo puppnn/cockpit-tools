@@ -1,6 +1,6 @@
 use crate::models::codex::{CodexAccount, CodexQuota, CodexTokens};
 use crate::modules::{
-    codex_account, codex_oauth, codex_quota, config, logger, opencode_auth, process,
+    codex_account, codex_oauth, codex_quota, config, logger, openclaw_auth, opencode_auth, process,
 };
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::AppHandle;
@@ -86,6 +86,17 @@ pub async fn switch_codex_account(
         }
     } else {
         logger::log_info("已关闭 OpenCode 自动重启");
+    }
+
+    if user_config.openclaw_auth_overwrite_on_switch {
+        match openclaw_auth::replace_openai_codex_entry_from_codex(&account) {
+            Ok(()) => {}
+            Err(e) => {
+                logger::log_warn(&format!("OpenClaw auth 同步失败: {}", e));
+            }
+        }
+    } else {
+        logger::log_info("已关闭切换 Codex 时覆盖 OpenClaw 登录信息");
     }
 
     if user_config.codex_launch_on_switch {

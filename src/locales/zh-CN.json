@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "留空则使用默认路径",
       "workbuddyAppPathPlaceholder": "默认路径",
       "workbuddyPathSelect": "选择",
-      "workbuddyPathReset": "重置默认"
+      "workbuddyPathReset": "重置默认",
+      "openclawAuthOverwrite": "切换 Codex 时覆盖 OpenClaw 登录信息",
+      "openclawAuthOverwriteDesc": "关闭后仅切换 Codex，不会改写 OpenClaw 当前登录态"
     },
     "network": {
       "apiTitle": "反重力驾驶舱 API",

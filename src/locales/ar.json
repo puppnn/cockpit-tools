@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "اتركه فارغًا لاستخدام المسار الافتراضي",
       "workbuddyAppPathPlaceholder": "المسار الافتراضي",
       "workbuddyPathSelect": "اختيار",
-      "workbuddyPathReset": "إعادة إلى الافتراضي"
+      "workbuddyPathReset": "إعادة إلى الافتراضي",
+      "openclawAuthOverwrite": "استبدال تسجيل دخول OpenClaw عند تبديل Codex",
+      "openclawAuthOverwriteDesc": "عند التعطيل، يتم تبديل Codex فقط ويحتفظ OpenClaw بحالة تسجيل الدخول الحالية"
     },
     "network": {
       "apiTitle": "واجهة برمجة تطبيقات قمرة القيادة المضادة للجاذبية",

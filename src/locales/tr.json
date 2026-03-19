@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Varsayılan yol için boş bırakın",
       "workbuddyAppPathPlaceholder": "Varsayılan yol",
       "workbuddyPathSelect": "Seç",
-      "workbuddyPathReset": "Varsayılana sıfırla"
+      "workbuddyPathReset": "Varsayılana sıfırla",
+      "openclawAuthOverwrite": "Codex'i değiştirirken OpenClaw oturum açma bilgilerinin üzerine yazın",
+      "openclawAuthOverwriteDesc": "Kapalıyken yalnızca Codex açılır ve OpenClaw mevcut oturum açma durumunu korur"
     },
     "network": {
       "apiTitle": "Yerçekimine Karşı Kokpit API'si",

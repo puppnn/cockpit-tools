@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "空欄の場合はデフォルトパスを使用します",
       "workbuddyAppPathPlaceholder": "デフォルトパス",
       "workbuddyPathSelect": "選択",
-      "workbuddyPathReset": "デフォルトに戻す"
+      "workbuddyPathReset": "デフォルトに戻す",
+      "openclawAuthOverwrite": "Codex 切り替え時に OpenClaw のログインを上書きする",
+      "openclawAuthOverwriteDesc": "オフの場合は Codex のみ切り替え、OpenClaw は現在のログイン状態を維持します"
     },
     "network": {
       "apiTitle": "反重力コックピット API",

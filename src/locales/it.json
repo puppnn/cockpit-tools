@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Lascia vuoto per usare il percorso predefinito",
       "workbuddyAppPathPlaceholder": "Percorso predefinito",
       "workbuddyPathSelect": "Seleziona",
-      "workbuddyPathReset": "Ripristina predefinito"
+      "workbuddyPathReset": "Ripristina predefinito",
+      "openclawAuthOverwrite": "Sovrascrivi il login OpenClaw quando cambi Codex",
+      "openclawAuthOverwriteDesc": "Se disattivato, viene cambiato solo Codex e OpenClaw mantiene lo stato di accesso corrente"
     },
     "network": {
       "apiTitle": "API della cabina di pilotaggio antigravità",

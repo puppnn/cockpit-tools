@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Pozostaw puste, aby użyć domyślnej ścieżki",
       "workbuddyAppPathPlaceholder": "Domyślna ścieżka",
       "workbuddyPathSelect": "Wybierz",
-      "workbuddyPathReset": "Przywróć domyślne"
+      "workbuddyPathReset": "Przywróć domyślne",
+      "openclawAuthOverwrite": "Nadpisuj logowanie OpenClaw podczas przełączania Codex",
+      "openclawAuthOverwriteDesc": "Gdy wyłączone, przełączany jest tylko Codex, a OpenClaw zachowuje bieżący stan logowania"
     },
     "network": {
       "apiTitle": "API kokpitu antygrawitacyjnego",

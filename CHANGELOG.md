@@ -7,6 +7,17 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.17.0] - 2026-03-19
+
+### Added
+- **Codex account switching now supports an optional OpenClaw login-overwrite toggle**: Settings and Quick Settings now expose `openclaw_auth_overwrite_on_switch`; when disabled, only Codex is switched and OpenClaw keeps its current login state.
+
+### Changed
+- **Codex-to-OpenClaw credential sync now writes and verifies `openai-codex:default` end-to-end**: switch flow now updates OpenClaw `auth-profiles.json`, cleans stale `openai-codex:*` profiles, syncs candidate paths, and validates account/email/expiry consistency with Codex credentials.
+- **macOS Codex switching now updates keychain `Codex Auth` alongside `auth.json`**: keeps external-cli/OpenClaw credential reads aligned with the active Codex account.
+- **OpenClaw post-sync runtime refresh now retries reload/restart for faster effect**: after sync it attempts `secrets reload` and `gateway restart`, then performs one retry and logs actionable diagnostics if consistency checks still fail.
+
+---
 ## [0.16.3] - 2026-03-19
 
 ### Added

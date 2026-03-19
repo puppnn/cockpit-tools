@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Leave empty for default path",
       "workbuddyAppPathPlaceholder": "Default path",
       "workbuddyPathSelect": "Select",
-      "workbuddyPathReset": "Reset to default"
+      "workbuddyPathReset": "Reset to default",
+      "openclawAuthOverwrite": "Overwrite OpenClaw login when switching Codex",
+      "openclawAuthOverwriteDesc": "When off, only Codex is switched and OpenClaw keeps its current login state"
     },
     "network": {
       "apiTitle": "Antigravity Cockpit API",

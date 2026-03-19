@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Pro výchozí cestu ponechte prázdné",
       "workbuddyAppPathPlaceholder": "Výchozí cesta",
       "workbuddyPathSelect": "Vybrat",
-      "workbuddyPathReset": "Obnovit výchozí"
+      "workbuddyPathReset": "Obnovit výchozí",
+      "openclawAuthOverwrite": "Při přepnutí Codexu přepsat přihlášení OpenClaw",
+      "openclawAuthOverwriteDesc": "Pokud je vypnuto, přepne se pouze Codex a OpenClaw zůstane v aktuálním přihlášení"
     },
     "network": {
       "apiTitle": "Antigravity Cockpit API",

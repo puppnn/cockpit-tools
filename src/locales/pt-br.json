@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Deixe em branco para usar o caminho padrao",
       "workbuddyAppPathPlaceholder": "Caminho padrao",
       "workbuddyPathSelect": "Selecionar",
-      "workbuddyPathReset": "Redefinir para o padrao"
+      "workbuddyPathReset": "Redefinir para o padrao",
+      "openclawAuthOverwrite": "Substituir o login do OpenClaw ao trocar o Codex",
+      "openclawAuthOverwriteDesc": "Quando desligado, apenas o Codex é alternado e o OpenClaw mantém seu estado de login atual"
     },
     "network": {
       "apiTitle": "API de cockpit antigravidade",

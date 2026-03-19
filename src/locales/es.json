@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Déjelo vacío para usar la ruta predeterminada",
       "workbuddyAppPathPlaceholder": "Ruta predeterminada",
       "workbuddyPathSelect": "Seleccionar",
-      "workbuddyPathReset": "Restablecer por defecto"
+      "workbuddyPathReset": "Restablecer por defecto",
+      "openclawAuthOverwrite": "Sobrescribir inicio de sesión de OpenClaw al cambiar Codex",
+      "openclawAuthOverwriteDesc": "Si está desactivado, solo se cambia Codex y OpenClaw mantiene su sesión actual"
     },
     "network": {
       "apiTitle": "API de cabina antigravedad",

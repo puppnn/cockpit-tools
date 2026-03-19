@@ -532,7 +532,9 @@
       "workbuddyAppPathDesc": "Laisser vide pour utiliser le chemin par defaut",
       "workbuddyAppPathPlaceholder": "Chemin par defaut",
       "workbuddyPathSelect": "Selectionner",
-      "workbuddyPathReset": "Reinitialiser par defaut"
+      "workbuddyPathReset": "Reinitialiser par defaut",
+      "openclawAuthOverwrite": "Écraser la connexion OpenClaw lors du changement de Codex",
+      "openclawAuthOverwriteDesc": "Si désactivé, seul Codex est changé et OpenClaw conserve son état de connexion actuel"
     },
     "network": {
       "apiTitle": "API du cockpit antigravité",
