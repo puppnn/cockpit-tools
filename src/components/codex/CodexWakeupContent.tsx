@@ -122,6 +122,12 @@ interface WakeupModelSelectionMemory {
   modelReasoningEffort: CodexWakeupReasoningEffort | '';
 }
 
+interface WakeupQuotaBadge {
+  key: 'primary' | 'secondary';
+  valueText: string;
+  quotaClass: string;
+}
+
 type ExecutionRecordStatus = 'pending' | 'running' | 'success' | 'error';
 
 interface ExecutionRecordState {
@@ -220,6 +226,29 @@ function resolveWakeupPlanBucket(planClass?: string) {
   if (upper.includes('PLUS')) return 'PLUS';
   if (upper.includes('PRO')) return 'PRO';
   return 'OTHER';
+}
+
+function resolveWakeupQuotaBadges(
+  presentation: ReturnType<typeof buildCodexAccountPresentation>,
+): WakeupQuotaBadge[] {
+  const standardQuotaItems = presentation.quotaItems.filter((item) => item.key !== 'code_review');
+  const primary = standardQuotaItems.find((item) => item.key === 'primary') ?? standardQuotaItems[0];
+  const secondary =
+    standardQuotaItems.find((item) => item.key === 'secondary') ??
+    standardQuotaItems.find((item) => item.key !== primary?.key);
+
+  return [
+    {
+      key: 'primary',
+      valueText: primary?.valueText ?? '--',
+      quotaClass: primary?.quotaClass ?? 'unknown',
+    },
+    {
+      key: 'secondary',
+      valueText: secondary?.valueText ?? '--',
+      quotaClass: secondary?.quotaClass ?? 'unknown',
+    },
+  ];
 }
 
 function createEmptyTaskDraft(defaultPreset?: CodexWakeupModelPreset | null): TaskDraft {
@@ -786,6 +815,7 @@ export function CodexWakeupContent({ accounts, onRefreshAccounts }: CodexWakeupC
         planLabel: string;
         planClass: string;
         planBucket: string;
+        quotaBadges: WakeupQuotaBadge[];
       }
     >();
     oauthAccounts.forEach((account) => {
@@ -796,6 +826,7 @@ export function CodexWakeupContent({ accounts, onRefreshAccounts }: CodexWakeupC
         planLabel: presentation.planLabel,
         planClass: presentation.planClass || 'unknown',
         planBucket: resolveWakeupPlanBucket(presentation.planClass),
+        quotaBadges: resolveWakeupQuotaBadges(presentation),
       });
     });
     return map;
@@ -1508,12 +1539,14 @@ export function CodexWakeupContent({ accounts, onRefreshAccounts }: CodexWakeupC
 
   const renderWakeupAccountOption = useCallback(
     (account: CodexAccount, checked: boolean, onToggle: () => void) => {
+      const presentation = buildCodexAccountPresentation(account, t);
       const meta = wakeupAccountMetaMap.get(account.id) ?? {
         email: (account.email || account.id).trim() || account.id,
         contextText: resolveAccountContextText(account, t),
-        planLabel: buildCodexAccountPresentation(account, t).planLabel,
-        planClass: buildCodexAccountPresentation(account, t).planClass || 'unknown',
-        planBucket: resolveWakeupPlanBucket(buildCodexAccountPresentation(account, t).planClass),
+        planLabel: presentation.planLabel,
+        planClass: presentation.planClass || 'unknown',
+        planBucket: resolveWakeupPlanBucket(presentation.planClass),
+        quotaBadges: resolveWakeupQuotaBadges(presentation),
       };
       const maskedEmail = maskAccountText(meta.email);
       return (
@@ -1528,9 +1561,24 @@ export function CodexWakeupContent({ accounts, onRefreshAccounts }: CodexWakeupC
             <span className="codex-wakeup-account-chip-email">{maskedEmail}</span>
             <span className={`tier-badge ${meta.planClass}`}>{meta.planLabel}</span>
           </div>
-          {meta.contextText && (
-            <span className="codex-wakeup-account-chip-context">{meta.contextText}</span>
-          )}
+          <div className="codex-wakeup-account-chip-meta">
+            {meta.contextText && (
+              <span className="codex-wakeup-account-chip-context">{meta.contextText}</span>
+            )}
+            <div className="codex-wakeup-account-chip-quotas">
+              {meta.quotaBadges.map((item) => (
+                <span
+                  key={`${account.id}-${item.key}`}
+                  className={`codex-wakeup-account-chip-quota codex-wakeup-account-chip-quota-${item.key}`}
+                >
+                  <span className="codex-wakeup-account-chip-quota-dot" />
+                  <span className={`codex-wakeup-account-chip-quota-value ${item.quotaClass}`}>
+                    {item.valueText}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </div>
         </button>
       );
     },

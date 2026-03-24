@@ -353,7 +353,13 @@ fn managed_home_path(account_id: &str) -> Result<PathBuf, String> {
 }
 
 fn install_hints() -> Vec<CodexCliInstallHint> {
+    #[cfg(target_os = "macos")]
     let mut hints = vec![CodexCliInstallHint {
+        label: "npm".to_string(),
+        command: "npm install -g @openai/codex".to_string(),
+    }];
+    #[cfg(not(target_os = "macos"))]
+    let hints = vec![CodexCliInstallHint {
         label: "npm".to_string(),
         command: "npm install -g @openai/codex".to_string(),
     }];

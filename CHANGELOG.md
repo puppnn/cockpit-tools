@@ -7,6 +7,15 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.20.6] - 2026-03-24
+
+### Changed
+- **Codex wakeup account selection now shows primary and secondary quota badges inline**: wakeup account chips display two compact quota indicators beside the masked account context, so users can compare standard quota state before selecting accounts without opening the full account view.
+
+### Fixed
+- **Cross-platform desktop Rust builds now keep Codex and Qoder helper modules aligned with target-specific compilation rules**: Codex CLI install hints now compile cleanly on both macOS and non-macOS targets, and Qoder OAuth path utilities are no longer gated behind a Unix-only import.
+
+---
 ## [0.20.5] - 2026-03-24
 
 ### Fixed
