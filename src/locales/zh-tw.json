@@ -611,7 +611,10 @@
       "autoSwitchAccountScopeDialogTitle": "選擇自動切號帳號範圍",
       "autoSwitchAccountScopeAllHint": "當前範圍為全部帳號，共 {{total}} 個帳號將參與自動切號。",
       "codexAutoSwitchAccountScope": "Codex 自動切號帳號範圍",
-      "codexAutoSwitchAccountScopeDesc": "當前 Codex 自動切號狀態：{{status}}。僅在該範圍內參與切號。"
+      "codexAutoSwitchAccountScopeDesc": "當前 Codex 自動切號狀態：{{status}}。僅在該範圍內參與切號。",
+      "defaultTerminal": "預設終端機",
+      "defaultTerminalDesc": "啟動 Gemini CLI 時使用的終端機",
+      "terminalSystem": "跟隨系統"
     },
     "network": {
       "apiTitle": "反重力駕駛艙 API",
@@ -2426,7 +2429,11 @@
       "unsupportedDescPlatform": "Gemini Cli 多執行個體僅在 macOS、Windows 和 Linux 上支援。",
       "launchDialogTitle": "啟動實例",
       "launchHint": "複製命令並手動運行，或直接在終端機中執行。",
-      "runInTerminal": "在終端機中運行"
+      "runInTerminal": "在終端機中運行",
+      "workingDir": "工作目錄",
+      "workingDirPlaceholder": "預設目前路徑",
+      "workingDirDesc": "啟動時將首先切換到此目錄",
+      "pickWorkingDir": "選擇工作目錄"
     },
     "switch": {
       "success": "帳號切換成功"

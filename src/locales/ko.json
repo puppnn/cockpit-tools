@@ -456,6 +456,9 @@
       "themeSystem": "시스템 설정",
       "uiScale": "UI 배율",
       "uiScaleDesc": "인터페이스 배율 조정",
+      "defaultTerminal": "기본 터미널",
+      "defaultTerminalDesc": "Gemini CLI를 열 때 사용되는 터미널",
+      "terminalSystem": "시스템 기본값",
       "accountManagement": "계정 관리",
       "autoRefresh": "Antigravity 자동 새로고침 할당량",
       "codexAutoRefresh": "Codex 자동 새로고침 할당량",
@@ -2400,7 +2403,11 @@
       "unsupportedDescPlatform": "Gemini Cli 다중 인스턴스는 macOS, Windows, Linux에서만 지원됩니다.",
       "launchDialogTitle": "인스턴스 실행",
       "launchHint": "명령을 복사해 수동으로 실행하거나 터미널에서 바로 실행하세요.",
-      "runInTerminal": "터미널에서 실행"
+      "runInTerminal": "터미널에서 실행",
+      "workingDir": "작업 디렉토리",
+      "workingDirPlaceholder": "현재 경로 기본값",
+      "workingDirDesc": "시작 시 먼저 이 디렉토리로 전환합니다",
+      "pickWorkingDir": "작업 디렉토리 선택"
     },
     "switch": {
       "success": "계정 전환에 성공했습니다"

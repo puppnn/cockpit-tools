@@ -451,6 +451,9 @@
       "languageDesc": "Arayüz dilini seçin",
       "theme": "Tema",
       "themeDesc": "Koyu ve açık mod arasında geçiş yapın",
+      "defaultTerminal": "Varsayılan Terminal",
+      "defaultTerminalDesc": "Gemini CLI açılırken kullanılan terminal",
+      "terminalSystem": "Sistem Varsayılanı",
       "themeLight": "Açık",
       "themeDark": "Koyu",
       "themeSystem": "Sistem",
@@ -2426,7 +2429,11 @@
       "unsupportedDescPlatform": "Gemini Cli çoklu örneği yalnızca macOS, Windows ve Linux'ta desteklenir.",
       "launchDialogTitle": "Örneği Başlat",
       "launchHint": "Komutu kopyalayın ve manuel olarak çalıştırın veya doğrudan terminalde çalıştırın.",
-      "runInTerminal": "Terminalde Çalıştır"
+      "runInTerminal": "Terminalde Çalıştır",
+      "workingDir": "Çalışma Dizini",
+      "workingDirPlaceholder": "Geçerli yol varsayılan",
+      "workingDirDesc": "Başlatıldığında önce bu dizine geçiş yapacaktır",
+      "pickWorkingDir": "Çalışma Dizini Seç"
     },
     "switch": {
       "success": "Hesap başarıyla değiştirildi"

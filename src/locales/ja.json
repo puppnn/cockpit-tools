@@ -451,6 +451,9 @@
       "languageDesc": "表示言語を選択してください",
       "theme": "テーマ",
       "themeDesc": "ダークモードとライトモードを切り替えます",
+      "defaultTerminal": "デフォルトのターミナル",
+      "defaultTerminalDesc": "Gemini CLIを開くときに使用されるターミナル",
+      "terminalSystem": "システムデフォルト",
       "themeLight": "ライト",
       "themeDark": "ダーク",
       "themeSystem": "システム設定に従う",
@@ -2399,8 +2402,12 @@
       "unsupported": "Gemini Cli のマルチインスタンス管理は現在未対応です。",
       "unsupportedDescPlatform": "Gemini Cli のマルチインスタンスは macOS、Windows、Linux のみ対応しています。",
       "launchDialogTitle": "インスタンスを起動",
-      "launchHint": "コマンドをコピーして手動実行するか、ターミナルで直接実行してください。",
-      "runInTerminal": "ターミナルで実行"
+      "launchHint": "コマンドをコピーして手動で実行するか、直接ターミナルで実行してください。",
+      "runInTerminal": "ターミナルで実行",
+      "workingDir": "作業ディレクトリ",
+      "workingDirPlaceholder": "デフォルトは現在のパス",
+      "workingDirDesc": "起動時にまずこのディレクトリに切り替えます",
+      "pickWorkingDir": "作業ディレクトリを選択"
     },
     "switch": {
       "success": "アカウントの切り替えに成功しました"

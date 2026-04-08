@@ -611,7 +611,10 @@
       "autoSwitchAccountScopeDialogTitle": "Choisir la portée des comptes pour la bascule automatique",
       "autoSwitchAccountScopeAllHint": "La portée actuelle inclut tous les comptes. {{total}} compte(s) participeront à la bascule automatique.",
       "codexAutoSwitchAccountScope": "Portée de bascule automatique des comptes Codex",
-      "codexAutoSwitchAccountScopeDesc": "État actuel de la bascule automatique Codex : {{status}}. Seuls les comptes de cette portée seront pris en compte."
+      "codexAutoSwitchAccountScopeDesc": "État actuel de la bascule automatique Codex : {{status}}. Seuls les comptes de cette portée seront pris en compte.",
+      "defaultTerminal": "Terminal par défaut",
+      "defaultTerminalDesc": "Le terminal utilisé lors de l'ouverture de Gemini CLI",
+      "terminalSystem": "Système par défaut"
     },
     "network": {
       "apiTitle": "API du cockpit antigravité",
@@ -2400,7 +2403,11 @@
       "unsupportedDescPlatform": "Le mode multi-instances Gemini Cli est pris en charge uniquement sur macOS, Windows et Linux.",
       "launchDialogTitle": "Lancer l’instance",
       "launchHint": "Copiez la commande et exécutez-la manuellement, ou lancez-la directement dans le terminal.",
-      "runInTerminal": "Exécuter dans le terminal"
+      "runInTerminal": "Exécuter dans le terminal",
+      "workingDir": "Répertoire de travail",
+      "workingDirPlaceholder": "Par défaut le chemin actuel",
+      "workingDirDesc": "Bascule d'abord vers ce répertoire au démarrage",
+      "pickWorkingDir": "Sélectionner le répertoire de travail"
     },
     "switch": {
       "success": "Compte changé avec succès"

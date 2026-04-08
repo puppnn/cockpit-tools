@@ -451,6 +451,9 @@
       "languageDesc": "Chọn ngôn ngữ hiển thị giao diện",
       "theme": "Chủ đề ứng dụng",
       "themeDesc": "Chuyển đổi chế độ sáng hoặc tối",
+      "defaultTerminal": "Terminal mặc định",
+      "defaultTerminalDesc": "Terminal được sử dụng khi mở Gemini CLI",
+      "terminalSystem": "Mặc định hệ thống",
       "themeLight": "Sáng (Light)",
       "themeDark": "Tối (Dark)",
       "themeSystem": "Theo hệ thống",
@@ -2426,7 +2429,11 @@
       "unsupportedDescPlatform": "Phiên bản đa phiên bản Gemini Cli chỉ được hỗ trợ trên macOS, Windows và Linux.",
       "launchDialogTitle": "Khởi chạy phiên bản",
       "launchHint": "Sao chép lệnh và chạy thủ công hoặc thực thi trực tiếp trong terminal.",
-      "runInTerminal": "Chạy trong Terminal"
+      "runInTerminal": "Chạy trong Terminal",
+      "workingDir": "Thư mục làm việc",
+      "workingDirPlaceholder": "Mặc định là đường dẫn hiện tại",
+      "workingDirDesc": "Sẽ chuyển sang thư mục này trước khi khởi động",
+      "pickWorkingDir": "Chọn thư mục làm việc"
     },
     "switch": {
       "success": "Chuyển đổi tài khoản thành công"

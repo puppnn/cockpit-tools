@@ -611,7 +611,10 @@
       "autoSwitchAccountScopeDialogTitle": "Vyberte rozsah účtů pro automatické přepínání",
       "autoSwitchAccountScopeAllHint": "Aktuální rozsah jsou všechny účty. Do automatického přepínání bude zahrnuto {{total}} účtů.",
       "codexAutoSwitchAccountScope": "Rozsah automatického přepínání účtů Codex",
-      "codexAutoSwitchAccountScopeDesc": "Aktuální stav automatického přepínání Codex: {{status}}. Zohledněny budou pouze účty v tomto rozsahu."
+      "codexAutoSwitchAccountScopeDesc": "Aktuální stav automatického přepínání Codex: {{status}}. Zohledněny budou pouze účty v tomto rozsahu.",
+      "defaultTerminal": "Výchozí terminál",
+      "defaultTerminalDesc": "Terminál použitý při otevírání Gemini CLI",
+      "terminalSystem": "Systémový výchozí"
     },
     "network": {
       "apiTitle": "Antigravity Cockpit API",
@@ -2400,7 +2403,11 @@
       "unsupportedDescPlatform": "Více instancí Gemini Cli je podporováno pouze na macOS, Windows a Linuxu.",
       "launchDialogTitle": "Spustit instanci",
       "launchHint": "Zkopírujte příkaz a spusťte jej ručně, nebo jej spusťte přímo v terminálu.",
-      "runInTerminal": "Spustit v terminálu"
+      "runInTerminal": "Spustit v terminálu",
+      "workingDir": "Pracovní adresář",
+      "workingDirPlaceholder": "Výchozí aktuální cesta",
+      "workingDirDesc": "Při spuštění se nejprve přepne do tohoto adresáře",
+      "pickWorkingDir": "Vybrat pracovní adresář"
     },
     "switch": {
       "success": "Účet byl úspěšně přepnut"

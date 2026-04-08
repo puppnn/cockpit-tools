@@ -657,7 +657,10 @@
       "autoSwitchAccountScopeDialogTitle": "اختيار نطاق حسابات التبديل التلقائي",
       "autoSwitchAccountScopeAllHint": "النطاق الحالي هو كل الحسابات. سيشارك {{total}} حسابًا في التبديل التلقائي.",
       "codexAutoSwitchAccountScope": "نطاق التبديل التلقائي لحسابات Codex",
-      "codexAutoSwitchAccountScopeDesc": "حالة التبديل التلقائي الحالية لـ Codex: {{status}}. سيتم النظر فقط في الحسابات ضمن هذا النطاق."
+      "codexAutoSwitchAccountScopeDesc": "حالة التبديل التلقائي الحالية لـ Codex: {{status}}. سيتم النظر فقط في الحسابات ضمن هذا النطاق.",
+      "defaultTerminal": "المحطة الافتراضية",
+      "defaultTerminalDesc": "المحطة المستخدمة عند فتح Gemini CLI",
+      "terminalSystem": "افتراضي النظام"
     },
     "network": {
       "apiTitle": "واجهة برمجة تطبيقات قمرة القيادة المضادة للجاذبية",
@@ -2446,7 +2449,11 @@
       "unsupportedDescPlatform": "تعدد مثيلات Gemini Cli مدعوم فقط على macOS وWindows وLinux.",
       "launchDialogTitle": "تشغيل المثيل",
       "launchHint": "انسخ الأمر وشغّله يدويًا، أو نفّذه مباشرة في الطرفية.",
-      "runInTerminal": "تشغيل في الطرفية"
+      "runInTerminal": "تشغيل في الطرفية",
+      "workingDir": "دليل العمل",
+      "workingDirPlaceholder": "الافتراضي المسار الحالي",
+      "workingDirDesc": "سوف ينتقل إلى هذا الدليل أولاً عند البدء",
+      "pickWorkingDir": "اختر دليل العمل"
     },
     "switch": {
       "success": "تم تبديل الحساب بنجاح"

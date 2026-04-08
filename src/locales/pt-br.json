@@ -456,6 +456,9 @@
       "themeSystem": "Sistema",
       "uiScale": "Escala da interface",
       "uiScaleDesc": "Ajuste a escala da interface",
+      "defaultTerminal": "Terminal Padrão",
+      "defaultTerminalDesc": "O terminal usado ao abrir o Gemini CLI",
+      "terminalSystem": "Padrão do Sistema",
       "accountManagement": "Gerenciamento de Contas",
       "autoRefresh": "Atualização automática da cota Antigravity",
       "codexAutoRefresh": "Atualização automática da cota Codex",
@@ -2400,7 +2403,11 @@
       "unsupportedDescPlatform": "A multiinstância Gemini Cli é compatível apenas com macOS, Windows e Linux.",
       "launchDialogTitle": "Iniciar instância",
       "launchHint": "Copie o comando e execute-o manualmente ou execute-o diretamente no terminal.",
-      "runInTerminal": "Execute no Terminal"
+      "runInTerminal": "Execute no Terminal",
+      "workingDir": "Diretório de Trabalho",
+      "workingDirPlaceholder": "Padrão para o caminho atual",
+      "workingDirDesc": "Mudará para este diretório primeiro ao iniciar",
+      "pickWorkingDir": "Selecionar Diretório de Trabalho"
     },
     "switch": {
       "success": "Conta trocada com sucesso"

@@ -451,6 +451,9 @@
       "languageDesc": "Wählen Sie die Oberflächensprache",
       "theme": "Design",
       "themeDesc": "Zwischen hellem und dunklem Modus wechseln",
+      "defaultTerminal": "Standard-Terminal",
+      "defaultTerminalDesc": "Das beim Öffnen der Gemini CLI verwendete Terminal",
+      "terminalSystem": "Systemstandard",
       "themeLight": "Hell",
       "themeDark": "Dunkel",
       "themeSystem": "System",
@@ -2400,7 +2403,11 @@
       "unsupportedDescPlatform": "Gemini Cli-Mehrinstanzen werden nur unter macOS, Windows und Linux unterstützt.",
       "launchDialogTitle": "Instanz starten",
       "launchHint": "Kopieren Sie den Befehl und führen Sie ihn manuell aus oder direkt im Terminal.",
-      "runInTerminal": "Im Terminal ausführen"
+      "runInTerminal": "Im Terminal ausführen",
+      "workingDir": "Arbeitsverzeichnis",
+      "workingDirPlaceholder": "Standardmäßig aktueller Pfad",
+      "workingDirDesc": "Wechselt beim Start zuerst in dieses Verzeichnis",
+      "pickWorkingDir": "Arbeitsverzeichnis auswählen"
     },
     "switch": {
       "success": "Konto erfolgreich gewechselt"

@@ -456,6 +456,9 @@
       "themeSystem": "Системная",
       "uiScale": "Масштаб интерфейса",
       "uiScaleDesc": "Настройте масштаб интерфейса",
+      "defaultTerminal": "Терминал по умолчанию",
+      "defaultTerminalDesc": "Терминал, используемый при открытии Gemini CLI",
+      "terminalSystem": "Системный по умолчанию",
       "accountManagement": "Управление аккаунтами",
       "autoRefresh": "Автообновление квоты Antigravity",
       "codexAutoRefresh": "Автообновление квоты Codex",
@@ -2426,7 +2429,11 @@
       "unsupportedDescPlatform": "Мультиэкземпляр Gemini Cli поддерживается только в macOS, Windows и Linux.",
       "launchDialogTitle": "Запустить экземпляр",
       "launchHint": "Скопируйте команду и запустите вручную или выполните ее непосредственно в терминале.",
-      "runInTerminal": "Запустить в терминале"
+      "runInTerminal": "Запустить в терминале",
+      "workingDir": "Рабочий каталог",
+      "workingDirPlaceholder": "По умолчанию текущий путь",
+      "workingDirDesc": "Сначала переключится на этот каталог при запуске",
+      "pickWorkingDir": "Выбрать рабочий каталог"
     },
     "switch": {
       "success": "Аккаунт успешно переключен"

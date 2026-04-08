@@ -611,7 +611,10 @@
       "autoSwitchAccountScopeDialogTitle": "Seleccionar alcance de cuentas para el cambio automático",
       "autoSwitchAccountScopeAllHint": "El alcance actual incluye todas las cuentas. {{total}} cuenta(s) participarán en el cambio automático.",
       "codexAutoSwitchAccountScope": "Alcance de cambio automático de cuentas de Codex",
-      "codexAutoSwitchAccountScopeDesc": "Estado actual de cambio automático de Codex: {{status}}. Solo se considerarán cuentas dentro de este alcance."
+      "codexAutoSwitchAccountScopeDesc": "Estado actual de cambio automático de Codex: {{status}}. Solo se considerarán cuentas dentro de este alcance.",
+      "defaultTerminal": "Terminal predeterminado",
+      "defaultTerminalDesc": "La terminal utilizada al abrir Gemini CLI",
+      "terminalSystem": "Predeterminado del sistema"
     },
     "network": {
       "apiTitle": "API de cabina antigravedad",
@@ -2400,7 +2403,11 @@
       "unsupportedDescPlatform": "La función de múltiples instancias de Gemini Cli solo es compatible con macOS, Windows y Linux.",
       "launchDialogTitle": "Iniciar instancia",
       "launchHint": "Copia el comando y ejecútalo manualmente, o ejecútalo directamente en la terminal.",
-      "runInTerminal": "Ejecutar en terminal"
+      "runInTerminal": "Ejecutar en terminal",
+      "workingDir": "Directorio de trabajo",
+      "workingDirPlaceholder": "Predeterminado a la ruta actual",
+      "workingDirDesc": "Cambiará a este directorio primero al iniciar",
+      "pickWorkingDir": "Seleccionar directorio de trabajo"
     },
     "switch": {
       "success": "Cuenta cambiada correctamente"

@@ -611,7 +611,10 @@
       "autoSwitchAccountScopeDialogTitle": "Seleziona l’ambito account per il cambio automatico",
       "autoSwitchAccountScopeAllHint": "L’ambito attuale include tutti gli account. {{total}} account parteciperanno al cambio automatico.",
       "codexAutoSwitchAccountScope": "Ambito di cambio automatico account Codex",
-      "codexAutoSwitchAccountScopeDesc": "Stato attuale del cambio automatico Codex: {{status}}. Verranno considerati solo gli account in questo ambito."
+      "codexAutoSwitchAccountScopeDesc": "Stato attuale del cambio automatico Codex: {{status}}. Verranno considerati solo gli account in questo ambito.",
+      "defaultTerminal": "Terminal predefinito",
+      "defaultTerminalDesc": "Il terminale utilizzato all'apertura di Gemini CLI",
+      "terminalSystem": "Predefinito di sistema"
     },
     "network": {
       "apiTitle": "API della cabina di pilotaggio antigravità",
@@ -2400,7 +2403,11 @@
       "unsupportedDescPlatform": "La multi-istanza Gemini Cli è supportata solo su macOS, Windows e Linux.",
       "launchDialogTitle": "Avvia istanza",
       "launchHint": "Copia il comando ed eseguilo manualmente, oppure eseguilo direttamente nel terminale.",
-      "runInTerminal": "Esegui nel terminale"
+      "runInTerminal": "Esegui nel terminale",
+      "workingDir": "Directory di lavoro",
+      "workingDirPlaceholder": "Predefinito il percorso attuale",
+      "workingDirDesc": "Passerà prima a questa directory all'avvio",
+      "pickWorkingDir": "Seleziona directory di lavoro"
     },
     "switch": {
       "success": "Account cambiato con successo"

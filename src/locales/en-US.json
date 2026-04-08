@@ -2227,7 +2227,11 @@
       "unsupportedDescPlatform": "Gemini Cli multi-instance is supported on macOS, Windows, and Linux only.",
       "launchDialogTitle": "Launch Instance",
       "launchHint": "Copy the command and run manually, or execute it directly in terminal.",
-      "runInTerminal": "Run in Terminal"
+      "runInTerminal": "Run in Terminal",
+      "workingDir": "Working Directory",
+      "workingDirPlaceholder": "Default to current path",
+      "workingDirDesc": "Will switch to this directory first upon startup",
+      "pickWorkingDir": "Select Working Directory"
     },
     "switch": {
       "success": "Account switched successfully"
