@@ -46,7 +46,8 @@
         "title": "暂无账号"
       },
       "export": {
-        "title": "导出"
+        "title": "导出",
+        "copyFailed": "复制失败，请手动复制"
       },
       "filter": {
         "all": "全部 ({{count}})",
