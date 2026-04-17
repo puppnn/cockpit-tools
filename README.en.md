@@ -73,6 +73,18 @@ Codex also supports parallel multi-instance usage. For example, open two Codex i
 
 > ![Codex Instances](docs/images/codex_instances.png)
 
+#### 3.2 Codex Session Management Enhancements (This Fork)
+
+This fork extends the Codex module with local session management focused on organizing, reviewing, and renaming sessions stored under `~/.codex`.
+
+- **Full local session scan**: Aggregates `sessions/**/*.jsonl`, `session_index.jsonl`, and `state_5.sqlite` so local session history is discovered as completely as possible
+- **Three-pane session viewer**: Left pane groups sessions by working directory, the center pane focuses on user prompts and assistant replies, and the right pane provides title editing plus session details
+- **Cleaner conversation view**: Hides the leading `<environment_context>...</environment_context>` block in user messages and folds long messages for faster reading
+- **Resizable layout**: All three panes can be resized horizontally, and the left, center, and right panes scroll independently
+- **Direct title write-back**: Saving a title updates the original rollout file `session_meta` and also syncs `session_index.jsonl` plus `state_5.sqlite`
+- **Favorite backups**: Clicking Favorite backs up the session to `~/.codex/cockpit-tools-session-favorites`; removing Favorite only deletes the backup and does not touch the original session files
+- **Windows-first default source**: Uses `%USERPROFILE%\\.codex` as the default data source for managing local Codex session history
+
 ### 4. GitHub Copilot Account Management
 
 - **Account Import**: OAuth, Token/JSON import
@@ -370,6 +382,14 @@ npm install
 ```bash
 npm run tauri dev
 ```
+
+On Windows, if you want to start the local dev app by double-clicking and avoid a visible console window, you can use the helper script in the repository root:
+
+```bash
+run-tauri-dev-hidden.vbs
+```
+
+It launches `run-tauri-dev.cmd` in the background and writes logs to `dev-tauri.log`.
 
 ### Build
 

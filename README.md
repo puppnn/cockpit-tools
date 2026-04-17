@@ -79,6 +79,18 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 
 > ![Codex Instances](docs/images/codex_instances.png)
 
+#### 3.2 Codex 会话管理增强（本 fork）
+
+当前 fork 在 Codex 模块中补充了本地会话管理能力，重点面向 `~/.codex` 下的历史会话整理、查看与标题维护。
+
+- **完整会话扫描**：同时聚合 `sessions/**/*.jsonl`、`session_index.jsonl` 与 `state_5.sqlite`，尽量把本地会话完整识别出来
+- **三栏会话查看**：左侧按工作目录分组显示会话，中间聚焦用户提问与助手回复，右侧提供标题编辑与会话详情
+- **简洁时间线**：默认隐藏用户消息开头的 `<environment_context>...</environment_context>`，并对长消息做折叠，方便快速浏览
+- **可拖拽布局**：三栏支持左右拖拽调宽；中间会话区、左栏、右栏分别滚动，互不干扰
+- **标题直接回写**：保存标题时直接更新原始 rollout 会话文件里的 `session_meta`，并同步写回 `session_index.jsonl` 与 `state_5.sqlite`
+- **收藏备份**：点击“收藏”后会把对应会话备份到 `~/.codex/cockpit-tools-session-favorites`；取消收藏只删除备份，不改动原始会话文件
+- **Windows 优先**：默认数据源为 `%USERPROFILE%\\.codex`，适合直接管理本机 Codex 会话记录
+
 ### 4. GitHub Copilot 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入
@@ -372,6 +384,14 @@ npm install
 ```bash
 npm run tauri dev
 ```
+
+Windows 下如果希望双击启动本地调试，并避免弹出命令行黑框，也可以使用仓库根目录下的脚本：
+
+```bash
+run-tauri-dev-hidden.vbs
+```
+
+该脚本会在后台调用 `run-tauri-dev.cmd` 启动 Tauri 开发环境，并把日志写入 `dev-tauri.log`。
 
 ### 构建产物
 
