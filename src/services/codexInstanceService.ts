@@ -4,9 +4,13 @@ import type {
   CodexSessionVisibilityRepairSummary,
   CodexInstanceThreadSyncSummary,
   CodexSessionRecord,
+  CodexSessionViewerRecord,
   CodexSessionTrashSummary,
   CodexTrashedSessionRecord,
   CodexSessionRestoreSummary,
+  CodexSessionTimeline,
+  CodexSessionTitleUpdateResult,
+  CodexSessionFavoriteResult,
 } from "../types/codex";
 import type { InstanceLaunchMode, InstanceProfile } from "../types/instance";
 
@@ -109,6 +113,48 @@ export async function listSessionsAcrossInstances(): Promise<
   CodexSessionRecord[]
 > {
   return await invoke("codex_list_sessions_across_instances");
+}
+
+export async function listSessionsForViewer(): Promise<
+  CodexSessionViewerRecord[]
+> {
+  return await invoke("codex_list_sessions_for_viewer");
+}
+
+export async function getSessionTimeline(
+  sessionId: string,
+  instanceId?: string | null,
+): Promise<CodexSessionTimeline> {
+  return await invoke("codex_get_session_timeline", {
+    sessionId,
+    instanceId: instanceId ?? null,
+  });
+}
+
+export async function updateSessionTitle(
+  sessionId: string,
+  title: string,
+): Promise<CodexSessionTitleUpdateResult> {
+  return await invoke("codex_update_session_title", {
+    sessionId,
+    title,
+  });
+}
+
+export async function favoriteSession(
+  sessionId: string,
+): Promise<CodexSessionFavoriteResult> {
+  return await invoke("codex_favorite_session", {
+    sessionId,
+  });
+}
+
+export async function unfavoriteSession(
+  sessionId: string,
+): Promise<CodexSessionFavoriteResult> {
+  return await invoke("codex_unfavorite_session", {
+    sessionId,
+  });
 }
 
 export async function moveSessionsToTrashAcrossInstances(

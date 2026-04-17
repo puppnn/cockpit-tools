@@ -266,6 +266,42 @@ pub async fn codex_list_sessions_across_instances(
 }
 
 #[tauri::command]
+pub async fn codex_list_sessions_for_viewer(
+) -> Result<Vec<modules::codex_session_viewer::CodexSessionViewerRecord>, String> {
+    modules::codex_session_viewer::list_sessions_across_instances()
+}
+
+#[tauri::command]
+pub async fn codex_get_session_timeline(
+    session_id: String,
+    instance_id: Option<String>,
+) -> Result<modules::codex_session_viewer::CodexSessionTimeline, String> {
+    modules::codex_session_viewer::get_session_timeline(session_id, instance_id)
+}
+
+#[tauri::command]
+pub async fn codex_update_session_title(
+    session_id: String,
+    title: String,
+) -> Result<modules::codex_session_viewer::CodexSessionTitleUpdateResult, String> {
+    modules::codex_session_viewer::update_session_title(session_id, title)
+}
+
+#[tauri::command]
+pub async fn codex_favorite_session(
+    session_id: String,
+) -> Result<modules::codex_session_viewer::CodexSessionFavoriteResult, String> {
+    modules::codex_session_viewer::favorite_session(session_id)
+}
+
+#[tauri::command]
+pub async fn codex_unfavorite_session(
+    session_id: String,
+) -> Result<modules::codex_session_viewer::CodexSessionFavoriteResult, String> {
+    modules::codex_session_viewer::unfavorite_session(session_id)
+}
+
+#[tauri::command]
 pub async fn codex_move_sessions_to_trash_across_instances(
     session_ids: Vec<String>,
 ) -> Result<modules::codex_session_manager::CodexSessionTrashSummary, String> {

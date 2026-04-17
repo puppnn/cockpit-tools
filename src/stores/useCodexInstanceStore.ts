@@ -3,9 +3,13 @@ import type {
   CodexSessionVisibilityRepairSummary,
   CodexInstanceThreadSyncSummary,
   CodexSessionRecord,
+  CodexSessionViewerRecord,
   CodexSessionTrashSummary,
   CodexTrashedSessionRecord,
   CodexSessionRestoreSummary,
+  CodexSessionTimeline,
+  CodexSessionTitleUpdateResult,
+  CodexSessionFavoriteResult,
 } from '../types/codex';
 import { createInstanceStore, type InstanceStoreState } from './createInstanceStore';
 
@@ -13,6 +17,11 @@ type CodexInstanceStoreState = InstanceStoreState & {
   syncThreadsAcrossInstances: () => Promise<CodexInstanceThreadSyncSummary>;
   repairSessionVisibilityAcrossInstances: () => Promise<CodexSessionVisibilityRepairSummary>;
   listSessionsAcrossInstances: () => Promise<CodexSessionRecord[]>;
+  listSessionsForViewer: () => Promise<CodexSessionViewerRecord[]>;
+  getSessionTimeline: (sessionId: string, instanceId?: string | null) => Promise<CodexSessionTimeline>;
+  updateSessionTitle: (sessionId: string, title: string) => Promise<CodexSessionTitleUpdateResult>;
+  favoriteSession: (sessionId: string) => Promise<CodexSessionFavoriteResult>;
+  unfavoriteSession: (sessionId: string) => Promise<CodexSessionFavoriteResult>;
   moveSessionsToTrashAcrossInstances: (sessionIds: string[]) => Promise<CodexSessionTrashSummary>;
   listTrashedSessionsAcrossInstances: () => Promise<CodexTrashedSessionRecord[]>;
   restoreSessionsFromTrashAcrossInstances: (sessionIds: string[]) => Promise<CodexSessionRestoreSummary>;
@@ -44,6 +53,36 @@ const listSessionsAcrossInstances = async (): Promise<CodexSessionRecord[]> => {
   return await codexInstanceService.listSessionsAcrossInstances();
 };
 
+const listSessionsForViewer = async (): Promise<CodexSessionViewerRecord[]> => {
+  return await codexInstanceService.listSessionsForViewer();
+};
+
+const getSessionTimeline = async (
+  sessionId: string,
+  instanceId?: string | null,
+): Promise<CodexSessionTimeline> => {
+  return await codexInstanceService.getSessionTimeline(sessionId, instanceId);
+};
+
+const updateSessionTitle = async (
+  sessionId: string,
+  title: string,
+): Promise<CodexSessionTitleUpdateResult> => {
+  return await codexInstanceService.updateSessionTitle(sessionId, title);
+};
+
+const favoriteSession = async (
+  sessionId: string,
+): Promise<CodexSessionFavoriteResult> => {
+  return await codexInstanceService.favoriteSession(sessionId);
+};
+
+const unfavoriteSession = async (
+  sessionId: string,
+): Promise<CodexSessionFavoriteResult> => {
+  return await codexInstanceService.unfavoriteSession(sessionId);
+};
+
 const moveSessionsToTrashAcrossInstances = async (
   sessionIds: string[],
 ): Promise<CodexSessionTrashSummary> => {
@@ -68,6 +107,11 @@ typedBaseStore.setState({
   syncThreadsAcrossInstances,
   repairSessionVisibilityAcrossInstances,
   listSessionsAcrossInstances,
+  listSessionsForViewer,
+  getSessionTimeline,
+  updateSessionTitle,
+  favoriteSession,
+  unfavoriteSession,
   moveSessionsToTrashAcrossInstances,
   listTrashedSessionsAcrossInstances,
   restoreSessionsFromTrashAcrossInstances,

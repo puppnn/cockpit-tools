@@ -138,6 +138,69 @@ export interface CodexSessionRecord {
   locations: CodexSessionLocation[];
 }
 
+export interface CodexSessionViewerLocation {
+  instanceId: string;
+  instanceName: string;
+  running: boolean;
+  sessionPath?: string | null;
+  updatedAt?: number | null;
+  createdAt?: number | null;
+  cwd: string;
+  modelProvider: string;
+}
+
+export interface CodexSessionViewerRecord {
+  sessionId: string;
+  title: string;
+  cwd: string;
+  updatedAt?: number | null;
+  createdAt?: number | null;
+  modelProvider: string;
+  sessionPath?: string | null;
+  locationCount: number;
+  isFavorite: boolean;
+  locations: CodexSessionViewerLocation[];
+}
+
+export interface CodexTimelineEvent {
+  id: string;
+  timestamp: string;
+  kind: string;
+  role: string;
+  title: string;
+  summary: string;
+  body: string;
+  raw: string;
+  callId: string;
+  status: string;
+}
+
+export interface CodexSessionTimeline {
+  session: CodexSessionViewerRecord;
+  events: CodexTimelineEvent[];
+  warnings: string[];
+}
+
+export interface CodexSessionTitleUpdateResult {
+  sessionId: string;
+  title: string;
+  matchedInstanceCount: number;
+  rolloutFileUpdatedCount: number;
+  sessionIndexUpdatedCount: number;
+  sqliteUpdatedCount: number;
+  backupPaths: string[];
+  warnings: string[];
+  message: string;
+}
+
+export interface CodexSessionFavoriteResult {
+  sessionId: string;
+  matchedInstanceCount: number;
+  backupPaths: string[];
+  warnings: string[];
+  message: string;
+}
+
 export interface CodexSessionTrashSummary {
   requestedSessionCount: number;
   trashedSessionCount: number;

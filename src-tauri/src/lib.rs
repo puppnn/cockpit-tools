@@ -169,6 +169,20 @@ pub fn run() {
                 logger::log_warn(&format!("[FloatingCard] 启动时显示悬浮卡片失败: {}", err));
             }
 
+            let force_main_window = std::env::var("COCKPIT_FORCE_MAIN_WINDOW")
+                .map(|value| matches!(value.trim(), "1" | "true" | "TRUE" | "yes" | "YES"))
+                .unwrap_or(false);
+
+            if force_main_window {
+                let _ = modules::floating_card_window::hide_floating_card_window(&app.handle(), false);
+                if let Err(err) = modules::floating_card_window::show_main_window(&app.handle()) {
+                    logger::log_warn(&format!(
+                        "[Window] Forced main window startup failed: {}",
+                        err
+                    ));
+                }
+            }
+
             let startup_args: Vec<String> = std::env::args().collect();
             let _ = modules::external_import::handle_external_import_args(
                 &app.handle(),
@@ -693,6 +707,11 @@ pub fn run() {
             commands::codex_instance::codex_sync_threads_across_instances,
             commands::codex_instance::codex_repair_session_visibility_across_instances,
             commands::codex_instance::codex_list_sessions_across_instances,
+            commands::codex_instance::codex_list_sessions_for_viewer,
+            commands::codex_instance::codex_get_session_timeline,
+            commands::codex_instance::codex_update_session_title,
+            commands::codex_instance::codex_favorite_session,
+            commands::codex_instance::codex_unfavorite_session,
             commands::codex_instance::codex_move_sessions_to_trash_across_instances,
             commands::codex_instance::codex_list_trashed_sessions_across_instances,
             commands::codex_instance::codex_restore_sessions_from_trash_across_instances,
