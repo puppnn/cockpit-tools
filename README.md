@@ -6,18 +6,6 @@
 
 这个 fork 当前主要补强的是 Codex 模块，重点是本地会话读取、查看、标题编辑和收藏备份。完整定制代码在 [`my-main`](https://github.com/puppnn/cockpit-tools/tree/my-main) 分支。
 
-## 界面对比
-
-以下图片为完全脱敏的本地生成示意图，仅用于展示布局变化，不对应任何真实会话、路径或账号信息。
-
-### 原来会话管理界面
-
-![原来会话管理界面（完全脱敏示意图）](docs/images/codex_sessions_original_sanitized.png)
-
-### 现在会话界面
-
-![现在会话界面（完全脱敏示意图）](docs/images/codex_sessions_current_sanitized.png)
-
 ## 本 fork 修改点
 
 ### 1. Codex 会话完整读取
@@ -85,3 +73,4 @@ run-tauri-dev-hidden.vbs
 
 - 原作者仓库: https://github.com/jlcodes99/cockpit-tools
 - 我的 fork: https://github.com/puppnn/cockpit-tools
+
