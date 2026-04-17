@@ -6,6 +6,18 @@ This is a custom fork of [jlcodes99/cockpit-tools](https://github.com/jlcodes99/
 
 This fork is currently focused on extending the Codex module with stronger local session management: session discovery, viewing, title editing, and favorite backups. The full customized implementation lives on the [`my-main`](https://github.com/puppnn/cockpit-tools/tree/my-main) branch.
 
+## UI Comparison
+
+The images below are fully sanitized locally generated mockups. They are layout illustrations only and do not correspond to any real session, path, or account data.
+
+### Original session manager
+
+![Original session manager (fully sanitized mockup)](docs/images/codex_sessions_original_sanitized.png)
+
+### Current session viewer
+
+![Current session viewer (fully sanitized mockup)](docs/images/codex_sessions_current_sanitized.png)
+
 ## Fork Changes
 
 ### 1. Full Codex Session Discovery
