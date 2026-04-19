@@ -14,10 +14,15 @@ static CODEX_INSTANCE_STORE_LOCK: std::sync::LazyLock<Mutex<()>> =
     std::sync::LazyLock::new(|| Mutex::new(()));
 
 const CODEX_INSTANCES_FILE: &str = "codex_instances.json";
+pub const CODEX_API_SERVICE_BIND_ACCOUNT_ID: &str = "__api_service__";
 const CODEX_SHARED_SKILLS_DIR_NAME: &str = "skills";
 const CODEX_SHARED_RULES_DIR_NAME: &str = "rules";
 const CODEX_SHARED_AGENTS_FILE_NAME: &str = "AGENTS.md";
 const CODEX_SHARED_VENDOR_IMPORTS_SKILLS_DIR: &str = "vendor_imports/skills";
+
+pub fn is_api_service_bind_account_id(account_id: &str) -> bool {
+    account_id.trim() == CODEX_API_SERVICE_BIND_ACCOUNT_ID
+}
 
 #[derive(Debug, Clone)]
 pub struct CreateInstanceParams {

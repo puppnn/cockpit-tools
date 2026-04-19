@@ -1024,16 +1024,10 @@ pub fn import_from_local() -> Result<Option<QoderAccount>, String> {
 }
 
 pub(crate) fn resolve_current_account_id(accounts: &[QoderAccount]) -> Option<String> {
-    let db_path = get_default_qoder_state_db_path()?;
-    let snapshot = read_snapshot_from_state_db_path(db_path.as_path()).ok()??;
-    let user_id = extract_snapshot_user_id(&snapshot);
-    let email = extract_snapshot_email(&snapshot);
-    let generated_id = generate_account_id(&snapshot, user_id.as_deref(), email.as_deref());
-
-    accounts
-        .iter()
-        .find(|account| same_identity(account, user_id.as_deref(), email.as_deref(), &generated_id))
-        .map(|account| account.id.clone())
+    crate::modules::provider_current_state::resolve_existing_current_account_id(
+        "qoder",
+        accounts.iter().map(|account| account.id.as_str()),
+    )
 }
 
 fn serialize_raw_or_fallback(raw: &Option<Value>, fallback: Value) -> Result<String, String> {

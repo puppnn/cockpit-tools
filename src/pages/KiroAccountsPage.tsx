@@ -56,10 +56,19 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 const KIRO_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.kiro.flow_notice_collapsed';
 const KIRO_CURRENT_ACCOUNT_ID_KEY = 'agtools.kiro.current_account_id';
 const KIRO_KNOWN_PLAN_FILTERS = ['FREE', 'INDIVIDUAL', 'PRO', 'BUSINESS', 'ENTERPRISE'] as const;
+const KIRO_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('Kiro');
+const FILTER_TYPES_FIELD = 'filter_types';
 const KIRO_TOKEN_SINGLE_EXAMPLE = `{"access_token":"eyJ...","refresh_token":"rt_..."}`;
 const KIRO_TOKEN_BATCH_EXAMPLE = `[
   {"access_token":"eyJ...","refresh_token":"rt_a..."},
@@ -68,7 +77,11 @@ const KIRO_TOKEN_BATCH_EXAMPLE = `[
 
 export function KiroAccountsPage() {
   const [activeTab, setActiveTab] = useState<KiroTab>('overview');
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(KIRO_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(KIRO_FILTER_PERSISTENCE_SCOPE, FILTER_TYPES_FIELD)
+      : [],
+  );
   const untaggedKey = '__untagged__';
 
   const store = useKiroAccountStore();
@@ -112,6 +125,7 @@ export function KiroAccountsPage() {
   const {
     t, locale, privacyModeEnabled, togglePrivacyMode, maskAccountText,
     viewMode, setViewMode, searchQuery, setSearchQuery,
+    filterPersistenceEnabled, filterPersistenceScope,
     sortBy, setSortBy, sortDirection, setSortDirection,
     selected, toggleSelect, toggleSelectAll,
     tagFilter, groupByTag, setGroupByTag, showTagFilter, setShowTagFilter,
@@ -141,6 +155,14 @@ export function KiroAccountsPage() {
     currentAccountId,
     formatDate, normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {
@@ -514,8 +536,8 @@ export function KiroAccountsPage() {
     });
 
     return Array.from(groups.entries()).sort(([aKey], [bKey]) => {
-      if (aKey === untaggedKey) return 1;
-      if (bKey === untaggedKey) return -1;
+      if (aKey === untaggedKey) return -1;
+      if (bKey === untaggedKey) return 1;
       return aKey.localeCompare(bKey);
     });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter, untaggedKey]);

@@ -63,9 +63,18 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 const TRAE_CURRENT_ACCOUNT_ID_KEY = 'agtools.trae.current_account_id';
 const TRAE_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.trae.flow_notice_collapsed';
+const TRAE_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('Trae');
+const FILTER_TYPES_FIELD = 'filter_types';
 const TRAE_KNOWN_SORT_KEYS = ['created_at', 'plan', 'quota'] as const;
 
 type TraeQuotaSummary = {
@@ -110,7 +119,11 @@ function formatTraeMoney(value: number | null | undefined): string {
 
 export function TraeAccountsPage() {
   const [activeTab, setActiveTab] = useState<PlatformOverviewTab>('overview');
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(TRAE_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(TRAE_FILTER_PERSISTENCE_SCOPE, FILTER_TYPES_FIELD)
+      : [],
+  );
   const untaggedKey = '__untagged__';
 
   const store = useTraeAccountStore();
@@ -159,6 +172,8 @@ export function TraeAccountsPage() {
     setViewMode,
     searchQuery,
     setSearchQuery,
+    filterPersistenceEnabled,
+    filterPersistenceScope,
     sortBy,
     setSortBy,
     sortDirection,
@@ -256,6 +271,14 @@ export function TraeAccountsPage() {
     formatDate,
     normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {
@@ -427,8 +450,8 @@ export function TraeAccountsPage() {
     });
 
     return Array.from(groups.entries()).sort(([left], [right]) => {
-      if (left === untaggedKey) return 1;
-      if (right === untaggedKey) return -1;
+      if (left === untaggedKey) return -1;
+      if (right === untaggedKey) return 1;
       return left.localeCompare(right);
     });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter]);

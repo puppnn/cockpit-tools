@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "背景自動更新頻率",
       "qoderPathSelect": "選擇",
       "workbuddyAutoRefresh": "WorkBuddy 自動刷新配額",
-      "workbuddyAutoRefreshDesc": "背景自動更新頻率"
+      "workbuddyAutoRefreshDesc": "背景自動更新頻率",
+      "codexLocalAccessEntryVisible": "顯示 API 服務入口",
+      "codexLocalAccessEntryVisibleDesc": "僅控制 Codex 總覽中的 API 服務入口是否顯示，不會停止本機 API 服務；關閉後可在這裡或快速設定中重新開啟。",
+      "codexLocalAccessEnabled": "啟用 API 服務",
+      "codexLocalAccessEnabledDesc": "控制本機 Codex API 服務是否實際運行。",
+      "codexLocalAccessEnabledRequiresCollection": "需先將帳號加入 API 服務集合，才能啟用或停用服務。"
     },
     "network": {
       "apiTitle": "反重力駕駛艙 API",
@@ -1016,11 +1021,13 @@
       "originPlugin": "外掛端",
       "originUnknown": "未知",
       "autoReasonLabel": "自動原因：{{reason}}",
-      "autoReason": "規則：{{rule}}；閾值：{{threshold}}%；範圍：{{scope}}；監控分組：{{selectedGroups}}；命中分組：{{hitGroups}}；候選帳號：{{candidates}}",
+      "autoReason": "規則：{{rule}}；額度閾值：{{quotaThreshold}}%；Credits 閾值：{{creditsThreshold}}；範圍：{{scope}}；監控分組：{{selectedGroups}}；命中分組：{{hitGroups}}；目前 Credits：{{currentCredits}}；候選帳號：{{candidates}}",
       "autoReasonUnknown": "已觸發自動切號，但未記錄詳細原因",
       "autoReasonRuleCurrentDisabled": "目前帳號已停用",
       "autoReasonRuleQuotaForbidden": "目前帳號配額受限",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "模型分組和 Credits 同時低於閾值",
       "autoReasonRuleGroupBelowThreshold": "模型分組低於閾值",
+      "autoReasonRuleCreditsBelowThreshold": "剩餘 Credits 低於閾值",
       "autoReasonScopeAnyGroup": "任一模型分組",
       "autoReasonScopeSelectedGroups": "指定模型分組",
       "stageResult": "本地：{{local}} / 無感：{{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "貼上 auth.json 內容或帳號 JSON 資料",
       "placeholder": "範例：{\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "匯出格式",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "sub2api 格式",
+      "cpa": "cpa 格式"
+    },
+    "localAccess": {
+      "title": "API 服務",
+      "accountCount": "{{count}} 個帳號",
+      "baseUrl": "位址",
+      "apiKey": "金鑰",
+      "statusRunning": "執行中",
+      "statusStopped": "未執行",
+      "statusDisabled": "已停用",
+      "emptyMembers": "目前集合沒有帳號",
+      "footerHint": "僅監聽 127.0.0.1",
+      "manageAccounts": "管理帳號",
+      "rotateKey": "重設金鑰",
+      "rotateConfirmMessage": "重設後目前的 API 服務金鑰會立即失效，進行中的請求可能無法使用。確認繼續嗎？",
+      "disableService": "停用服務",
+      "enableService": "啟用服務",
+      "saveSuccess": "API 服務集合已更新",
+      "removeSuccess": "帳號已移出 API 服務",
+      "rotateSuccess": "API 服務金鑰已重設",
+      "enabledSuccess": "API 服務已啟用",
+      "disabledSuccess": "API 服務已停用",
+      "removeMember": "移出 API 服務",
+      "toggleService": "切換 API 服務",
+      "showKey": "顯示金鑰",
+      "hideKey": "隱藏金鑰",
+      "modal": {
+        "title": "加入 API 服務",
+        "desc": "選擇要加入 API 服務集合的 OAuth 帳號。加入後，這些帳號會從一般面板隱藏，僅在 API 服務卡片中管理。",
+        "empty": "目前沒有可加入的 OAuth 帳號",
+        "selected": "已加入 API 服務",
+        "available": "一般面板",
+        "save": "儲存集合"
+      },
+      "entryAction": "加入 API 服務",
+      "testAction": "測試 API 服務",
+      "testSuccess": "API 服務測試成功（{{count}} 個模型）",
+      "testTimeout": "測試逾時，請確認本地服務已啟動",
+      "testUnavailable": "目前的 API 服務位址不可用",
+      "activateAction": "啟動 API 服務",
+      "activateSuccess": "已切換到 API 服務",
+      "dashboardAction": "服務面板",
+      "manageDesc": "在這裡統一管理 API 服務的統計、成員、連接埠、密鑰與連通性測試。",
+      "memberOnlyLocal": "僅 Codex 存取",
+      "configTitle": "服務設定",
+      "configEmpty": "先將至少一個帳號儲存到 API 服務集合，之後才會產生位址、密鑰與連接埠。",
+      "portLabel": "服務連接埠",
+      "portSave": "儲存連接埠",
+      "portSaveSuccess": "API 服務連接埠已更新",
+      "portInvalid": "請輸入 1 到 65535 之間的連接埠",
+      "statsTitle": "總量統計",
+      "accountStatsTitle": "依帳號統計",
+      "statsEmpty": "目前還沒有統計資料",
+      "summaryMeta": "{{count}} 個帳號 · 僅 Codex 存取",
+      "summaryMetaUnconfigured": "未設定 · 僅 Codex 存取",
+      "memberTitle": "集合成員",
+      "stats": {
+        "requests": "總請求數",
+        "requestsDetail": "成功 {{success}} / 失敗 {{failed}}",
+        "tokens": "總 Token 數",
+        "tokensDetail": "輸入 {{input}} / 輸出 {{output}}",
+        "specialTokens": "快取 / 思考",
+        "specialTokensDetail": "快取 {{cached}} / 思考 {{reasoning}}",
+        "avgLatency": "平均延遲",
+        "successRate": "成功率 {{rate}}%",
+        "accountRequests": "{{count}} 次請求",
+        "accountTokens": "{{count}} Tokens",
+        "accountResult": "成功 {{success}} / 失敗 {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "調度策略",
+      "routingSaveSuccess": "API 服務調度策略已更新",
+      "routingDescriptionAuto": "優先高訂閱且剩餘配額較高的帳號，同檔位再輪替。",
+      "routingDescriptionQuotaHighFirst": "優先選擇剩餘配額較高的帳號。",
+      "routingDescriptionQuotaLowFirst": "優先選擇剩餘配額較低的帳號。",
+      "routingDescriptionPlanHighFirst": "優先選擇較高訂閱檔位的帳號。",
+      "routingDescriptionPlanLowFirst": "優先選擇較低訂閱檔位的帳號。",
+      "clearStats": "清除統計",
+      "clearStatsConfirm": "確定要清空 API 服務統計嗎？",
+      "clearStatsSuccess": "API 服務統計已清空",
+      "refreshStats": "刷新統計",
+      "refreshStatsSuccess": "API 服務統計已刷新",
+      "routingStrategy": {
+        "auto": "自動（推薦）",
+        "quotaHighFirst": "優先高配額",
+        "quotaLowFirst": "優先低配額",
+        "planHighFirst": "優先高訂閱",
+        "planLowFirst": "優先低訂閱"
+      },
+      "statusUnconfigured": "未設定",
+      "expandDetails": "展開詳情",
+      "collapseDetails": "收起詳情",
+      "hideEntryAction": "關閉 API 服務入口",
+      "hideEntryConfirm": "關閉後會同時隱藏總覽中的 API 服務入口，並停用目前的 API 服務。之後仍可在 Codex 設定或快速設定中重新開啟。",
+      "hideEntryEffectHide": "隱藏總覽中的 API 服務入口",
+      "hideEntryEffectDisable": "停用目前的 API 服務",
+      "hideEntryEffectRestore": "可在 Codex 設定或快速設定中重新開啟",
+      "riskNotice": {
+        "title": "使用風險提示",
+        "message": "目前 Codex API 服務相關功能，本質上屬於代理轉發使用方式。就目前情況看，官方暫未對此類行為進行明確管控，但後續政策、規則或可用性是否發生變化，仍存在不確定性。繼續使用該功能，即表示您已知悉相關情況，並願意自行承擔可能產生的風險。",
+        "remember": "我已知悉，不再提示",
+        "acknowledge": "我已知悉",
+        "continueStart": "繼續啟動",
+        "continueSwitch": "繼續切號"
+      },
+      "statsRange": {
+        "label": "統計範圍",
+        "daily": "日",
+        "weekly": "週",
+        "monthly": "月"
+      }
+    },
     "api": {
       "baseUrl": "基礎網址",
       "baseUrlPlaceholder": "未填寫則使用官方預設",
@@ -1915,7 +2038,8 @@
         "expand": "展開",
         "collapse": "收起",
         "repairVisibility": "修復可見性",
-        "restoreSessions": "還原工作階段"
+      "restoreSessions": "還原工作階段",
+      "copySessionId": "複製會話 ID"
       },
       "confirm": {
         "title": "移到垃圾桶",
@@ -1933,7 +2057,11 @@
         "pickRestoreOne": "請至少選擇一個要還原的工作階段"
       },
       "groupCount": "{{count}} 條會話",
-      "updatedAt": "最近更新",
+    "updatedAt": "最近更新",
+    "labels": {
+      "sessionId": "會話 ID",
+      "tokenUsage": "Token 使用"
+    },
       "locationRunning": "（執行中）",
       "untitled": "未命名會話",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "啟動路徑",
       "configToml": "Codex 設定檔",
       "openConfigToml": "開啟檔案",
-      "openConfigHint": "快速開啟目前使用的 Codex config.toml 檔案。"
+      "openConfigHint": "快速開啟目前使用的 Codex config.toml 檔案。",
+      "localAccessEntryVisible": "顯示 API 服務入口"
     },
     "githubCopilot": {
       "title": "GitHub Copilot 設定",
@@ -2176,7 +2305,10 @@
       "enable": "自動切換",
       "threshold": "切換閾值",
       "thresholdDesc": "命中監控的模型分組閾值時觸發自動切號",
-      "hint": "當命中監控的模型分組閾值時，自動切換到配額最高的帳號。",
+      "hint": "命中監控的模型分組閾值時會自動切號；啟用 Credits 監控後，剩餘 Credits 低於閾值時也會觸發。",
+      "creditsEnable": "監控 Credits",
+      "creditsThreshold": "Credits 閾值",
+      "creditsThresholdDesc": "剩餘 Credits 小於等於此值時也會觸發自動切號",
       "triggerModel": "觸發模型",
       "scopeAnyGroup": "任一模型分組",
       "scopeSelectedGroups": "指定模型分組",
@@ -2194,6 +2326,7 @@
     "apply": "確定",
     "inputMinutes": "輸入分鐘數",
     "inputPercent": "輸入百分比",
+    "inputCredits": "輸入 Credits",
     "windsurf": {
       "title": "Windsurf 設定",
       "appPath": "Windsurf 路徑"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Zed 設定",
       "appPath": "Zed 路徑"
+    },
+    "filterPersistence": {
+      "title": "篩選記憶",
+      "enable": "記住帳號總覽篩選（不含搜尋）",
+      "hint": "預設關閉。開啟後會依平台記住篩選、標籤與排序。"
     }
   },
   "quotaAlert": {

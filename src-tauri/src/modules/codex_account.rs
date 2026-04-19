@@ -782,13 +782,16 @@ pub fn load_current_quick_config() -> Result<CodexQuickConfig, String> {
 
 fn write_quick_config_to_config_toml(
     base_dir: &Path,
-    context_window_1m: bool,
+    model_context_window: Option<i64>,
     auto_compact_token_limit: Option<i64>,
 ) -> Result<CodexQuickConfig, String> {
     let config_path = get_config_toml_path(base_dir);
     let existing = fs::read_to_string(&config_path).unwrap_or_default();
 
-    if existing.trim().is_empty() && !context_window_1m {
+    if existing.trim().is_empty()
+        && model_context_window.is_none()
+        && auto_compact_token_limit.is_none()
+    {
         return read_quick_config_from_config_toml(base_dir);
     }
 
@@ -800,15 +803,21 @@ fn write_quick_config_to_config_toml(
             .map_err(|e| format!("解析 config.toml 失败: {}", e))?
     };
 
-    if context_window_1m {
-        let compact_limit = auto_compact_token_limit.unwrap_or(CODEX_AUTO_COMPACT_DEFAULT_LIMIT);
+    if let Some(context_window) = model_context_window {
+        if context_window <= 0 {
+            return Err("上下文窗口必须大于 0".to_string());
+        }
+        doc[CODEX_CONFIG_MODEL_CONTEXT_WINDOW_KEY] = value(context_window);
+    } else {
+        let _ = doc.remove(CODEX_CONFIG_MODEL_CONTEXT_WINDOW_KEY);
+    }
+
+    if let Some(compact_limit) = auto_compact_token_limit {
         if compact_limit <= 0 {
             return Err("自动压缩阈值必须大于 0".to_string());
         }
-        doc[CODEX_CONFIG_MODEL_CONTEXT_WINDOW_KEY] = value(CODEX_CONTEXT_WINDOW_1M_VALUE);
         doc[CODEX_CONFIG_MODEL_AUTO_COMPACT_TOKEN_LIMIT_KEY] = value(compact_limit);
     } else {
-        let _ = doc.remove(CODEX_CONFIG_MODEL_CONTEXT_WINDOW_KEY);
         let _ = doc.remove(CODEX_CONFIG_MODEL_AUTO_COMPACT_TOKEN_LIMIT_KEY);
     }
 
@@ -822,14 +831,22 @@ fn write_quick_config_to_config_toml(
 }
 
 pub fn save_current_quick_config(
-    context_window_1m: bool,
+    model_context_window: Option<i64>,
     auto_compact_token_limit: Option<i64>,
 ) -> Result<CodexQuickConfig, String> {
-    write_quick_config_to_config_toml(
+    save_quick_config_for_base_dir(
         &get_codex_home(),
-        context_window_1m,
+        model_context_window,
         auto_compact_token_limit,
     )
+}
+
+pub fn save_quick_config_for_base_dir(
+    base_dir: &Path,
+    model_context_window: Option<i64>,
+    auto_compact_token_limit: Option<i64>,
+) -> Result<CodexQuickConfig, String> {
+    write_quick_config_to_config_toml(base_dir, model_context_window, auto_compact_token_limit)
 }
 
 fn read_api_provider_from_config_toml(base_dir: &Path) -> ApiProviderConfig {
@@ -1438,7 +1455,7 @@ fn repair_account_index_from_details(reason: &str) -> Option<CodexAccountIndex> 
             last_used: account.last_used,
         })
         .collect();
-    index.current_account_id = accounts.first().map(|account| account.id.clone());
+    index.current_account_id = None;
 
     logger::log_info(&format!(
         "[Codex Account][Repair] 索引重建完成，准备写回本地文件: recovered_accounts={}, current_account_id={}",
@@ -1989,18 +2006,35 @@ pub fn sync_account_from_auth_dir(
     Ok(account)
 }
 
-/// 获取当前激活的账号（基于 auth.json）
-pub fn get_current_account() -> Option<CodexAccount> {
-    let auth_path = get_auth_json_path();
-    if !auth_path.exists() {
-        return None;
+fn sync_api_key_account_from_local_state(account: &mut CodexAccount, base_dir: &Path) {
+    let auth_path = base_dir.join("auth.json");
+    if !auth_path.exists() || !account.is_api_key_auth() {
+        return;
     }
 
-    let content = fs::read_to_string(&auth_path).ok()?;
-    let auth_file: CodexAuthFile = serde_json::from_str(&content).ok()?;
+    let Ok(content) = fs::read_to_string(&auth_path) else {
+        return;
+    };
+    let Ok(auth_file) = serde_json::from_str::<CodexAuthFile>(&content) else {
+        return;
+    };
     let is_apikey_mode = is_auth_mode_apikey(auth_file.auth_mode.as_deref());
-    let api_key = extract_api_key_from_auth_file(&auth_file);
-    let config_provider = read_api_provider_from_config_toml(&get_codex_home());
+    let local_api_key = extract_api_key_from_auth_file(&auth_file);
+    if !(is_apikey_mode || (auth_file.tokens.is_none() && local_api_key.is_some())) {
+        return;
+    }
+
+    let Some(local_api_key) = normalize_optional_ref(local_api_key.as_deref()) else {
+        return;
+    };
+    let Some(account_api_key) = normalize_optional_ref(account.openai_api_key.as_deref()) else {
+        return;
+    };
+    if local_api_key != account_api_key {
+        return;
+    }
+
+    let config_provider = read_api_provider_from_config_toml(base_dir);
     let current_provider = infer_api_provider_config(
         extract_api_base_url_from_auth_file(&auth_file)
             .or_else(|| config_provider.base_url.clone())
@@ -2009,79 +2043,37 @@ pub fn get_current_account() -> Option<CodexAccount> {
         config_provider.provider_id.as_deref(),
         config_provider.provider_name.as_deref(),
     );
+    let account_provider = infer_api_provider_config(
+        account.api_base_url.as_deref(),
+        Some(account.api_provider_mode.clone()),
+        account.api_provider_id.as_deref(),
+        account.api_provider_name.as_deref(),
+    );
 
-    if is_apikey_mode || (auth_file.tokens.is_none() && api_key.is_some()) {
-        let api_key = api_key?;
-        let normalized_key = normalize_optional_ref(Some(api_key.as_str()))?;
-        let accounts = list_accounts();
-        if let Some(mut account) = accounts.into_iter().find(|account| {
-            account.is_api_key_auth()
-                && normalize_optional_ref(account.openai_api_key.as_deref())
-                    == Some(normalized_key.clone())
-        }) {
-            let account_provider = infer_api_provider_config(
-                account.api_base_url.as_deref(),
-                Some(account.api_provider_mode.clone()),
-                account.api_provider_id.as_deref(),
-                account.api_provider_name.as_deref(),
-            );
-            if account_provider != current_provider {
-                account.api_base_url = current_provider.base_url.clone();
-                account.api_provider_mode = current_provider.mode.clone();
-                account.api_provider_id = current_provider.provider_id.clone();
-                account.api_provider_name = current_provider.provider_name.clone();
-                let _ = save_account(&account);
-            }
-            return Some(account);
-        }
-        logger::log_info("当前 auth.json 为 API Key 模式，但本地账号库未命中，跳过自动补录");
-        return None;
+    if account_provider == current_provider {
+        return;
     }
 
-    let snapshot = build_local_oauth_snapshot(auth_file.tokens?)?;
+    account.api_base_url = current_provider.base_url.clone();
+    account.api_provider_mode = current_provider.mode.clone();
+    account.api_provider_id = current_provider.provider_id.clone();
+    account.api_provider_name = current_provider.provider_name.clone();
+    let _ = save_account(account);
+}
 
-    // 在我们的账号列表中查找
-    let accounts = list_accounts();
-    if let Some(account_id) = snapshot.account_id.as_deref() {
-        if let Some(account) = accounts.iter().find(|account| {
-            account.email.eq_ignore_ascii_case(&snapshot.email)
-                && normalize_optional_ref(account.account_id.as_deref())
-                    == Some(account_id.to_string())
-                && (snapshot.organization_id.is_none()
-                    || normalize_optional_ref(account.organization_id.as_deref())
-                        == snapshot.organization_id.clone())
-        }) {
-            let mut account = account.clone();
-            if apply_local_oauth_snapshot(&mut account, &snapshot) {
-                let _ = save_account(&account);
-            }
-            return Some(account);
-        }
+/// 获取当前激活的账号（基于 Tools 显式 current_account_id，并同步当前本地状态）
+pub fn get_current_account() -> Option<CodexAccount> {
+    let current_id = load_account_index().current_account_id?;
+    let mut account = load_account(&current_id)?;
+    let base_dir = get_codex_home();
+
+    if account.is_api_key_auth() {
+        sync_api_key_account_from_local_state(&mut account, &base_dir);
+        return Some(account);
     }
 
-    if let Some(organization_id) = snapshot.organization_id.as_deref() {
-        if let Some(account) = accounts.iter().find(|account| {
-            account.email.eq_ignore_ascii_case(&snapshot.email)
-                && normalize_optional_ref(account.organization_id.as_deref())
-                    == Some(organization_id.to_string())
-        }) {
-            let mut account = account.clone();
-            if apply_local_oauth_snapshot(&mut account, &snapshot) {
-                let _ = save_account(&account);
-            }
-            return Some(account);
-        }
-    }
-
-    accounts.into_iter().find_map(|mut account| {
-        if !account.email.eq_ignore_ascii_case(&snapshot.email) {
-            return None;
-        }
-        if apply_local_oauth_snapshot(&mut account, &snapshot) {
-            let _ = save_account(&account);
-        }
-        Some(account)
-    })
+    let _ = sync_account_from_auth_dir_if_current(&mut account, &base_dir);
+    Some(account)
 }
 
 fn build_auth_file_value(account: &CodexAccount) -> Result<serde_json::Value, String> {
@@ -2494,7 +2486,13 @@ fn import_account_struct(account: CodexAccount) -> Result<CodexAccount, String> 
         );
     }
 
-    upsert_account(account.tokens)
+    let imported_auth_file_plan_type =
+        normalize_auth_file_plan_type(account.auth_file_plan_type.as_deref());
+    let mut imported = upsert_account(account.tokens)?;
+    if apply_auth_file_plan_type(&mut imported, imported_auth_file_plan_type) {
+        save_account(&imported)?;
+    }
+    Ok(imported)
 }
 
 /// 从 JSON 字符串导入账号
@@ -2667,6 +2665,53 @@ pub struct CodexFileImportFailure {
     pub error: String,
 }
 
+fn normalize_auth_file_plan_type(value: Option<&str>) -> Option<String> {
+    let normalized = normalize_optional_ref(value)?
+        .to_ascii_lowercase()
+        .replace('_', "-")
+        .replace(' ', "-");
+
+    match normalized.as_str() {
+        "prolite" | "pro-lite" => Some("prolite".to_string()),
+        "promax" | "pro-max" => Some("promax".to_string()),
+        _ => None,
+    }
+}
+
+fn detect_auth_file_plan_type_from_path(path: &std::path::Path) -> Option<String> {
+    let stem = path.file_stem()?.to_str()?;
+    let normalized = stem
+        .trim()
+        .to_ascii_lowercase()
+        .replace('_', "-")
+        .replace(' ', "-");
+
+    if normalized.ends_with("-prolite") || normalized.ends_with("-pro-lite") {
+        return Some("prolite".to_string());
+    }
+    if normalized.ends_with("-promax") || normalized.ends_with("-pro-max") {
+        return Some("promax".to_string());
+    }
+
+    None
+}
+
+fn apply_auth_file_plan_type(
+    account: &mut CodexAccount,
+    auth_file_plan_type: Option<String>,
+) -> bool {
+    let Some(normalized) = normalize_auth_file_plan_type(auth_file_plan_type.as_deref()) else {
+        return false;
+    };
+
+    if account.auth_file_plan_type.as_deref() == Some(normalized.as_str()) {
+        return false;
+    }
+
+    account.auth_file_plan_type = Some(normalized);
+    true
+}
+
 /// 从单个 JSON 值中提取 CodexTokens
 fn extract_codex_tokens_from_value(
     obj: &serde_json::Value,
@@ -2728,9 +2773,10 @@ fn extract_codex_tokens_from_value(
 #[cfg(test)]
 mod tests {
     use super::{
-        build_account_storage_id, extract_codex_tokens_from_value, get_accounts_dir,
-        get_accounts_storage_path, get_current_account, list_accounts_checked, load_account,
-        load_account_index, read_api_provider_from_config_toml, read_quick_config_from_config_toml,
+        build_account_storage_id, detect_auth_file_plan_type_from_path,
+        extract_codex_tokens_from_value, get_accounts_dir, get_accounts_storage_path,
+        get_current_account, list_accounts_checked, load_account, load_account_index,
+        read_api_provider_from_config_toml, read_quick_config_from_config_toml,
         resolve_api_provider_config, save_account, save_account_index, sync_account_from_auth_dir,
         validate_api_key_credentials, write_api_provider_to_config_toml,
         write_quick_config_to_config_toml, ApiProviderConfig, CodexAccountIndex,
@@ -2934,6 +2980,22 @@ mod tests {
         assert_eq!(tokens.access_token, "access.jwt.token");
         assert_eq!(tokens.refresh_token.as_deref(), Some("rt_456"));
         assert_eq!(account_id_hint.as_deref(), Some("acc_2"));
+    }
+
+    #[test]
+    fn detect_auth_file_plan_type_from_filename() {
+        let prolite = detect_auth_file_plan_type_from_path(std::path::Path::new(
+            "/tmp/codex-demo@example.com-prolite.json",
+        ));
+        let promax = detect_auth_file_plan_type_from_path(std::path::Path::new(
+            "/tmp/codex-demo@example.com-pro-max.json",
+        ));
+        let team =
+            detect_auth_file_plan_type_from_path(std::path::Path::new("/tmp/codex-demo-team.json"));
+
+        assert_eq!(prolite.as_deref(), Some("prolite"));
+        assert_eq!(promax.as_deref(), Some("promax"));
+        assert_eq!(team, None);
     }
 
     #[test]
@@ -3141,8 +3203,9 @@ mod tests {
         let config_path = base_dir.join("config.toml");
         fs::write(&config_path, "model = \"gpt-5\"\n").expect("write config");
 
-        let result = write_quick_config_to_config_toml(&base_dir, true, Some(880000))
-            .expect("save quick config");
+        let result =
+            write_quick_config_to_config_toml(&base_dir, Some(1_000_000), Some(880000))
+                .expect("save quick config");
 
         let content = fs::read_to_string(&config_path).expect("read config");
         assert!(content.contains("model_context_window = 1000000"));
@@ -3169,7 +3232,7 @@ mod tests {
         .expect("write config");
 
         let result =
-            write_quick_config_to_config_toml(&base_dir, false, None).expect("save quick config");
+            write_quick_config_to_config_toml(&base_dir, None, None).expect("save quick config");
 
         let content = fs::read_to_string(&config_path).expect("read config");
         assert!(!content.contains("model_context_window"));
@@ -3182,6 +3245,40 @@ mod tests {
         );
         assert_eq!(result.detected_model_context_window, None);
         assert_eq!(result.detected_auto_compact_token_limit, None);
+
+        fs::remove_dir_all(&base_dir).expect("cleanup temp dir");
+    }
+
+    #[test]
+    fn quick_config_can_write_custom_context_window_and_compact_limit() {
+        let base_dir = make_temp_dir("codex-quick-config-custom-write-test");
+        let config_path = base_dir.join("config.toml");
+        fs::write(&config_path, "model = \"gpt-5\"\n").expect("write config");
+
+        let result =
+            write_quick_config_to_config_toml(&base_dir, Some(516_000), Some(460_000))
+                .expect("save quick config");
+
+        let content = fs::read_to_string(&config_path).expect("read config");
+        assert!(content.contains("model_context_window = 516000"));
+        assert!(content.contains("model_auto_compact_token_limit = 460000"));
+        assert!(!result.context_window_1m);
+        assert_eq!(result.auto_compact_token_limit, 460_000);
+        assert_eq!(result.detected_model_context_window, Some(516_000));
+        assert_eq!(result.detected_auto_compact_token_limit, Some(460_000));
+
+        fs::remove_dir_all(&base_dir).expect("cleanup temp dir");
+    }
+
+    #[test]
+    fn quick_config_rejects_non_positive_context_window() {
+        let base_dir = make_temp_dir("codex-quick-config-invalid-context-test");
+        let config_path = base_dir.join("config.toml");
+        fs::write(&config_path, "model = \"gpt-5\"\n").expect("write config");
+
+        let err = write_quick_config_to_config_toml(&base_dir, Some(0), Some(100_000))
+            .expect_err("context window should be rejected");
+        assert!(err.contains("上下文窗口必须大于 0"));
 
         fs::remove_dir_all(&base_dir).expect("cleanup temp dir");
     }
@@ -3256,8 +3353,8 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
         file_paths.len()
     ));
 
-    // 收集所有候选: (CodexTokens, account_id_hint, label)
-    let mut candidates: Vec<(CodexTokens, Option<String>, String)> = Vec::new();
+    // 收集所有候选: (CodexTokens, account_id_hint, label, auth_file_plan_type)
+    let mut candidates: Vec<(CodexTokens, Option<String>, String, Option<String>)> = Vec::new();
 
     for file_path in &file_paths {
         let path = Path::new(file_path);
@@ -3275,6 +3372,7 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
             .and_then(|s| s.to_str())
             .unwrap_or("unknown")
             .to_string();
+        let auth_file_plan_type = detect_auth_file_plan_type_from_path(path);
 
         let parsed: serde_json::Value = match serde_json::from_str(&content) {
             Ok(v) => v,
@@ -3287,7 +3385,7 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
         match &parsed {
             serde_json::Value::Object(_) => {
                 if let Some((tokens, hint)) = extract_codex_tokens_from_value(&parsed) {
-                    candidates.push((tokens, hint, filename_label));
+                    candidates.push((tokens, hint, filename_label, auth_file_plan_type.clone()));
                 } else {
                     logger::log_error(&format!("未找到有效 Token {:?}", file_path));
                 }
@@ -3300,7 +3398,7 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
                             .and_then(|v| v.as_str())
                             .unwrap_or(&filename_label)
                             .to_string();
-                        candidates.push((tokens, hint, label));
+                        candidates.push((tokens, hint, label, auth_file_plan_type.clone()));
                     }
                 }
             }
@@ -3323,7 +3421,9 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
     let mut failed: Vec<CodexFileImportFailure> = Vec::new();
     let total = candidates.len();
 
-    for (index, (tokens, account_id_hint, label)) in candidates.into_iter().enumerate() {
+    for (index, (tokens, account_id_hint, label, auth_file_plan_type)) in
+        candidates.into_iter().enumerate()
+    {
         // 发送进度事件
         if let Some(app_handle) = crate::get_app_handle() {
             use tauri::Emitter;
@@ -3338,7 +3438,10 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
         }
 
         match upsert_account_with_hints(tokens, account_id_hint, None) {
-            Ok(account) => {
+            Ok(mut account) => {
+                if apply_auth_file_plan_type(&mut account, auth_file_plan_type) {
+                    save_account(&account)?;
+                }
                 logger::log_info(&format!("Codex 导入成功: {}", account.email));
                 imported.push(account);
             }
@@ -3801,23 +3904,11 @@ fn clear_quota_alert_cooldown(account_id: &str, primary_threshold: i32, secondar
 }
 
 pub(crate) fn resolve_current_account_id(accounts: &[CodexAccount]) -> Option<String> {
-    if let Some(account) = get_current_account() {
-        return Some(account.id);
-    }
-
-    if let Ok(settings) = crate::modules::codex_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let trimmed = bind_id.trim();
-            if !trimmed.is_empty() {
-                return Some(trimmed.to_string());
-            }
-        }
-    }
-
+    let current_id = get_current_account()?.id;
     accounts
         .iter()
-        .max_by_key(|account| account.last_used)
-        .map(|account| account.id.clone())
+        .any(|account| account.id == current_id)
+        .then_some(current_id)
 }
 
 fn pick_quota_alert_recommendation(

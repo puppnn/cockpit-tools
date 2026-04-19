@@ -1,8 +1,10 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 #[cfg(target_os = "macos")]
 use std::process::Command;
 
 use serde::Serialize;
+use tauri::AppHandle;
+use tauri_plugin_opener::OpenerExt;
 
 use crate::models::{DefaultInstanceSettings, InstanceLaunchMode, InstanceProfile};
 use crate::modules;
@@ -80,6 +82,67 @@ fn resolve_local_account_id() -> Option<String> {
     Some(account.id)
 }
 
+async fn inject_bound_account_to_profile(
+    profile_dir: &Path,
+    bind_account_id: &str,
+) -> Result<(), String> {
+    if modules::codex_instance::is_api_service_bind_account_id(bind_account_id) {
+        let provider_before =
+            modules::codex_session_visibility::read_history_visibility_provider_for_dir(
+                profile_dir,
+            )
+            .map(Some)
+            .unwrap_or_else(|error| {
+                modules::logger::log_warn(&format!(
+                    "实例切换 API 服务前读取 provider 失败，跳过自动修复预判: {}",
+                    error
+                ));
+                None
+            });
+
+        modules::codex_local_access::activate_local_access_for_dir(profile_dir).await?;
+
+        let provider_after =
+            modules::codex_session_visibility::read_history_visibility_provider_for_dir(
+                profile_dir,
+            )
+            .map(Some)
+            .unwrap_or_else(|error| {
+                modules::logger::log_warn(&format!(
+                    "实例切换 API 服务后读取 provider 失败，跳过自动修复可见性: {}",
+                    error
+                ));
+                None
+            });
+        let should_repair_visibility = match (provider_before.as_deref(), provider_after.as_deref())
+        {
+            (Some(before), Some(after)) => before != after,
+            (None, Some(_)) => true,
+            _ => false,
+        };
+        if should_repair_visibility {
+            match modules::codex_session_visibility::repair_session_visibility_across_instances() {
+                Ok(summary) => {
+                    modules::logger::log_info(&format!(
+                        "实例切换 API 服务后已自动执行历史会话可见性修复: {}",
+                        summary.message
+                    ));
+                }
+                Err(error) => {
+                    modules::logger::log_warn(&format!(
+                        "实例 API 服务切换成功，但自动修复历史会话可见性失败，请稍后在会话管理中手动补跑: {}",
+                        error
+                    ));
+                }
+            }
+        }
+
+        return Ok(());
+    }
+
+    modules::codex_instance::inject_account_to_profile(profile_dir, bind_account_id).await
+}
+
 fn default_instance_view(
     default_dir: &Path,
     default_settings: &DefaultInstanceSettings,
@@ -103,6 +166,20 @@ fn default_instance_view(
         is_default: true,
         follow_local_account: default_settings.follow_local_account,
     }
+}
+
+fn resolve_instance_base_dir(instance_id: &str) -> Result<PathBuf, String> {
+    if instance_id == DEFAULT_INSTANCE_ID {
+        return modules::codex_instance::get_default_codex_home();
+    }
+
+    let store = modules::codex_instance::load_instance_store()?;
+    let instance = store
+        .instances
+        .into_iter()
+        .find(|item| item.id == instance_id)
+        .ok_or("实例不存在")?;
+    Ok(PathBuf::from(instance.user_data_dir))
 }
 
 fn resolve_instance_launch_context(instance_id: &str) -> Result<CodexLaunchContext, String> {
@@ -248,6 +325,43 @@ pub async fn codex_list_instances() -> Result<Vec<CodexInstanceProfileView>, Str
 }
 
 #[tauri::command]
+pub async fn codex_get_instance_quick_config(
+    instance_id: String,
+) -> Result<crate::models::codex::CodexQuickConfig, String> {
+    let base_dir = resolve_instance_base_dir(instance_id.as_str())?;
+    modules::codex_account::read_quick_config_from_config_toml(&base_dir)
+}
+
+#[tauri::command]
+pub async fn codex_save_instance_quick_config(
+    instance_id: String,
+    model_context_window: Option<i64>,
+    auto_compact_token_limit: Option<i64>,
+) -> Result<crate::models::codex::CodexQuickConfig, String> {
+    let base_dir = resolve_instance_base_dir(instance_id.as_str())?;
+    modules::codex_account::save_quick_config_for_base_dir(
+        &base_dir,
+        model_context_window,
+        auto_compact_token_limit,
+    )
+}
+
+#[tauri::command]
+pub async fn codex_open_instance_config_toml(
+    app: AppHandle,
+    instance_id: String,
+) -> Result<(), String> {
+    let base_dir = resolve_instance_base_dir(instance_id.as_str())?;
+    let path = base_dir.join("config.toml");
+    if !path.exists() {
+        return Err(format!("未找到实例 config.toml 文件: {}", path.display()));
+    }
+    app.opener()
+        .open_path(path.to_string_lossy().to_string(), None::<String>)
+        .map_err(|e| format!("打开实例 config.toml 失败: {}", e))
+}
+
+#[tauri::command]
 pub async fn codex_sync_threads_across_instances(
 ) -> Result<modules::codex_thread_sync::CodexInstanceThreadSyncSummary, String> {
     modules::codex_thread_sync::sync_threads_across_instances()
@@ -299,6 +413,13 @@ pub async fn codex_unfavorite_session(
     session_id: String,
 ) -> Result<modules::codex_session_viewer::CodexSessionFavoriteResult, String> {
     modules::codex_session_viewer::unfavorite_session(session_id)
+}
+
+#[tauri::command]
+pub async fn codex_get_session_token_stats_across_instances(
+    session_ids: Vec<String>,
+) -> Result<Vec<modules::codex_session_manager::CodexSessionTokenStats>, String> {
+    modules::codex_session_manager::get_session_token_stats_across_instances(session_ids)
 }
 
 #[tauri::command]
@@ -442,7 +563,7 @@ pub async fn codex_start_instance(instance_id: String) -> Result<CodexInstancePr
             let _ = modules::codex_instance::update_default_pid(None)?;
         }
         if let Some(ref account_id) = default_bind_account_id {
-            modules::codex_instance::inject_account_to_profile(&default_dir, account_id).await?;
+            inject_bound_account_to_profile(&default_dir, account_id).await?;
         }
 
         if default_settings.launch_mode == InstanceLaunchMode::Cli {
@@ -489,11 +610,7 @@ pub async fn codex_start_instance(instance_id: String) -> Result<CodexInstancePr
     }
 
     if let Some(ref account_id) = instance.bind_account_id {
-        modules::codex_instance::inject_account_to_profile(
-            Path::new(&instance.user_data_dir),
-            account_id,
-        )
-        .await?;
+        inject_bound_account_to_profile(Path::new(&instance.user_data_dir), account_id).await?;
     }
 
     if instance.launch_mode == InstanceLaunchMode::Cli {

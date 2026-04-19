@@ -38,6 +38,7 @@ import {
   formatCodexResetTime,
   getCodexApiKeyBillingSummary,
   getCodexCodeReviewQuotaMetric,
+  getCodexPlanBadgeLabel,
   getCodexPlanDisplayName,
   getCodexQuotaClass,
   getCodexQuotaWindows,
@@ -501,7 +502,6 @@ export function buildCodexAccountPresentation(
   t: Translate,
 ): UnifiedAccountPresentation {
   const normalizedPlan = getCodexPlanDisplayName(account.plan_type);
-  const rawPlan = account.plan_type?.trim();
   const apiKeyDisplayName = account.account_name?.trim();
   const displayName =
     isCodexApiKeyAccount(account) && apiKeyDisplayName ? apiKeyDisplayName : account.email;
@@ -587,7 +587,7 @@ export function buildCodexAccountPresentation(
   return {
     id: account.id,
     displayName,
-    planLabel: rawPlan || normalizedPlan,
+    planLabel: getCodexPlanBadgeLabel(account),
     planClass: normalizedPlan.toLowerCase(),
     quotaItems,
   };

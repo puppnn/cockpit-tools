@@ -1870,61 +1870,10 @@ fn normalize_quota_alert_threshold(value: i32) -> i32 {
 }
 
 pub(crate) fn resolve_current_account_id(accounts: &[CursorAccount]) -> Option<String> {
-    if let Ok(Some(local_payload)) = read_local_cursor_auth() {
-        let incoming_auth_id = resolve_payload_auth_id(&local_payload);
-        let incoming_email = normalize_email_identity(Some(local_payload.email.as_str()));
-        let incoming_token = normalize_token_identity(Some(local_payload.access_token.as_str()));
-
-        if let Some(account_id) = accounts
-            .iter()
-            .find(|account| {
-                let existing_auth_id = resolve_account_auth_id(account);
-                if let (Some(existing), Some(incoming)) =
-                    (existing_auth_id.as_ref(), incoming_auth_id.as_ref())
-                {
-                    return existing == incoming;
-                }
-                if existing_auth_id.is_some() || incoming_auth_id.is_some() {
-                    return false;
-                }
-
-                let existing_email = normalize_email_identity(Some(account.email.as_str()));
-                let existing_token = normalize_token_identity(Some(account.access_token.as_str()));
-                if let (Some(existing), Some(incoming)) =
-                    (existing_email.as_ref(), incoming_email.as_ref())
-                {
-                    if existing == incoming {
-                        return true;
-                    }
-                }
-                if let (Some(existing), Some(incoming)) =
-                    (existing_token.as_ref(), incoming_token.as_ref())
-                {
-                    if existing == incoming {
-                        return true;
-                    }
-                }
-                false
-            })
-            .map(|account| account.id.clone())
-        {
-            return Some(account_id);
-        }
-    }
-
-    if let Ok(settings) = crate::modules::cursor_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let trimmed = bind_id.trim();
-            if !trimmed.is_empty() {
-                return Some(trimmed.to_string());
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .map(|account| account.id.clone())
+    crate::modules::provider_current_state::resolve_existing_current_account_id(
+        "cursor",
+        accounts.iter().map(|account| account.id.as_str()),
+    )
 }
 
 fn pick_quota_alert_recommendation(

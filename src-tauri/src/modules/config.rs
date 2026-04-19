@@ -160,6 +160,9 @@ pub struct UserConfig {
     /// 自动备份保留天数
     #[serde(default = "default_auto_backup_retention_days")]
     pub auto_backup_retention_days: i32,
+    /// 自动备份保留天数是否已执行 v0.22.1 迁移（3 -> 15）
+    #[serde(default = "default_auto_backup_retention_days_migrated")]
+    pub auto_backup_retention_days_migrated: bool,
     /// 最近一次自动备份时间（ISO 8601）
     #[serde(default)]
     pub auto_backup_last_backup_at: Option<String>,
@@ -229,6 +232,9 @@ pub struct UserConfig {
     /// 切换 Codex 时是否自动启动/重启 Codex App
     #[serde(default = "default_codex_launch_on_switch")]
     pub codex_launch_on_switch: bool,
+    /// 是否在 Codex 总览中显示 API 服务入口
+    #[serde(default = "default_codex_local_access_entry_visible")]
+    pub codex_local_access_entry_visible: bool,
     /// Antigravity 切号是否启用“本地落盘 + 扩展无感”且不重启
     #[serde(default = "default_antigravity_dual_switch_no_restart_enabled")]
     pub antigravity_dual_switch_no_restart_enabled: bool,
@@ -238,6 +244,12 @@ pub struct UserConfig {
     /// 自动切号阈值（百分比），任意模型配额低于此值触发
     #[serde(default = "default_auto_switch_threshold")]
     pub auto_switch_threshold: i32,
+    /// 是否启用 Credits 阈值自动切号
+    #[serde(default = "default_auto_switch_credits_enabled")]
+    pub auto_switch_credits_enabled: bool,
+    /// Credits 自动切号阈值（剩余值）
+    #[serde(default = "default_auto_switch_credits_threshold")]
+    pub auto_switch_credits_threshold: i32,
     /// 自动切号触发模式：any_group | selected_groups
     #[serde(default = "default_auto_switch_scope_mode")]
     pub auto_switch_scope_mode: String,
@@ -470,7 +482,7 @@ fn default_hide_dock_icon() -> bool {
     false
 }
 fn default_floating_card_show_on_startup() -> bool {
-    true
+    false
 }
 fn default_floating_card_always_on_top() -> bool {
     false
@@ -503,7 +515,10 @@ pub fn default_auto_backup_include_config() -> bool {
     true
 }
 pub fn default_auto_backup_retention_days() -> i32 {
-    3
+    15
+}
+fn default_auto_backup_retention_days_migrated() -> bool {
+    true
 }
 pub fn sanitize_auto_backup_retention_days(raw: i32) -> i32 {
     raw.clamp(1, 365)
@@ -581,6 +596,9 @@ fn default_openclaw_auth_overwrite_on_switch() -> bool {
 fn default_codex_launch_on_switch() -> bool {
     true
 }
+fn default_codex_local_access_entry_visible() -> bool {
+    true
+}
 fn default_antigravity_dual_switch_no_restart_enabled() -> bool {
     false
 }
@@ -588,6 +606,12 @@ fn default_auto_switch_enabled() -> bool {
     false
 }
 fn default_auto_switch_threshold() -> i32 {
+    5
+}
+fn default_auto_switch_credits_enabled() -> bool {
+    false
+}
+fn default_auto_switch_credits_threshold() -> i32 {
     5
 }
 fn default_auto_switch_scope_mode() -> String {
@@ -746,6 +770,7 @@ impl Default for UserConfig {
             auto_backup_include_accounts: default_auto_backup_include_accounts(),
             auto_backup_include_config: default_auto_backup_include_config(),
             auto_backup_retention_days: default_auto_backup_retention_days(),
+            auto_backup_retention_days_migrated: default_auto_backup_retention_days_migrated(),
             auto_backup_last_backup_at: None,
             floating_card_position_x: None,
             floating_card_position_y: None,
@@ -770,10 +795,13 @@ impl Default for UserConfig {
             ghcp_launch_on_switch: default_ghcp_launch_on_switch(),
             openclaw_auth_overwrite_on_switch: default_openclaw_auth_overwrite_on_switch(),
             codex_launch_on_switch: default_codex_launch_on_switch(),
+            codex_local_access_entry_visible: default_codex_local_access_entry_visible(),
             antigravity_dual_switch_no_restart_enabled:
                 default_antigravity_dual_switch_no_restart_enabled(),
             auto_switch_enabled: default_auto_switch_enabled(),
             auto_switch_threshold: default_auto_switch_threshold(),
+            auto_switch_credits_enabled: default_auto_switch_credits_enabled(),
+            auto_switch_credits_threshold: default_auto_switch_credits_threshold(),
             auto_switch_scope_mode: default_auto_switch_scope_mode(),
             auto_switch_selected_group_ids: default_auto_switch_selected_group_ids(),
             auto_switch_account_scope_mode: default_auto_switch_account_scope_mode(),
@@ -1136,6 +1164,13 @@ pub fn load_user_config() -> Result<UserConfig, String> {
             );
         }
 
+        if !obj.contains_key("codex_local_access_entry_visible") {
+            obj.insert(
+                "codex_local_access_entry_visible".to_string(),
+                json!(default_codex_local_access_entry_visible()),
+            );
+        }
+
         if !obj.contains_key("floating_card_confirm_on_close") {
             obj.insert(
                 "floating_card_confirm_on_close".to_string(),
@@ -1164,6 +1199,13 @@ pub fn load_user_config() -> Result<UserConfig, String> {
             obj.insert(
                 "auto_backup_retention_days".to_string(),
                 json!(default_auto_backup_retention_days()),
+            );
+        }
+        if !obj.contains_key("auto_backup_retention_days_migrated") {
+            // 老配置没有该标记时，默认视为“尚未迁移”，以便执行一次 3->15 升级。
+            obj.insert(
+                "auto_backup_retention_days_migrated".to_string(),
+                json!(false),
             );
         }
         if !obj.contains_key("auto_backup_last_backup_at") {
@@ -1272,6 +1314,18 @@ pub fn load_user_config() -> Result<UserConfig, String> {
             obj.insert(
                 "auto_switch_scope_mode".to_string(),
                 json!(default_auto_switch_scope_mode()),
+            );
+        }
+        if !obj.contains_key("auto_switch_credits_enabled") {
+            obj.insert(
+                "auto_switch_credits_enabled".to_string(),
+                json!(default_auto_switch_credits_enabled()),
+            );
+        }
+        if !obj.contains_key("auto_switch_credits_threshold") {
+            obj.insert(
+                "auto_switch_credits_threshold".to_string(),
+                json!(default_auto_switch_credits_threshold()),
             );
         }
         if !obj.contains_key("auto_switch_selected_group_ids") {
@@ -1451,6 +1505,13 @@ pub fn load_user_config() -> Result<UserConfig, String> {
     );
     config.auto_backup_include_accounts = include_accounts;
     config.auto_backup_include_config = include_config;
+    if !config.auto_backup_retention_days_migrated {
+        if config.auto_backup_retention_days == 3 {
+            // 兼容迁移：历史默认值为 3 天，统一升级为 15 天。
+            config.auto_backup_retention_days = 15;
+        }
+        config.auto_backup_retention_days_migrated = true;
+    }
     config.auto_backup_retention_days =
         sanitize_auto_backup_retention_days(config.auto_backup_retention_days);
     config.auto_backup_last_backup_at = config.auto_backup_last_backup_at.and_then(|value| {

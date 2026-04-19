@@ -255,6 +255,10 @@ pub fn inject_gemini_account(app: AppHandle, account_id: String) -> Result<Strin
     let account = gemini_account::load_account(&account_id)
         .ok_or_else(|| format!("Gemini account not found: {}", account_id))?;
     gemini_account::inject_to_gemini(&account_id)?;
+    crate::modules::provider_current_state::set_current_account_id(
+        "gemini",
+        Some(account_id.as_str()),
+    )?;
     let _ = crate::modules::tray::update_tray_menu(&app);
 
     logger::log_info(&format!(

@@ -1,6 +1,7 @@
 pub mod account;
 pub mod codebuddy;
 pub mod codex;
+pub mod codex_local_access;
 pub mod cursor;
 pub mod gemini;
 pub mod github_copilot;

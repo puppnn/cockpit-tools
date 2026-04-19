@@ -80,8 +80,6 @@ import {
   getAntigravityQuotaDisplayItems,
 } from '../presentation/platformAccountPresentation'
 import {
-  ANTIGRAVITY_ACCOUNTS_SORT_BY_STORAGE_KEY,
-  ANTIGRAVITY_ACCOUNTS_SORT_DIRECTION_STORAGE_KEY,
   ANTIGRAVITY_RESET_SORT_PREFIX,
   DEFAULT_ANTIGRAVITY_SORT_BY,
   createAntigravityAccountComparator,
@@ -129,6 +127,16 @@ import {
   consumeQueuedExternalProviderImportForPlatform,
   EXTERNAL_PROVIDER_IMPORT_EVENT,
 } from '../utils/externalProviderImport'
+import {
+  ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+  type AccountsOverviewFilterPersistenceChangedDetail,
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterField,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence'
 
 interface AccountsPageProps {
   onNavigate?: (page: Page) => void
@@ -197,6 +205,14 @@ const ANTIGRAVITY_TOKEN_BATCH_EXAMPLE = `[
   {"refresh_token":"1//0gTokenA..."},
   {"refreshToken":"1//0gTokenB..."}
 ]`
+const ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('antigravity')
+const ANTIGRAVITY_FILTER_FIELD_VIEW_MODE = 'view_mode'
+const ANTIGRAVITY_FILTER_FIELD_SORT_BY = 'sort_by'
+const ANTIGRAVITY_FILTER_FIELD_SORT_DIRECTION = 'sort_direction'
+const ANTIGRAVITY_FILTER_FIELD_FILTER_TYPES = 'filter_types'
+const ANTIGRAVITY_FILTER_FIELD_TAG_FILTER = 'tag_filter'
+const ANTIGRAVITY_FILTER_FIELD_GROUP_BY_TAG = 'group_by_tag'
+const ANTIGRAVITY_FILTER_FIELD_ACTIVE_GROUP_ID = 'active_group_id'
 
 export function AccountsPage({ onNavigate }: AccountsPageProps) {
   const { t, i18n } = useTranslation()
@@ -267,9 +283,23 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     }
   }, [storeError])
 
-  // View mode - persisted to localStorage
+  const initialFilterPersistenceEnabled = readAccountsOverviewFilterPersistenceEnabled(
+    ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+  )
+  const [filterPersistenceEnabled, setFilterPersistenceEnabled] = useState<boolean>(
+    initialFilterPersistenceEnabled,
+  )
+
+  // View mode
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    const saved = localStorage.getItem('accountsViewMode')
+    if (!initialFilterPersistenceEnabled) {
+      return 'grid'
+    }
+    const saved = readAccountsOverviewFilterField<unknown>(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_VIEW_MODE,
+      'grid',
+    )
     return saved === 'grid' || saved === 'list' || saved === 'compact'
       ? saved
       : 'grid'
@@ -278,10 +308,8 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     isPrivacyModeEnabledByDefault()
   )
 
-  // Persist view mode changes
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode)
-    localStorage.setItem('accountsViewMode', mode)
   }
 
   const togglePrivacyMode = () => {
@@ -299,9 +327,33 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
 
   // 筛选
   const [searchQuery, setSearchQuery] = useState('')
-  const [filterTypes, setFilterTypes] = useState<AccountsFilterType[]>([])
-  const [tagFilter, setTagFilter] = useState<string[]>([])
-  const [groupByTag, setGroupByTag] = useState(false)
+  const [filterTypes, setFilterTypes] = useState<AccountsFilterType[]>(() =>
+    initialFilterPersistenceEnabled
+      ? (readAccountsOverviewFilterStringArray(
+          ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+          ANTIGRAVITY_FILTER_FIELD_FILTER_TYPES,
+        ) as AccountsFilterType[])
+      : [],
+  )
+  const [tagFilter, setTagFilter] = useState<string[]>(() =>
+    initialFilterPersistenceEnabled
+      ? readAccountsOverviewFilterStringArray(
+          ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+          ANTIGRAVITY_FILTER_FIELD_TAG_FILTER,
+        )
+      : [],
+  )
+  const [groupByTag, setGroupByTag] = useState<boolean>(() =>
+    initialFilterPersistenceEnabled
+      ? Boolean(
+          readAccountsOverviewFilterField<unknown>(
+            ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+            ANTIGRAVITY_FILTER_FIELD_GROUP_BY_TAG,
+            false,
+          ),
+        )
+      : false,
+  )
 
   const toggleFilterTypeValue = useCallback((value: AccountsFilterType) => {
     setFilterTypes((prev) => {
@@ -418,7 +470,17 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
 
   // ─── 账号分组（文件夹）────────────────────────────────────
   const [accountGroups, setAccountGroups] = useState<AccountGroup[]>([])
-  const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(() => {
+    if (!initialFilterPersistenceEnabled) {
+      return null
+    }
+    const saved = readAccountsOverviewFilterField<string | null>(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_ACTIVE_GROUP_ID,
+      null,
+    )
+    return typeof saved === 'string' && saved.trim() ? saved : null
+  })
   const [showAccountGroupModal, setShowAccountGroupModal] = useState(false)
   const [showAddToGroupModal, setShowAddToGroupModal] = useState(false)
   const [groupAccountPickerGroupId, setGroupAccountPickerGroupId] = useState<string | null>(null)
@@ -459,16 +521,30 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
       setGroupQuickAddGroupId(null)
     }
   }, [accountGroups, groupQuickAddGroupId])
-  const [sortBy, setSortBy] = useState<string>(() =>
-    normalizeAntigravitySortBy(
-      localStorage.getItem(ANTIGRAVITY_ACCOUNTS_SORT_BY_STORAGE_KEY)
+  const [sortBy, setSortBy] = useState<string>(() => {
+    if (!initialFilterPersistenceEnabled) {
+      return DEFAULT_ANTIGRAVITY_SORT_BY
+    }
+    return normalizeAntigravitySortBy(
+      readAccountsOverviewFilterField<unknown>(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_SORT_BY,
+        DEFAULT_ANTIGRAVITY_SORT_BY,
+      ) as string,
     )
-  )
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(() =>
-    normalizeAntigravitySortDirection(
-      localStorage.getItem(ANTIGRAVITY_ACCOUNTS_SORT_DIRECTION_STORAGE_KEY)
+  })
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(() => {
+    if (!initialFilterPersistenceEnabled) {
+      return 'desc'
+    }
+    return normalizeAntigravitySortDirection(
+      readAccountsOverviewFilterField<unknown>(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_SORT_DIRECTION,
+        'desc',
+      ) as string | null,
     )
-  )
+  })
 
   // Compact view model sorting
   const [compactGroupOrder, setCompactGroupOrder] = useState<string[]>([])
@@ -573,15 +649,129 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
   }
 
   useEffect(() => {
-    localStorage.setItem(ANTIGRAVITY_ACCOUNTS_SORT_BY_STORAGE_KEY, sortBy)
-  }, [sortBy])
+    const handleFilterPersistenceChanged = (event: Event) => {
+      const detail = (event as CustomEvent<AccountsOverviewFilterPersistenceChangedDetail>).detail
+      if (!detail || detail.scope !== ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE) {
+        return
+      }
+      setFilterPersistenceEnabled(Boolean(detail.enabled))
+    }
+    window.addEventListener(
+      ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+      handleFilterPersistenceChanged as EventListener,
+    )
+    return () => {
+      window.removeEventListener(
+        ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+        handleFilterPersistenceChanged as EventListener,
+      )
+    }
+  }, [])
 
   useEffect(() => {
-    localStorage.setItem(
-      ANTIGRAVITY_ACCOUNTS_SORT_DIRECTION_STORAGE_KEY,
-      sortDirection
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_VIEW_MODE,
+      )
+      return
+    }
+    writeAccountsOverviewFilterField(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_VIEW_MODE,
+      viewMode,
     )
-  }, [sortDirection])
+  }, [filterPersistenceEnabled, viewMode])
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_SORT_BY,
+      )
+      return
+    }
+    writeAccountsOverviewFilterField(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_SORT_BY,
+      sortBy,
+    )
+  }, [filterPersistenceEnabled, sortBy])
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_SORT_DIRECTION,
+      )
+      return
+    }
+    writeAccountsOverviewFilterField(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_SORT_DIRECTION,
+      sortDirection,
+    )
+  }, [filterPersistenceEnabled, sortDirection])
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_FILTER_TYPES,
+      )
+      return
+    }
+    writeAccountsOverviewFilterField(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_FILTER_TYPES,
+      filterTypes,
+    )
+  }, [filterPersistenceEnabled, filterTypes])
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_TAG_FILTER,
+      )
+      return
+    }
+    writeAccountsOverviewFilterField(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_TAG_FILTER,
+      tagFilter,
+    )
+  }, [filterPersistenceEnabled, tagFilter])
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_GROUP_BY_TAG,
+      )
+      return
+    }
+    writeAccountsOverviewFilterField(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_GROUP_BY_TAG,
+      groupByTag,
+    )
+  }, [filterPersistenceEnabled, groupByTag])
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+        ANTIGRAVITY_FILTER_FIELD_ACTIVE_GROUP_ID,
+      )
+      return
+    }
+    writeAccountsOverviewFilterField(
+      ANTIGRAVITY_FILTER_PERSISTENCE_SCOPE,
+      ANTIGRAVITY_FILTER_FIELD_ACTIVE_GROUP_ID,
+      activeGroupId,
+    )
+  }, [activeGroupId, filterPersistenceEnabled])
 
   useEffect(() => {
     if (!displayGroupsLoaded) {
@@ -729,8 +919,8 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     })
 
     return Array.from(groups.entries()).sort(([aKey], [bKey]) => {
-      if (aKey === untaggedKey) return 1
-      if (bKey === untaggedKey) return -1
+      if (aKey === untaggedKey) return -1
+      if (bKey === untaggedKey) return 1
       return aKey.localeCompare(bKey)
     })
   }, [filteredAccounts, groupByTag, tagFilter, untaggedKey])
@@ -1344,8 +1534,14 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     if (rule === 'current_quota_forbidden') {
       return t('accounts.switchHistory.autoReasonRuleQuotaForbidden', '当前账号配额受限')
     }
+    if (rule === 'group_and_credits_below_threshold') {
+      return t('accounts.switchHistory.autoReasonRuleGroupAndCreditsBelowThreshold', '模型分组和 Credits 同时低于阈值')
+    }
     if (rule === 'group_below_threshold') {
       return t('accounts.switchHistory.autoReasonRuleGroupBelowThreshold', '模型分组低于阈值')
+    }
+    if (rule === 'credits_below_threshold') {
+      return t('accounts.switchHistory.autoReasonRuleCreditsBelowThreshold', '剩余 Credits 低于阈值')
     }
     return t('accounts.switchHistory.triggerUnknown', '未知')
   }
@@ -1363,19 +1559,34 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
     if (!reason) {
       return t('accounts.switchHistory.autoReasonUnknown', '自动切号触发，未记录详细原因')
     }
+    const formatCreditsValue = (value?: number | null) => {
+      if (typeof value !== 'number' || !Number.isFinite(value)) {
+        return '-'
+      }
+      return value.toFixed(2).replace(/\.?0+$/, '')
+    }
     const hitGroupText = (reason.hitGroups || [])
       .map((group) => `${group.groupName}=${group.percentage}%`)
       .join('、')
     const selectedGroupText = (reason.selectedGroupNames || []).join('、')
+    const creditsThresholdText =
+      reason.creditsEnabled && typeof reason.creditsThreshold === 'number'
+        ? String(reason.creditsThreshold)
+        : '-'
+    const currentCreditsText = reason.creditsEnabled
+      ? formatCreditsValue(reason.currentCreditsRemaining)
+      : '-'
     return t('accounts.switchHistory.autoReason', {
       rule: formatSwitchHistoryAutoRule(reason.rule),
-      threshold: reason.threshold,
+      quotaThreshold: reason.threshold,
+      creditsThreshold: creditsThresholdText,
       scope: formatSwitchHistoryAutoScope(reason.scopeMode),
       selectedGroups: selectedGroupText || '-',
       hitGroups: hitGroupText || '-',
+      currentCredits: currentCreditsText,
       candidates: reason.candidateCount ?? 0,
       defaultValue:
-        '规则：{{rule}}；阈值：{{threshold}}%；范围：{{scope}}；监控分组：{{selectedGroups}}；命中分组：{{hitGroups}}；候选账号：{{candidates}}',
+        '规则：{{rule}}；额度阈值：{{quotaThreshold}}%；Credits 阈值：{{creditsThreshold}}；范围：{{scope}}；监控分组：{{selectedGroups}}；命中分组：{{hitGroups}}；当前 Credits：{{currentCredits}}；候选账号：{{candidates}}',
     })
   }
 
@@ -1847,10 +2058,16 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
 
   const handleSaveTags = async (tags: string[], notes?: string) => {
     if (!showTagModal) return;
+    const scrollY = window.scrollY
     const accountId = showTagModal
     await accountService.updateAccountNotes(accountId, notes ?? '')
     await updateAccountTags(accountId, tags);
     setShowTagModal(null);
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: 'auto' })
+      })
+    })
   };
 
   const handleAssignAccountsToGroup = async (

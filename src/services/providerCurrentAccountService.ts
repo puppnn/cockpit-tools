@@ -10,6 +10,7 @@ export type ProviderCurrentPlatform =
   | 'qoder'
   | 'trae'
   | 'workbuddy'
+  | 'github_copilot'
   | 'zed';
 
 export async function getProviderCurrentAccountId(

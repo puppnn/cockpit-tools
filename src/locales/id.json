@@ -712,7 +712,12 @@
       "qoderAutoRefreshDesc": "Frekuensi auto-refresh di latar belakang",
       "qoderPathSelect": "Pilih",
       "workbuddyAutoRefresh": "Auto Refresh Kuota WorkBuddy",
-      "workbuddyAutoRefreshDesc": "Frekuensi auto-refresh di latar belakang"
+      "workbuddyAutoRefreshDesc": "Frekuensi auto-refresh di latar belakang",
+      "codexLocalAccessEntryVisible": "Tampilkan entri Layanan API",
+      "codexLocalAccessEntryVisibleDesc": "Hanya mengatur apakah entri Layanan API ditampilkan di ringkasan Codex. Ini tidak menghentikan layanan API lokal; Anda bisa menyalakannya lagi di sini atau di Pengaturan Cepat.",
+      "codexLocalAccessEnabled": "Aktifkan Layanan API",
+      "codexLocalAccessEnabledDesc": "Mengatur apakah layanan API Codex lokal benar-benar berjalan.",
+      "codexLocalAccessEnabledRequiresCollection": "Tambahkan akun ke koleksi Layanan API terlebih dahulu sebelum mengaktifkan atau menonaktifkan layanan."
     },
     "network": {
       "apiTitle": "API Antigravity Cockpit",
@@ -1000,11 +1005,13 @@
       "originPlugin": "Plugin",
       "originUnknown": "Tidak diketahui",
       "autoReasonLabel": "Alasan otomatis: {{reason}}",
-      "autoReason": "Aturan: {{rule}}; ambang batas: {{threshold}}%; cakupan: {{scope}}; grup yang dipantau: {{selectedGroups}}; grup yang terpicu: {{hitGroups}}; kandidat: {{candidates}}",
+      "autoReason": "Aturan: {{rule}}; ambang kuota: {{quotaThreshold}}%; ambang kredit: {{creditsThreshold}}; cakupan: {{scope}}; grup yang dipantau: {{selectedGroups}}; grup yang terpicu: {{hitGroups}}; kredit saat ini: {{currentCredits}}; kandidat: {{candidates}}",
       "autoReasonUnknown": "Penggantian otomatis terpicu, tetapi tidak ada alasan detail yang tercatat",
       "autoReasonRuleCurrentDisabled": "Akun saat ini dinonaktifkan",
       "autoReasonRuleQuotaForbidden": "Kuota akun saat ini diblokir",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "Grup model dan kredit sama-sama di bawah ambang",
       "autoReasonRuleGroupBelowThreshold": "Grup model di bawah ambang batas",
+      "autoReasonRuleCreditsBelowThreshold": "Kredit tersisa di bawah ambang",
       "autoReasonScopeAnyGroup": "Grup model apa pun",
       "autoReasonScopeSelectedGroups": "Grup model yang dipilih",
       "stageResult": "Lokal: {{local}} / Mulus: {{seamless}}",
@@ -1624,6 +1631,122 @@
       "desc": "Tempel konten auth.json atau data JSON akun",
       "placeholder": "Contoh: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "Format ekspor",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "Format sub2api",
+      "cpa": "Format cpa"
+    },
+    "localAccess": {
+      "title": "Layanan API",
+      "accountCount": "{{count}} akun",
+      "baseUrl": "Alamat",
+      "apiKey": "Kunci",
+      "statusRunning": "Berjalan",
+      "statusStopped": "Berhenti",
+      "statusDisabled": "Dinonaktifkan",
+      "emptyMembers": "Belum ada akun di koleksi ini",
+      "footerHint": "Hanya mendengarkan di 127.0.0.1",
+      "manageAccounts": "Kelola akun",
+      "rotateKey": "Putar kunci",
+      "rotateConfirmMessage": "Setelah direset, kunci layanan API saat ini akan langsung tidak berlaku, dan permintaan yang sedang berjalan mungkin menjadi tidak tersedia. Lanjutkan?",
+      "disableService": "Nonaktifkan layanan",
+      "enableService": "Aktifkan layanan",
+      "saveSuccess": "Koleksi layanan API diperbarui",
+      "removeSuccess": "Akun dihapus dari layanan API",
+      "rotateSuccess": "Kunci layanan API direset",
+      "enabledSuccess": "Layanan API diaktifkan",
+      "disabledSuccess": "Layanan API dinonaktifkan",
+      "removeMember": "Hapus dari layanan API",
+      "toggleService": "Alihkan layanan API",
+      "showKey": "Tampilkan kunci",
+      "hideKey": "Sembunyikan kunci",
+      "modal": {
+        "title": "Tambahkan ke Layanan API",
+        "desc": "Pilih akun OAuth yang ingin dimasukkan ke koleksi layanan API. Akun yang ditambahkan akan disembunyikan dari tampilan biasa dan hanya dikelola dari kartu layanan API.",
+        "empty": "Tidak ada akun OAuth yang tersedia",
+        "selected": "Di layanan API",
+        "available": "Tampilan biasa",
+        "save": "Simpan koleksi"
+      },
+      "entryAction": "Tambahkan ke Layanan API",
+      "testAction": "Uji Layanan API",
+      "testSuccess": "Pengujian layanan API berhasil ({{count}} model)",
+      "testTimeout": "Pengujian habis waktu. Pastikan layanan lokal sedang berjalan.",
+      "testUnavailable": "URL layanan API saat ini tidak tersedia",
+      "activateAction": "Mulai Layanan API",
+      "activateSuccess": "Beralih ke layanan API",
+      "dashboardAction": "Panel layanan",
+      "manageDesc": "Kelola statistik layanan API, anggota, port, kunci, dan uji konektivitas di satu tempat.",
+      "memberOnlyLocal": "Hanya Codex",
+      "configTitle": "Konfigurasi layanan",
+      "configEmpty": "Simpan setidaknya satu akun ke koleksi layanan API agar URL, kunci, dan port dibuat.",
+      "portLabel": "Port layanan",
+      "portSave": "Simpan port",
+      "portSaveSuccess": "Port layanan API diperbarui",
+      "portInvalid": "Masukkan port antara 1 dan 65535",
+      "statsTitle": "Total",
+      "accountStatsTitle": "Per akun",
+      "statsEmpty": "Belum ada statistik",
+      "summaryMeta": "{{count}} akun · Hanya Codex",
+      "summaryMetaUnconfigured": "Belum dikonfigurasi · Hanya Codex",
+      "memberTitle": "Anggota koleksi",
+      "stats": {
+        "requests": "Permintaan",
+        "requestsDetail": "Berhasil {{success}} / Gagal {{failed}}",
+        "tokens": "Token",
+        "tokensDetail": "Masuk {{input}} / Keluar {{output}}",
+        "specialTokens": "Cache / Penalaran",
+        "specialTokensDetail": "Cache {{cached}} / Penalaran {{reasoning}}",
+        "avgLatency": "Latensi rata-rata",
+        "successRate": "Tingkat berhasil {{rate}}%",
+        "accountRequests": "{{count}} permintaan",
+        "accountTokens": "{{count}} token",
+        "accountResult": "Berhasil {{success}} / Gagal {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "Rute",
+      "routingSaveSuccess": "Rute layanan API diperbarui",
+      "routingDescriptionAuto": "Prioritaskan akun dengan paket lebih tinggi dan kuota tersisa lebih besar, lalu lakukan rotasi dalam paket yang sama.",
+      "routingDescriptionQuotaHighFirst": "Prioritaskan akun dengan kuota tersisa lebih besar.",
+      "routingDescriptionQuotaLowFirst": "Prioritaskan akun dengan kuota tersisa lebih kecil.",
+      "routingDescriptionPlanHighFirst": "Prioritaskan akun dengan tier langganan lebih tinggi.",
+      "routingDescriptionPlanLowFirst": "Prioritaskan akun dengan tier langganan lebih rendah.",
+      "clearStats": "Hapus Statistik",
+      "clearStatsConfirm": "Hapus semua statistik layanan API?",
+      "clearStatsSuccess": "Statistik layanan API telah dihapus",
+      "refreshStats": "Segarkan Statistik",
+      "refreshStatsSuccess": "Statistik layanan API telah disegarkan",
+      "routingStrategy": {
+        "auto": "Otomatis (Disarankan)",
+        "quotaHighFirst": "Kuota Tinggi Dulu",
+        "quotaLowFirst": "Kuota Rendah Dulu",
+        "planHighFirst": "Paket Tinggi Dulu",
+        "planLowFirst": "Paket Rendah Dulu"
+      },
+      "statusUnconfigured": "Belum dikonfigurasi",
+      "expandDetails": "Buka detail",
+      "collapseDetails": "Tutup detail",
+      "hideEntryAction": "Sembunyikan entri Layanan API",
+      "hideEntryConfirm": "Ini akan menyembunyikan entri Layanan API dari ringkasan dan sekaligus menonaktifkan layanan API saat ini. Anda bisa menyalakannya lagi nanti di Pengaturan Codex atau Pengaturan Cepat.",
+      "hideEntryEffectHide": "Sembunyikan entri Layanan API dari ringkasan",
+      "hideEntryEffectDisable": "Nonaktifkan layanan API saat ini",
+      "hideEntryEffectRestore": "Anda bisa menyalakannya lagi di Pengaturan Codex atau Pengaturan Cepat",
+      "riskNotice": {
+        "title": "Pemberitahuan Risiko",
+        "message": "Fitur terkait layanan Codex API saat ini pada dasarnya menggunakan pola proxy terbalik. Untuk saat ini, pihak resmi belum secara tegas membatasi perilaku ini, tetapi kebijakan, aturan, atau ketersediaannya dapat berubah di masa mendatang. Dengan tetap menggunakan fitur ini, Anda menyatakan telah memahami kondisi tersebut dan bersedia menanggung risikonya sendiri.",
+        "remember": "Saya paham, jangan tampilkan lagi",
+        "acknowledge": "Saya paham",
+        "continueStart": "Lanjutkan",
+        "continueSwitch": "Lanjutkan"
+      },
+      "statsRange": {
+        "label": "Rentang statistik",
+        "daily": "Hari",
+        "weekly": "Minggu",
+        "monthly": "Bulan"
+      }
+    },
     "api": {
       "baseUrl": "URL Dasar",
       "baseUrlPlaceholder": "Biarkan kosong untuk menggunakan bawaan resmi",
@@ -1961,7 +2084,8 @@
         "expand": "Perluas",
         "collapse": "Ciutkan",
         "repairVisibility": "Perbaiki visibilitas",
-        "restoreSessions": "Pulihkan sesi"
+      "restoreSessions": "Pulihkan sesi",
+      "copySessionId": "Salin ID sesi"
       },
       "confirm": {
         "title": "Pindahkan ke Sampah",
@@ -1979,7 +2103,11 @@
         "pickRestoreOne": "Pilih setidaknya satu sesi untuk dipulihkan"
       },
       "groupCount": "{{count}} sesi",
-      "updatedAt": "Diperbarui",
+    "updatedAt": "Diperbarui",
+    "labels": {
+      "sessionId": "ID sesi",
+      "tokenUsage": "Penggunaan token"
+    },
       "locationRunning": " (berjalan)",
       "untitled": "Sesi tanpa judul",
       "restoreModal": {
@@ -2308,7 +2436,8 @@
       "appPath": "Launch Path",
       "configToml": "File konfigurasi Codex",
       "openConfigToml": "Buka file",
-      "openConfigHint": "Buka cepat file Codex config.toml yang sedang aktif."
+      "openConfigHint": "Buka cepat file Codex config.toml yang sedang aktif.",
+      "localAccessEntryVisible": "Tampilkan entri Layanan API"
     },
     "githubCopilot": {
       "title": "GitHub Copilot Settings",
@@ -2322,12 +2451,15 @@
       "enable": "Aktifkan Penggantian Otomatis",
       "threshold": "Ambang Penggantian",
       "thresholdDesc": "Ganti otomatis saat grup model yang dipantau mencapai persentase ambang ini",
+      "creditsEnable": "Pantau kredit",
+      "creditsThreshold": "Ambang kredit",
+      "creditsThresholdDesc": "Juga ganti otomatis saat kredit tersisa berada pada atau di bawah nilai ini",
       "triggerModel": "Trigger Model",
       "scopeAnyGroup": "Any model group",
       "scopeSelectedGroups": "Selected model groups",
       "selectedGroups": "Selected groups",
       "selectedGroupsEmpty": "No model groups available",
-      "hint": "Automatically switch to the account with the highest quota when monitored model groups hit the threshold."
+      "hint": "Ganti otomatis saat grup model yang dipantau mencapai ambang; jika pemantauan kredit diaktifkan, ini juga akan terpicu saat kredit tersisa turun di bawah ambang."
     },
     "quotaAlert": {
       "title": "Peringatan Kuota",
@@ -2340,6 +2472,7 @@
     "apply": "Apply",
     "inputMinutes": "Enter minutes",
     "inputPercent": "Enter percentage",
+    "inputCredits": "Masukkan kredit",
     "windsurf": {
       "title": "Windsurf Settings",
       "appPath": "Windsurf Path"
@@ -2389,6 +2522,11 @@
     "workbuddy": {
       "title": "WorkBuddy Settings",
       "appPath": "WorkBuddy Path"
+    },
+    "filterPersistence": {
+      "title": "Simpan Filter",
+      "enable": "Ingat filter ringkasan akun (tanpa pencarian)",
+      "hint": "Nonaktif secara default. Saat diaktifkan, tiap platform menyimpan filter, tag, dan urutan."
     }
   },
   "quotaAlert": {

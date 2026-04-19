@@ -5,6 +5,7 @@ import {
   getGitHubCopilotUsage,
 } from '../types/githubCopilot';
 import * as githubCopilotService from '../services/githubCopilotService';
+import { getProviderCurrentAccountId } from '../services/providerCurrentAccountService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const GHCP_ACCOUNTS_CACHE_KEY = 'agtools.github_copilot.accounts.cache';
@@ -31,5 +32,6 @@ export const useGitHubCopilotAccountStore = createProviderAccountStore<GitHubCop
   {
     platformId: 'github-copilot',
     currentAccountIdKey: GHCP_CURRENT_ACCOUNT_ID_KEY,
+    resolveCurrentAccountId: () => getProviderCurrentAccountId('github_copilot'),
   },
 );

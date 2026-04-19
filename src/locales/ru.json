@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "Частота автоматического обновления в фоне",
       "qoderPathSelect": "Выбрать",
       "workbuddyAutoRefresh": "Автообновление квоты WorkBuddy",
-      "workbuddyAutoRefreshDesc": "Частота автоматического обновления в фоне"
+      "workbuddyAutoRefreshDesc": "Частота автоматического обновления в фоне",
+      "codexLocalAccessEntryVisible": "Показывать пункт API-сервиса",
+      "codexLocalAccessEntryVisibleDesc": "Управляет только отображением пункта API-сервиса в обзоре Codex. Это не останавливает локальный API-сервис; его можно снова включить здесь или в быстрых настройках.",
+      "codexLocalAccessEnabled": "Включить API-сервис",
+      "codexLocalAccessEnabledDesc": "Определяет, будет ли локальный API-сервис Codex действительно работать.",
+      "codexLocalAccessEnabledRequiresCollection": "Перед включением или отключением сервиса сначала добавьте аккаунты в коллекцию API-сервиса."
     },
     "network": {
       "apiTitle": "API антигравитационной кабины",
@@ -1016,11 +1021,13 @@
       "originPlugin": "Расширение",
       "originUnknown": "Неизвестно",
       "autoReasonLabel": "Автопричина: {{reason}}",
-      "autoReason": "Правило: {{rule}}; порог: {{threshold}}%; область: {{scope}}; отслеживаемые группы: {{selectedGroups}}; сработавшие группы: {{hitGroups}}; кандидаты: {{candidates}}",
+      "autoReason": "Правило: {{rule}}; порог квоты: {{quotaThreshold}}%; порог кредитов: {{creditsThreshold}}; область: {{scope}}; отслеживаемые группы: {{selectedGroups}}; сработавшие группы: {{hitGroups}}; текущие кредиты: {{currentCredits}}; кандидаты: {{candidates}}",
       "autoReasonUnknown": "Автопереключение сработало, но подробная причина не записана",
       "autoReasonRuleCurrentDisabled": "Текущий аккаунт отключён",
       "autoReasonRuleQuotaForbidden": "Квота текущего аккаунта ограничена",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "Группа моделей и кредиты одновременно ниже порога",
       "autoReasonRuleGroupBelowThreshold": "Группа моделей ниже порога",
+      "autoReasonRuleCreditsBelowThreshold": "Оставшиеся кредиты ниже порога",
       "autoReasonScopeAnyGroup": "Любая группа моделей",
       "autoReasonScopeSelectedGroups": "Выбранные группы моделей",
       "stageResult": "Локально: {{local}} / Плавно: {{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "Вставьте содержимое auth.json или JSON данных аккаунта",
       "placeholder": "Пример: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "Формат экспорта",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "Формат sub2api",
+      "cpa": "Формат cpa"
+    },
+    "localAccess": {
+      "title": "API-сервис",
+      "accountCount": "{{count}} аккаунтов",
+      "baseUrl": "Адрес",
+      "apiKey": "Ключ",
+      "statusRunning": "Запущено",
+      "statusStopped": "Остановлено",
+      "statusDisabled": "Отключено",
+      "emptyMembers": "В коллекции пока нет аккаунтов",
+      "footerHint": "Слушает только 127.0.0.1",
+      "manageAccounts": "Управлять аккаунтами",
+      "rotateKey": "Обновить ключ",
+      "rotateConfirmMessage": "После сброса текущий ключ API-сервиса сразу перестанет работать, а выполняющиеся запросы могут стать недоступны. Продолжить?",
+      "disableService": "Отключить сервис",
+      "enableService": "Включить сервис",
+      "saveSuccess": "Коллекция API-сервиса обновлена",
+      "removeSuccess": "Аккаунт удалён из API-сервиса",
+      "rotateSuccess": "Ключ API-сервиса сброшен",
+      "enabledSuccess": "API-сервис включён",
+      "disabledSuccess": "API-сервис отключён",
+      "removeMember": "Удалить из API-сервиса",
+      "toggleService": "Переключить API-сервис",
+      "showKey": "Показать ключ",
+      "hideKey": "Скрыть ключ",
+      "modal": {
+        "title": "Добавить в API-сервис",
+        "desc": "Выберите OAuth-аккаунты, которые нужно включить в коллекцию API-сервиса. Добавленные аккаунты будут скрыты из обычного обзора и будут управляться только из карточки API-сервиса.",
+        "empty": "Нет доступных OAuth-аккаунтов",
+        "selected": "В API-сервисе",
+        "available": "Обычный обзор",
+        "save": "Сохранить коллекцию"
+      },
+      "entryAction": "Добавить в API-сервис",
+      "testAction": "Проверить API-сервис",
+      "testSuccess": "Проверка API-сервиса прошла успешно ({{count}} моделей)",
+      "testTimeout": "Время проверки истекло. Убедитесь, что локальный сервис запущен.",
+      "testUnavailable": "Текущий URL API-сервиса недоступен",
+      "activateAction": "Запустить API-сервис",
+      "activateSuccess": "Переключено на API-сервис",
+      "dashboardAction": "Панель сервиса",
+      "manageDesc": "Здесь можно управлять статистикой API-сервиса, участниками, портом, ключом и проверкой соединения.",
+      "memberOnlyLocal": "Только Codex",
+      "configTitle": "Настройки сервиса",
+      "configEmpty": "Сначала сохраните хотя бы один аккаунт в коллекции API-сервиса, чтобы сгенерировать URL, ключ и порт.",
+      "portLabel": "Порт сервиса",
+      "portSave": "Сохранить порт",
+      "portSaveSuccess": "Порт API-сервиса обновлён",
+      "portInvalid": "Введите порт от 1 до 65535",
+      "statsTitle": "Итого",
+      "accountStatsTitle": "По аккаунтам",
+      "statsEmpty": "Статистики пока нет",
+      "summaryMeta": "{{count}} аккаунтов · Только Codex",
+      "summaryMetaUnconfigured": "Не настроено · Только Codex",
+      "memberTitle": "Участники коллекции",
+      "stats": {
+        "requests": "Запросы",
+        "requestsDetail": "Успех {{success}} / Ошибка {{failed}}",
+        "tokens": "Токены",
+        "tokensDetail": "Вход {{input}} / Выход {{output}}",
+        "specialTokens": "Кэш / Размышления",
+        "specialTokensDetail": "Кэш {{cached}} / Размышления {{reasoning}}",
+        "avgLatency": "Средняя задержка",
+        "successRate": "Успешность {{rate}}%",
+        "accountRequests": "{{count}} запросов",
+        "accountTokens": "{{count}} токенов",
+        "accountResult": "Успех {{success}} / Ошибка {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "Маршрутизация",
+      "routingSaveSuccess": "Маршрутизация API-сервиса обновлена",
+      "routingDescriptionAuto": "Предпочитает аккаунты с более высоким тарифом и большим остатком квоты, затем ротирует внутри того же тарифа.",
+      "routingDescriptionQuotaHighFirst": "Предпочитает аккаунты с большим остатком квоты.",
+      "routingDescriptionQuotaLowFirst": "Предпочитает аккаунты с меньшим остатком квоты.",
+      "routingDescriptionPlanHighFirst": "Предпочитает аккаунты с более высоким уровнем подписки.",
+      "routingDescriptionPlanLowFirst": "Предпочитает аккаунты с более низким уровнем подписки.",
+      "clearStats": "Очистить статистику",
+      "clearStatsConfirm": "Очистить всю статистику API-сервиса?",
+      "clearStatsSuccess": "Статистика API-сервиса очищена",
+      "refreshStats": "Обновить статистику",
+      "refreshStatsSuccess": "Статистика API-сервиса обновлена",
+      "routingStrategy": {
+        "auto": "Авто (рекомендуется)",
+        "quotaHighFirst": "Сначала высокая квота",
+        "quotaLowFirst": "Сначала низкая квота",
+        "planHighFirst": "Сначала высокий тариф",
+        "planLowFirst": "Сначала низкий тариф"
+      },
+      "statusUnconfigured": "Не настроено",
+      "expandDetails": "Развернуть",
+      "collapseDetails": "Свернуть",
+      "hideEntryAction": "Скрыть пункт API-сервиса",
+      "hideEntryConfirm": "Это скроет пункт API-сервиса в обзоре и одновременно отключит текущий API-сервис. Позже его можно снова включить в настройках Codex или в быстрых настройках.",
+      "hideEntryEffectHide": "Скрыть пункт API-сервиса в обзоре",
+      "hideEntryEffectDisable": "Отключить текущий API-сервис",
+      "hideEntryEffectRestore": "Позже его можно снова включить в настройках Codex или в быстрых настройках",
+      "riskNotice": {
+        "title": "Уведомление о риске",
+        "message": "Текущие функции, связанные с сервисом Codex API, по сути работают через схему reverse proxy. На данный момент официальный сервис явно не ограничивает такое поведение, но правила, политика или доступность могут измениться в будущем. Продолжая использовать эту функцию, вы подтверждаете, что понимаете ситуацию и принимаете связанные риски на себя.",
+        "remember": "Понятно, больше не показывать",
+        "acknowledge": "Понятно",
+        "continueStart": "Продолжить",
+        "continueSwitch": "Продолжить"
+      },
+      "statsRange": {
+        "label": "Период",
+        "daily": "День",
+        "weekly": "Неделя",
+        "monthly": "Месяц"
+      }
+    },
     "local": {
       "desc": "Импортировать текущий аккаунт из ~/.codex/auth.json",
       "import": "Получить локальный аккаунт"
@@ -1832,7 +1955,8 @@
         "expand": "Развернуть",
         "collapse": "Свернуть",
         "repairVisibility": "Исправить видимость",
-        "restoreSessions": "Восстановить сессии"
+      "restoreSessions": "Восстановить сессии",
+      "copySessionId": "Копировать ID сессии"
       },
       "confirm": {
         "title": "Переместить в корзину",
@@ -1850,7 +1974,11 @@
         "pickRestoreOne": "Выберите хотя бы одну сессию для восстановления"
       },
       "groupCount": "{{count}} сессий",
-      "updatedAt": "Обновлено",
+    "updatedAt": "Обновлено",
+    "labels": {
+      "sessionId": "ID сессии",
+      "tokenUsage": "Использование токенов"
+    },
       "locationRunning": " (запущено)",
       "untitled": "Сессия без названия",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "Путь к приложению",
       "configToml": "Файл конфигурации Codex",
       "openConfigToml": "Открыть файл",
-      "openConfigHint": "Быстро открыть активный файл Codex config.toml."
+      "openConfigHint": "Быстро открыть активный файл Codex config.toml.",
+      "localAccessEntryVisible": "Показывать пункт API-сервиса"
     },
     "githubCopilot": {
       "title": "Настройки GitHub Copilot",
@@ -2176,7 +2305,10 @@
       "enable": "Автопереключение",
       "threshold": "Порог переключения",
       "thresholdDesc": "Автопереключение срабатывает, когда отслеживаемые группы моделей достигают этого процентного порога",
-      "hint": "Автоматически переключает на аккаунт с наибольшей квотой, когда отслеживаемые группы моделей достигают порога.",
+      "hint": "Автоматически переключает, когда отслеживаемые группы моделей достигают порога; при включённом отслеживании кредитов также срабатывает, когда оставшиеся кредиты падают ниже порога.",
+      "creditsEnable": "Отслеживать кредиты",
+      "creditsThreshold": "Порог кредитов",
+      "creditsThresholdDesc": "Также автоматически переключать, когда оставшиеся кредиты достигают этого значения или ниже",
       "triggerModel": "Модель-триггер",
       "scopeAnyGroup": "Любая группа моделей",
       "scopeSelectedGroups": "Выбранные группы моделей",
@@ -2194,6 +2326,7 @@
     "apply": "Применить",
     "inputMinutes": "Введите минуты",
     "inputPercent": "Введите процент",
+    "inputCredits": "Введите кредиты",
     "windsurf": {
       "title": "Настройки Windsurf",
       "appPath": "Путь к Windsurf"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Настройки Zed",
       "appPath": "Путь Zed"
+    },
+    "filterPersistence": {
+      "title": "Память фильтров",
+      "enable": "Запоминать фильтры обзора аккаунтов (кроме поиска)",
+      "hint": "По умолчанию выключено. При включении для каждой платформы сохраняются фильтры, теги и сортировка."
     }
   },
   "quotaAlert": {

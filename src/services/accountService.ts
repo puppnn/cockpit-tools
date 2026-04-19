@@ -140,6 +140,10 @@ export interface AntigravityAutoSwitchReason {
   rule: string;
   threshold: number;
   scopeMode: string;
+  creditsEnabled?: boolean;
+  creditsThreshold?: number | null;
+  creditsTriggered?: boolean;
+  currentCreditsRemaining?: number | null;
   selectedGroupIds: string[];
   selectedGroupNames: string[];
   hitGroups: AntigravityAutoSwitchHitGroup[];

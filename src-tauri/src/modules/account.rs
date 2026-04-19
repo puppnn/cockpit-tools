@@ -245,7 +245,7 @@ fn repair_account_index_from_details(reason: &str) -> Result<Option<AccountIndex
             last_used: account.last_used,
         })
         .collect();
-    index.current_account_id = accounts.first().map(|account| account.id.clone());
+    index.current_account_id = None;
 
     let backup_path = crate::modules::account_index_repair::backup_existing_index(&index_path)
         .unwrap_or_else(|err| {
@@ -558,10 +558,6 @@ pub fn add_account(
         last_used: account.last_used,
     });
 
-    if index.current_account_id.is_none() {
-        index.current_account_id = Some(account_id);
-    }
-
     save_account_index(&index)?;
 
     if reused_fp_id.is_some() {
@@ -658,7 +654,7 @@ pub fn delete_account(account_id: &str) -> Result<(), String> {
     }
 
     if index.current_account_id.as_deref() == Some(account_id) {
-        index.current_account_id = index.accounts.first().map(|s| s.id.clone());
+        index.current_account_id = None;
     }
 
     save_account_index(&index)?;
@@ -704,10 +700,6 @@ pub fn delete_accounts(account_ids: &[String]) -> Result<(), String> {
         if account_path.exists() {
             let _ = fs::remove_file(&account_path);
         }
-    }
-
-    if index.current_account_id.is_none() {
-        index.current_account_id = index.accounts.first().map(|s| s.id.clone());
     }
 
     save_account_index(&index)
@@ -970,6 +962,10 @@ fn normalize_auto_switch_threshold(raw: i32) -> i32 {
     raw.clamp(0, 100)
 }
 
+fn normalize_auto_switch_credits_threshold(raw: i32) -> i32 {
+    raw.max(0)
+}
+
 fn normalize_quota_alert_threshold(raw: i32) -> i32 {
     raw.clamp(0, 100)
 }
@@ -978,10 +974,14 @@ const AUTO_SWITCH_SCOPE_ANY_GROUP: &str = "any_group";
 const AUTO_SWITCH_SCOPE_SELECTED_GROUPS: &str = "selected_groups";
 const AUTO_SWITCH_ACCOUNT_SCOPE_ALL: &str = "all_accounts";
 const AUTO_SWITCH_ACCOUNT_SCOPE_SELECTED: &str = "selected_accounts";
-const AUTO_SWITCH_POLICY_AVG_QUOTA_DESC_LAST_USED_ASC: &str = "avg_quota_desc_then_last_used_asc";
+const AUTO_SWITCH_POLICY_AVG_QUOTA_DESC_THEN_CREDITS_DESC_LAST_USED_ASC: &str =
+    "avg_quota_desc_then_credits_desc_then_last_used_asc";
 const AUTO_SWITCH_RULE_CURRENT_DISABLED: &str = "current_disabled";
 const AUTO_SWITCH_RULE_CURRENT_QUOTA_FORBIDDEN: &str = "current_quota_forbidden";
 const AUTO_SWITCH_RULE_GROUP_BELOW_THRESHOLD: &str = "group_below_threshold";
+const AUTO_SWITCH_RULE_CREDITS_BELOW_THRESHOLD: &str = "credits_below_threshold";
+const AUTO_SWITCH_RULE_GROUP_AND_CREDITS_BELOW_THRESHOLD: &str =
+    "group_and_credits_below_threshold";
 
 #[derive(Debug, Clone)]
 struct AutoSwitchGroupDefinition {
@@ -1005,6 +1005,42 @@ struct AutoSwitchTriggerContext {
     selected_group_ids: Vec<String>,
     selected_group_names: Vec<String>,
     hit_groups: Vec<modules::antigravity_switch_history::AntigravityAutoSwitchHitGroup>,
+    credits_enabled: bool,
+    credits_triggered: bool,
+    credits_threshold: Option<i32>,
+    current_credits_remaining: Option<f64>,
+}
+
+fn parse_credit_amount(raw: &str) -> Option<f64> {
+    let normalized = raw.trim().replace(',', "");
+    if normalized.is_empty() {
+        return None;
+    }
+
+    normalized
+        .parse::<f64>()
+        .ok()
+        .filter(|value| value.is_finite())
+        .map(|value| value.max(0.0))
+}
+
+fn available_ai_credits(account: &Account) -> Option<f64> {
+    let quota = account.quota.as_ref()?;
+    let mut total = 0.0;
+    let mut has_valid_amount = false;
+
+    for credit in &quota.credits {
+        let Some(raw_amount) = credit.credit_amount.as_deref() else {
+            continue;
+        };
+        let Some(parsed) = parse_credit_amount(raw_amount) else {
+            continue;
+        };
+        total += parsed;
+        has_valid_amount = true;
+    }
+
+    has_valid_amount.then_some(total)
 }
 
 fn default_auto_switch_groups() -> Vec<AutoSwitchGroupDefinition> {
@@ -1228,6 +1264,8 @@ fn evaluate_auto_switch_trigger(
     threshold: i32,
     scope_mode: &str,
     monitored_groups: &[AutoSwitchGroupDefinition],
+    credits_enabled: bool,
+    credits_threshold: i32,
 ) -> Option<AutoSwitchTriggerContext> {
     if monitored_groups.is_empty() {
         return None;
@@ -1250,6 +1288,12 @@ fn evaluate_auto_switch_trigger(
             selected_group_ids,
             selected_group_names,
             hit_groups: Vec::new(),
+            credits_enabled,
+            credits_triggered: false,
+            credits_threshold: credits_enabled.then_some(credits_threshold),
+            current_credits_remaining: credits_enabled
+                .then(|| available_ai_credits(account))
+                .flatten(),
         });
     }
 
@@ -1265,6 +1309,12 @@ fn evaluate_auto_switch_trigger(
             selected_group_ids,
             selected_group_names,
             hit_groups: Vec::new(),
+            credits_enabled,
+            credits_triggered: false,
+            credits_threshold: credits_enabled.then_some(credits_threshold),
+            current_credits_remaining: credits_enabled
+                .then(|| available_ai_credits(account))
+                .flatten(),
         });
     }
 
@@ -1281,17 +1331,38 @@ fn evaluate_auto_switch_trigger(
                 },
             )
             .collect();
-    if hit_groups.is_empty() {
+    let current_credits_remaining = if credits_enabled {
+        available_ai_credits(account)
+    } else {
+        None
+    };
+    let credits_triggered = current_credits_remaining
+        .map(|remaining| remaining <= credits_threshold as f64)
+        .unwrap_or(false);
+
+    if hit_groups.is_empty() && !credits_triggered {
         return None;
     }
 
+    let rule = if !hit_groups.is_empty() && credits_triggered {
+        AUTO_SWITCH_RULE_GROUP_AND_CREDITS_BELOW_THRESHOLD.to_string()
+    } else if !hit_groups.is_empty() {
+        AUTO_SWITCH_RULE_GROUP_BELOW_THRESHOLD.to_string()
+    } else {
+        AUTO_SWITCH_RULE_CREDITS_BELOW_THRESHOLD.to_string()
+    };
+
     Some(AutoSwitchTriggerContext {
-        rule: AUTO_SWITCH_RULE_GROUP_BELOW_THRESHOLD.to_string(),
+        rule,
         threshold,
         scope_mode: scope_mode.to_string(),
         selected_group_ids,
         selected_group_names,
         hit_groups,
+        credits_enabled,
+        credits_triggered,
+        credits_threshold: credits_enabled.then_some(credits_threshold),
+        current_credits_remaining,
     })
 }
 
@@ -1300,6 +1371,8 @@ fn can_be_auto_switch_candidate(
     current_id: &str,
     threshold: i32,
     monitored_groups: &[AutoSwitchGroupDefinition],
+    credits_enabled: bool,
+    credits_threshold: i32,
 ) -> bool {
     if account.id == current_id || account.disabled {
         return false;
@@ -1317,9 +1390,23 @@ fn can_be_auto_switch_candidate(
     if group_quotas.len() < monitored_groups.len() {
         return false;
     }
-    group_quotas
+    if !group_quotas
         .iter()
         .all(|group| group.percentage >= threshold)
+    {
+        return false;
+    }
+
+    if credits_enabled {
+        let Some(remaining) = available_ai_credits(account) else {
+            return false;
+        };
+        if remaining < credits_threshold as f64 {
+            return false;
+        }
+    }
+
+    true
 }
 
 fn can_be_quota_alert_candidate(account: &Account, current_id: &str) -> bool {
@@ -1349,6 +1436,23 @@ fn average_quota_percentage(account: &Account) -> f64 {
     sum as f64 / quota.models.len() as f64
 }
 
+fn compare_auto_switch_candidates(a: &Account, b: &Account) -> std::cmp::Ordering {
+    let avg_a = average_quota_percentage(a);
+    let avg_b = average_quota_percentage(b);
+    let credits_a = available_ai_credits(a).unwrap_or(-1.0);
+    let credits_b = available_ai_credits(b).unwrap_or(-1.0);
+
+    avg_b
+        .partial_cmp(&avg_a)
+        .unwrap_or(std::cmp::Ordering::Equal)
+        .then_with(|| {
+            credits_b
+                .partial_cmp(&credits_a)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
+        .then_with(|| a.last_used.cmp(&b.last_used))
+}
+
 fn build_auto_switch_reason(
     context: &AutoSwitchTriggerContext,
     candidate_count: usize,
@@ -1357,11 +1461,16 @@ fn build_auto_switch_reason(
         rule: context.rule.clone(),
         threshold: context.threshold,
         scope_mode: context.scope_mode.clone(),
+        credits_enabled: context.credits_enabled,
+        credits_threshold: context.credits_threshold,
+        credits_triggered: context.credits_triggered,
+        current_credits_remaining: context.current_credits_remaining,
         selected_group_ids: context.selected_group_ids.clone(),
         selected_group_names: context.selected_group_names.clone(),
         hit_groups: context.hit_groups.clone(),
         candidate_count,
-        selected_policy: AUTO_SWITCH_POLICY_AVG_QUOTA_DESC_LAST_USED_ASC.to_string(),
+        selected_policy: AUTO_SWITCH_POLICY_AVG_QUOTA_DESC_THEN_CREDITS_DESC_LAST_USED_ASC
+            .to_string(),
     }
 }
 
@@ -1602,6 +1711,9 @@ async fn run_auto_switch_if_needed_inner() -> Result<Option<Account>, String> {
     }
 
     let threshold = normalize_auto_switch_threshold(cfg.auto_switch_threshold);
+    let credits_enabled = cfg.auto_switch_credits_enabled;
+    let credits_threshold =
+        normalize_auto_switch_credits_threshold(cfg.auto_switch_credits_threshold);
     let scope_mode = normalize_auto_switch_scope_mode(&cfg.auto_switch_scope_mode);
     let account_scope_mode =
         normalize_auto_switch_account_scope_mode(&cfg.auto_switch_account_scope_mode);
@@ -1646,41 +1758,59 @@ async fn run_auto_switch_if_needed_inner() -> Result<Option<Account>, String> {
         None => return Ok(None),
     };
 
-    let Some(trigger_context) =
-        evaluate_auto_switch_trigger(current, threshold, &scope_mode, &monitored_groups)
-    else {
+    let Some(trigger_context) = evaluate_auto_switch_trigger(
+        current,
+        threshold,
+        &scope_mode,
+        &monitored_groups,
+        credits_enabled,
+        credits_threshold,
+    ) else {
         return Ok(None);
     };
 
     let mut candidates: Vec<Account> = accounts
         .into_iter()
         .filter(|a| monitored_account_ids.contains(&a.id))
-        .filter(|a| can_be_auto_switch_candidate(a, &current_id, threshold, &monitored_groups))
+        .filter(|a| {
+            can_be_auto_switch_candidate(
+                a,
+                &current_id,
+                threshold,
+                &monitored_groups,
+                credits_enabled,
+                credits_threshold,
+            )
+        })
         .collect();
 
     if candidates.is_empty() {
         modules::logger::log_warn(&format!(
-            "[AutoSwitch] 命中自动切号条件(rule={}, threshold={}%, scope={})，但没有可切换候选账号",
-            trigger_context.rule, threshold, trigger_context.scope_mode
+            "[AutoSwitch] 命中自动切号条件(rule={}, threshold={}%, credits_enabled={}, credits_threshold={}, scope={})，但没有可切换候选账号",
+            trigger_context.rule,
+            threshold,
+            credits_enabled,
+            credits_threshold,
+            trigger_context.scope_mode
         ));
         return Ok(None);
     }
 
     let reason_snapshot = build_auto_switch_reason(&trigger_context, candidates.len());
 
-    candidates.sort_by(|a, b| {
-        let avg_a = average_quota_percentage(a);
-        let avg_b = average_quota_percentage(b);
-        avg_b
-            .partial_cmp(&avg_a)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.last_used.cmp(&b.last_used))
-    });
+    candidates.sort_by(compare_auto_switch_candidates);
 
     let target = &candidates[0];
     modules::logger::log_info(&format!(
-        "[AutoSwitch] 触发自动切号: current_id={}, target_id={}, threshold={}%, scope={}, rule={}",
-        current_id, target.id, threshold, scope_mode, trigger_context.rule
+        "[AutoSwitch] 触发自动切号: current_id={}, target_id={}, threshold={}%, credits_enabled={}, credits_threshold={}, current_credits={:?}, scope={}, rule={}",
+        current_id,
+        target.id,
+        threshold,
+        credits_enabled,
+        credits_threshold,
+        trigger_context.current_credits_remaining,
+        scope_mode,
+        trigger_context.rule
     ));
 
     let switched = if cfg.antigravity_dual_switch_no_restart_enabled {

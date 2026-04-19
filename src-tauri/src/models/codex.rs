@@ -60,6 +60,8 @@ pub struct CodexAccount {
     pub api_console_token: Option<String>,
     pub user_id: Option<String>,
     pub plan_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub auth_file_plan_type: Option<String>,
     pub account_id: Option<String>,
     pub organization_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -227,6 +229,7 @@ impl CodexAccount {
             api_console_token: None,
             user_id: None,
             plan_type: None,
+            auth_file_plan_type: None,
             account_id: None,
             organization_id: None,
             account_name: None,

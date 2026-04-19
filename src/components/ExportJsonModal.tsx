@@ -1,5 +1,5 @@
 import { Check, Copy, Download, Eye, EyeOff, FolderOpen, X } from 'lucide-react';
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface ExportJsonModalProps {
@@ -12,6 +12,7 @@ interface ExportJsonModalProps {
   savedPath: string | null;
   canOpenSavedDirectory: boolean;
   pathCopied: boolean;
+  toolbarContent?: ReactNode;
   onClose: () => void;
   onToggleHidden: () => void;
   onCopyJson: () => Promise<void>;
@@ -60,6 +61,7 @@ export function ExportJsonModal(props: ExportJsonModalProps) {
     savedPath,
     canOpenSavedDirectory,
     pathCopied,
+    toolbarContent,
     onClose,
     onToggleHidden,
     onCopyJson,
@@ -93,6 +95,11 @@ export function ExportJsonModal(props: ExportJsonModalProps) {
         </div>
 
         <div className="modal-body export-json-modal-body">
+          {toolbarContent ? (
+            <div className="export-json-toolbar">
+              {toolbarContent}
+            </div>
+          ) : null}
           <div className="export-json-actions">
             <button className="btn btn-secondary btn-sm" onClick={onToggleHidden}>
               {hidden ? <Eye size={14} /> : <EyeOff size={14} />}

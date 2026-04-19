@@ -1113,6 +1113,41 @@
   gap: 12px;
 }
 
+.export-json-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.export-json-toolbar-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.export-json-toolbar-dropdown {
+  min-width: 180px;
+}
+
+.export-json-toolbar-dropdown .single-filter-btn {
+  min-width: 180px;
+}
+
+@media (max-width: 760px) {
+  .export-json-toolbar {
+    align-items: stretch;
+  }
+
+  .export-json-toolbar-dropdown {
+    width: 100%;
+  }
+
+  .export-json-toolbar-dropdown .single-filter-btn {
+    width: 100%;
+  }
+}
+
 .export-json-actions {
   display: flex;
   align-items: center;
@@ -1276,43 +1311,58 @@
 .sticky-action-header {
   position: sticky;
   right: 0;
-  background: var(--bg-tertiary);
+  background: var(--bg-card);
   z-index: 20;
-  box-shadow: -8px 0 12px -8px rgba(15, 23, 42, 0.12);
-  min-width: 140px;
+  box-shadow: -10px 0 14px -12px rgba(15, 23, 42, 0.18);
+  min-width: 156px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .sticky-action-cell {
   position: sticky;
   right: 0;
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   z-index: 10;
-  box-shadow: -8px 0 12px -8px rgba(15, 23, 42, 0.12);
+  box-shadow: -10px 0 14px -12px rgba(15, 23, 42, 0.18);
 }
 
 .account-table tr:hover .sticky-action-cell {
-  background: var(--bg-tertiary);
+  background: var(--bg-hover);
 }
 
 .account-table tr.current .sticky-action-cell {
-  background: var(--bg-secondary);
+  background: rgba(29, 78, 216, 0.06);
 }
 
 .table-action-header {
-  background: var(--bg-tertiary);
+  background: var(--bg-card);
 }
 
 .table-action-cell {
-  background: var(--bg-secondary);
+  background: var(--bg-card);
 }
 
 .account-table tr:hover .table-action-cell {
-  background: var(--bg-tertiary);
+  background: var(--bg-hover);
 }
 
 .account-table tr.current .table-action-cell {
-  background: var(--bg-secondary);
+  background: rgba(29, 78, 216, 0.06);
+}
+
+.table-action-cell .action-buttons,
+.sticky-action-cell .action-buttons {
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.table-action-cell .action-btn,
+.sticky-action-cell .action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
 }
 
 /* Pagination */

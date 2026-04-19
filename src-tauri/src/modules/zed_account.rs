@@ -249,9 +249,7 @@ fn repair_account_index_from_details(reason: &str) -> Option<ZedAccountIndex> {
 
     let mut index = ZedAccountIndex::new();
     index.accounts = accounts.iter().map(|account| account.summary()).collect();
-    index.current_account_id = accounts
-        .first()
-        .map(|account| account.public_account.id.clone());
+    index.current_account_id = None;
 
     let backup_path = crate::modules::account_index_repair::backup_existing_index(&index_path)
         .unwrap_or_else(|err| {
@@ -361,27 +359,11 @@ pub fn resolve_current_account_id() -> Option<String> {
         return None;
     }
 
-    if let Ok(Some(credentials)) = read_credentials_from_keychain() {
-        if let Some(account) = accounts
-            .iter()
-            .find(|item| item.public_account.user_id == credentials.user_id)
-        {
-            return Some(account.public_account.id.clone());
-        }
-    }
-
-    if let Some(current_id) = index.current_account_id {
-        if accounts
-            .iter()
-            .any(|account| account.public_account.id == current_id)
-        {
-            return Some(current_id);
-        }
-    }
-
+    let current_id = index.current_account_id?;
     accounts
-        .first()
-        .map(|account| account.public_account.id.clone())
+        .iter()
+        .any(|account| account.public_account.id == current_id)
+        .then_some(current_id)
 }
 
 pub fn set_current_account_id(account_id: Option<&str>) -> Result<(), String> {
@@ -395,7 +377,7 @@ pub fn set_current_account_id(account_id: Option<&str>) -> Result<(), String> {
 
 fn upsert_account_record(
     mut account: ZedStoredAccount,
-    set_current_if_missing: bool,
+    _set_current_if_missing: bool,
     force_current: bool,
 ) -> Result<ZedAccount, String> {
     let _lock = ZED_ACCOUNT_INDEX_LOCK
@@ -414,8 +396,6 @@ fn upsert_account_record(
     refresh_summary(&mut index, &account);
 
     if force_current {
-        index.current_account_id = Some(account.public_account.id.clone());
-    } else if set_current_if_missing && index.current_account_id.is_none() {
         index.current_account_id = Some(account.public_account.id.clone());
     }
 
@@ -447,7 +427,7 @@ pub fn remove_account(account_id: &str) -> Result<(), String> {
     let mut index = load_account_index();
     index.accounts.retain(|item| item.id != account_id);
     if index.current_account_id.as_deref() == Some(account_id) {
-        index.current_account_id = index.accounts.first().map(|item| item.id.clone());
+        index.current_account_id = None;
     }
     save_account_index(&index)?;
     delete_account_file(account_id)?;
@@ -471,7 +451,7 @@ pub fn remove_accounts(account_ids: &[String]) -> Result<(), String> {
     index.accounts.retain(|item| !targets.contains(&item.id));
     if let Some(current_id) = index.current_account_id.clone() {
         if targets.contains(&current_id) {
-            index.current_account_id = index.accounts.first().map(|item| item.id.clone());
+            index.current_account_id = None;
         }
     }
     save_account_index(&index)?;

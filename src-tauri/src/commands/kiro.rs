@@ -197,6 +197,10 @@ pub async fn inject_kiro_to_vscode(app: AppHandle, account_id: String) -> Result
     ) {
         logger::log_warn(&format!("更新 Kiro 默认实例绑定账号失败: {}", err));
     }
+    crate::modules::provider_current_state::set_current_account_id(
+        "kiro",
+        Some(account_id.as_str()),
+    )?;
 
     let launch_warning = match crate::commands::kiro_instance::kiro_start_instance(
         "__default__".to_string(),

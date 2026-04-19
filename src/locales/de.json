@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "Häufigkeit der automatischen Aktualisierung im Hintergrund",
       "qoderPathSelect": "Auswählen",
       "workbuddyAutoRefresh": "WorkBuddy Auto-Aktualisierung",
-      "workbuddyAutoRefreshDesc": "Häufigkeit der automatischen Aktualisierung im Hintergrund"
+      "workbuddyAutoRefreshDesc": "Häufigkeit der automatischen Aktualisierung im Hintergrund",
+      "codexLocalAccessEntryVisible": "API-Service-Eintrag anzeigen",
+      "codexLocalAccessEntryVisibleDesc": "Steuert nur, ob der API-Service-Eintrag in der Codex-Übersicht angezeigt wird. Der lokale API-Service wird dadurch nicht gestoppt; du kannst ihn hier oder in den Schnelleinstellungen wieder einblenden.",
+      "codexLocalAccessEnabled": "API-Service aktivieren",
+      "codexLocalAccessEnabledDesc": "Steuert, ob der lokale Codex-API-Service tatsächlich läuft.",
+      "codexLocalAccessEnabledRequiresCollection": "Füge zuerst Konten zur API-Service-Sammlung hinzu, bevor du den Service aktivierst oder deaktivierst."
     },
     "network": {
       "apiTitle": "Antigravity-Cockpit-API",
@@ -1016,11 +1021,13 @@
       "originPlugin": "Erweiterung",
       "originUnknown": "Unbekannt",
       "autoReasonLabel": "Automatischer Grund: {{reason}}",
-      "autoReason": "Regel: {{rule}}; Schwelle: {{threshold}}%; Bereich: {{scope}}; Überwachte Gruppen: {{selectedGroups}}; Treffergruppen: {{hitGroups}}; Kandidaten: {{candidates}}",
+      "autoReason": "Regel: {{rule}}; Quota-Schwelle: {{quotaThreshold}}%; Credits-Schwelle: {{creditsThreshold}}; Bereich: {{scope}}; überwachte Gruppen: {{selectedGroups}}; Treffergruppen: {{hitGroups}}; aktuelle Credits: {{currentCredits}}; Kandidaten: {{candidates}}",
       "autoReasonUnknown": "Automatischer Wechsel wurde ausgelöst, aber es wurde kein detaillierter Grund aufgezeichnet",
       "autoReasonRuleCurrentDisabled": "Aktuelles Konto ist deaktiviert",
       "autoReasonRuleQuotaForbidden": "Kontingent des aktuellen Kontos ist gesperrt",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "Modellgruppe und Credits liegen beide unter dem Schwellenwert",
       "autoReasonRuleGroupBelowThreshold": "Modellgruppe unter Schwellenwert",
+      "autoReasonRuleCreditsBelowThreshold": "Verbleibende Credits liegen unter dem Schwellenwert",
       "autoReasonScopeAnyGroup": "Beliebige Modellgruppe",
       "autoReasonScopeSelectedGroups": "Ausgewählte Modellgruppen",
       "stageResult": "Lokal: {{local}} / Nahtlos: {{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "auth.json-Inhalt oder Konto-JSON einfügen",
       "placeholder": "Beispiel: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "Exportformat",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "sub2api-Format",
+      "cpa": "cpa-Format"
+    },
+    "localAccess": {
+      "title": "API-Dienst",
+      "accountCount": "{{count}} Konten",
+      "baseUrl": "Adresse",
+      "apiKey": "Schlüssel",
+      "statusRunning": "Aktiv",
+      "statusStopped": "Gestoppt",
+      "statusDisabled": "Deaktiviert",
+      "emptyMembers": "Diese Sammlung enthält noch keine Konten",
+      "footerHint": "Hört nur auf 127.0.0.1",
+      "manageAccounts": "Konten verwalten",
+      "rotateKey": "Schlüssel erneuern",
+      "rotateConfirmMessage": "Nach dem Zurücksetzen wird der aktuelle API-Service-Schlüssel sofort ungültig. Laufende Anfragen könnten dadurch nicht mehr verfügbar sein. Fortfahren?",
+      "disableService": "Dienst deaktivieren",
+      "enableService": "Dienst aktivieren",
+      "saveSuccess": "API-Dienst-Sammlung aktualisiert",
+      "removeSuccess": "Konto aus dem API-Dienst entfernt",
+      "rotateSuccess": "API-Dienst-Schlüssel erneuert",
+      "enabledSuccess": "API-Dienst aktiviert",
+      "disabledSuccess": "API-Dienst deaktiviert",
+      "removeMember": "Aus API-Dienst entfernen",
+      "toggleService": "API-Dienst umschalten",
+      "showKey": "Schlüssel anzeigen",
+      "hideKey": "Schlüssel ausblenden",
+      "modal": {
+        "title": "Zum API-Dienst hinzufügen",
+        "desc": "Wählen Sie die OAuth-Konten aus, die in die API-Dienst-Sammlung aufgenommen werden sollen. Hinzugefügte Konten werden aus der normalen Übersicht ausgeblendet und nur noch über die API-Dienst-Karte verwaltet.",
+        "empty": "Keine OAuth-Konten verfügbar",
+        "selected": "Im API-Dienst",
+        "available": "Normale Übersicht",
+        "save": "Sammlung speichern"
+      },
+      "entryAction": "Zum API-Dienst hinzufügen",
+      "testAction": "API-Dienst testen",
+      "testSuccess": "API-Dienst-Test erfolgreich ({{count}} Modelle)",
+      "testTimeout": "Zeitüberschreitung beim Test. Prüfen Sie, ob der lokale Dienst läuft.",
+      "testUnavailable": "Die aktuelle API-Dienst-URL ist nicht erreichbar",
+      "activateAction": "API-Dienst starten",
+      "activateSuccess": "Zum API-Dienst gewechselt",
+      "dashboardAction": "Service-Panel",
+      "manageDesc": "Verwalten Sie API-Service-Statistiken, Mitglieder, Port, Schlüssel und Verbindungstest an einem Ort.",
+      "memberOnlyLocal": "Nur Codex",
+      "configTitle": "Service-Konfig",
+      "configEmpty": "Speichern Sie zuerst mindestens ein Konto in der API-Service-Sammlung, danach werden URL, Schlüssel und Port erzeugt.",
+      "portLabel": "Service-Port",
+      "portSave": "Port speichern",
+      "portSaveSuccess": "Der API-Service-Port wurde aktualisiert",
+      "portInvalid": "Geben Sie einen Port zwischen 1 und 65535 ein",
+      "statsTitle": "Gesamt",
+      "accountStatsTitle": "Nach Konto",
+      "statsEmpty": "Noch keine Statistiken",
+      "summaryMeta": "{{count}} Konten · Nur Codex",
+      "summaryMetaUnconfigured": "Nicht konfiguriert · Nur Codex",
+      "memberTitle": "Sammlungsmitglieder",
+      "stats": {
+        "requests": "Anfragen",
+        "requestsDetail": "Erfolg {{success}} / Fehler {{failed}}",
+        "tokens": "Token",
+        "tokensDetail": "Eingabe {{input}} / Ausgabe {{output}}",
+        "specialTokens": "Cache / Denken",
+        "specialTokensDetail": "Cache {{cached}} / Denken {{reasoning}}",
+        "avgLatency": "Durchschn. Latenz",
+        "successRate": "Erfolgsquote {{rate}}%",
+        "accountRequests": "{{count}} Anfragen",
+        "accountTokens": "{{count}} Token",
+        "accountResult": "Erfolg {{success}} / Fehler {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "Routing",
+      "routingSaveSuccess": "API-Service-Routing wurde aktualisiert",
+      "routingDescriptionAuto": "Bevorzugt Konten mit höherem Tarif und mehr Restkontingent, rotiert dann innerhalb derselben Tarifstufe.",
+      "routingDescriptionQuotaHighFirst": "Bevorzugt Konten mit mehr verbleibendem Kontingent.",
+      "routingDescriptionQuotaLowFirst": "Bevorzugt Konten mit weniger verbleibendem Kontingent.",
+      "routingDescriptionPlanHighFirst": "Bevorzugt Konten mit höherer Abostufe.",
+      "routingDescriptionPlanLowFirst": "Bevorzugt Konten mit niedrigerer Abostufe.",
+      "clearStats": "Statistik löschen",
+      "clearStatsConfirm": "Alle API-Service-Statistiken löschen?",
+      "clearStatsSuccess": "API-Service-Statistiken wurden gelöscht",
+      "refreshStats": "Statistik aktualisieren",
+      "refreshStatsSuccess": "API-Service-Statistiken wurden aktualisiert",
+      "routingStrategy": {
+        "auto": "Automatisch (empfohlen)",
+        "quotaHighFirst": "Hohe Quote zuerst",
+        "quotaLowFirst": "Niedrige Quote zuerst",
+        "planHighFirst": "Hohes Abo zuerst",
+        "planLowFirst": "Niedriges Abo zuerst"
+      },
+      "statusUnconfigured": "Nicht konfiguriert",
+      "expandDetails": "Details aufklappen",
+      "collapseDetails": "Details einklappen",
+      "hideEntryAction": "API-Service-Eintrag ausblenden",
+      "hideEntryConfirm": "Dadurch wird der API-Service-Eintrag in der Übersicht ausgeblendet und der aktuelle API-Service deaktiviert. Du kannst ihn später in den Codex-Einstellungen oder den Schnelleinstellungen wieder einschalten.",
+      "hideEntryEffectHide": "API-Service-Eintrag in der Übersicht ausblenden",
+      "hideEntryEffectDisable": "Aktuellen API-Service deaktivieren",
+      "hideEntryEffectRestore": "Später in den Codex-Einstellungen oder Schnelleinstellungen wieder einschalten",
+      "riskNotice": {
+        "title": "Risikohinweis",
+        "message": "Die aktuellen Codex-API-Funktionen basieren im Kern auf einer Proxy-/Weiterleitungsnutzung. Der offizielle Dienst unterbindet dieses Verhalten derzeit nicht ausdrücklich, aber künftige Richtlinien, Regeln oder die Verfügbarkeit können sich ändern. Wenn du diese Funktion weiter nutzt, bestätigst du, dass du dies zur Kenntnis genommen hast und die damit verbundenen Risiken selbst trägst.",
+        "remember": "Verstanden, nicht erneut anzeigen",
+        "acknowledge": "Verstanden",
+        "continueStart": "Weiter",
+        "continueSwitch": "Weiter"
+      },
+      "statsRange": {
+        "label": "Zeitraum",
+        "daily": "Tag",
+        "weekly": "Woche",
+        "monthly": "Monat"
+      }
+    },
     "local": {
       "desc": "Aktuell eingeloggtes Konto aus ~/.codex/auth.json importieren",
       "import": "Lokales Konto abrufen"
@@ -1832,7 +1955,8 @@
         "expand": "Erweitern",
         "collapse": "Einklappen",
         "repairVisibility": "Sichtbarkeit reparieren",
-        "restoreSessions": "Sitzungen wiederherstellen"
+      "restoreSessions": "Sitzungen wiederherstellen",
+      "copySessionId": "Sitzungs-ID kopieren"
       },
       "confirm": {
         "title": "In den Papierkorb verschieben",
@@ -1850,7 +1974,11 @@
         "pickRestoreOne": "Bitte wählen Sie mindestens eine Sitzung zur Wiederherstellung aus"
       },
       "groupCount": "{{count}} Sitzungen",
-      "updatedAt": "Aktualisiert",
+    "updatedAt": "Aktualisiert",
+    "labels": {
+      "sessionId": "Sitzungs-ID",
+      "tokenUsage": "Token-Nutzung"
+    },
       "locationRunning": " (wird ausgeführt)",
       "untitled": "Unbenannte Sitzung",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "App-Pfad",
       "configToml": "Codex-Konfigurationsdatei",
       "openConfigToml": "Datei öffnen",
-      "openConfigHint": "Öffnet schnell die aktive Codex-config.toml."
+      "openConfigHint": "Öffnet schnell die aktive Codex-config.toml.",
+      "localAccessEntryVisible": "API-Service-Eintrag anzeigen"
     },
     "githubCopilot": {
       "title": "GitHub Copilot-Einstellungen",
@@ -2176,7 +2305,10 @@
       "enable": "Automatisch wechseln",
       "threshold": "Wechselschwelle",
       "thresholdDesc": "Automatischer Wechsel wird ausgelöst, wenn überwachte Modellgruppen diesen Prozentsatz erreichen",
-      "hint": "Wechselt automatisch zum Konto mit dem höchsten Kontingent, wenn überwachte Modellgruppen den Schwellenwert erreichen.",
+      "hint": "Es wird automatisch gewechselt, wenn überwachte Modellgruppen den Schwellenwert erreichen; bei aktivierter Credits-Überwachung auch dann, wenn die verbleibenden Credits unter den Schwellenwert fallen.",
+      "creditsEnable": "Credits überwachen",
+      "creditsThreshold": "Credits-Schwelle",
+      "creditsThresholdDesc": "Auch automatisch wechseln, wenn die verbleibenden Credits diesen Wert oder weniger erreichen",
       "triggerModel": "Auslösemodell",
       "scopeAnyGroup": "Beliebige Modellgruppe",
       "scopeSelectedGroups": "Ausgewählte Modellgruppen",
@@ -2194,6 +2326,7 @@
     "apply": "Anwenden",
     "inputMinutes": "Minuten eingeben",
     "inputPercent": "Prozentsatz eingeben",
+    "inputCredits": "Credits eingeben",
     "windsurf": {
       "title": "Windsurf-Einstellungen",
       "appPath": "Windsurf-Pfad"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Zed-Einstellungen",
       "appPath": "Zed-Pfad"
+    },
+    "filterPersistence": {
+      "title": "Filter-Merker",
+      "enable": "Filter in der Kontoübersicht merken (ohne Suche)",
+      "hint": "Standardmäßig aus. Wenn aktiviert, werden Filter, Tags und Sortierung pro Plattform gespeichert."
     }
   },
   "quotaAlert": {

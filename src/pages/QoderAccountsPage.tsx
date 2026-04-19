@@ -73,9 +73,25 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+  type AccountsOverviewFilterPersistenceChangedDetail,
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterField,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 const QODER_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.qoder.flow_notice_collapsed';
-const QODER_VIEW_MODE_KEY = 'agtools.qoder.accounts_view_mode';
+const QODER_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('qoder');
+const QODER_FILTER_FIELD_VIEW_MODE = 'view_mode';
+const QODER_FILTER_FIELD_SORT_BY = 'sort_by';
+const QODER_FILTER_FIELD_SORT_DIRECTION = 'sort_direction';
+const QODER_FILTER_FIELD_FILTER_TYPES = 'filter_types';
+const QODER_FILTER_FIELD_TAG_FILTER = 'tag_filter';
+const QODER_FILTER_FIELD_GROUP_BY_TAG = 'group_by_tag';
 const UNTAGGED_KEY = '__untagged__';
 
 type ViewMode = 'grid' | 'list';
@@ -117,13 +133,18 @@ function writeBooleanStorage(key: string, value: boolean) {
   }
 }
 
-function readViewModeStorage(key: string, fallback: ViewMode): ViewMode {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw === 'grid' || raw === 'list' ? raw : fallback;
-  } catch {
-    return fallback;
-  }
+function normalizeQoderViewMode(value: unknown): ViewMode {
+  return value === 'list' ? 'list' : 'grid';
+}
+
+function normalizeQoderSortBy(value: unknown): SortBy {
+  return value === 'plan' || value === 'quota' || value === 'created_at'
+    ? value
+    : 'created_at';
+}
+
+function normalizeQoderSortDirection(value: unknown): SortDirection {
+  return value === 'asc' ? 'asc' : 'desc';
 }
 
 function normalizeTag(tag: string): string {
@@ -222,15 +243,55 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutCode: str
 export function QoderAccountsPage() {
   const { t } = useTranslation();
   const store = useQoderAccountStore();
+  const initialFilterPersistenceEnabled =
+    readAccountsOverviewFilterPersistenceEnabled(QODER_FILTER_PERSISTENCE_SCOPE);
   const importFileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<PlatformOverviewTab>('overview');
+  const [filterPersistenceEnabled, setFilterPersistenceEnabled] = useState<boolean>(
+    initialFilterPersistenceEnabled,
+  );
   const [viewMode, setViewMode] = useState<ViewMode>(() =>
-    readViewModeStorage(QODER_VIEW_MODE_KEY, 'grid'),
+    initialFilterPersistenceEnabled
+      ? normalizeQoderViewMode(
+          readAccountsOverviewFilterField<unknown>(
+            QODER_FILTER_PERSISTENCE_SCOPE,
+            QODER_FILTER_FIELD_VIEW_MODE,
+            'grid',
+          ),
+        )
+      : 'grid',
   );
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<SortBy>('created_at');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    initialFilterPersistenceEnabled
+      ? readAccountsOverviewFilterStringArray(
+          QODER_FILTER_PERSISTENCE_SCOPE,
+          QODER_FILTER_FIELD_FILTER_TYPES,
+        )
+      : [],
+  );
+  const [sortBy, setSortBy] = useState<SortBy>(() =>
+    initialFilterPersistenceEnabled
+      ? normalizeQoderSortBy(
+          readAccountsOverviewFilterField<unknown>(
+            QODER_FILTER_PERSISTENCE_SCOPE,
+            QODER_FILTER_FIELD_SORT_BY,
+            'created_at',
+          ),
+        )
+      : 'created_at',
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() =>
+    initialFilterPersistenceEnabled
+      ? normalizeQoderSortDirection(
+          readAccountsOverviewFilterField<unknown>(
+            QODER_FILTER_PERSISTENCE_SCOPE,
+            QODER_FILTER_FIELD_SORT_DIRECTION,
+            'desc',
+          ),
+        )
+      : 'desc',
+  );
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
   const [addTab, setAddTab] = useState<'oauth' | 'token' | 'import'>('import');
@@ -254,7 +315,14 @@ export function QoderAccountsPage() {
   const [deleting, setDeleting] = useState(false);
   const [showTagModal, setShowTagModal] = useState<string | null>(null);
   const [showTagFilter, setShowTagFilter] = useState(false);
-  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [tagFilter, setTagFilter] = useState<string[]>(() =>
+    initialFilterPersistenceEnabled
+      ? readAccountsOverviewFilterStringArray(
+          QODER_FILTER_PERSISTENCE_SCOPE,
+          QODER_FILTER_FIELD_TAG_FILTER,
+        )
+      : [],
+  );
   const [tagDeleteConfirm, setTagDeleteConfirm] = useState<{ tag: string; count: number } | null>(null);
   const {
     message: tagDeleteConfirmError,
@@ -263,7 +331,17 @@ export function QoderAccountsPage() {
   } = useModalErrorState();
   const [deletingTag, setDeletingTag] = useState(false);
   const tagFilterRef = useRef<HTMLDivElement | null>(null);
-  const [groupByTag, setGroupByTag] = useState(false);
+  const [groupByTag, setGroupByTag] = useState<boolean>(() =>
+    initialFilterPersistenceEnabled
+      ? Boolean(
+          readAccountsOverviewFilterField<unknown>(
+            QODER_FILTER_PERSISTENCE_SCOPE,
+            QODER_FILTER_FIELD_GROUP_BY_TAG,
+            false,
+          ),
+        )
+      : false,
+  );
   const [isFlowNoticeCollapsed, setIsFlowNoticeCollapsed] = useState<boolean>(() =>
     readBooleanStorage(QODER_FLOW_NOTICE_COLLAPSED_KEY, false),
   );
@@ -272,12 +350,114 @@ export function QoderAccountsPage() {
   );
 
   useEffect(() => {
-    try {
-      localStorage.setItem(QODER_VIEW_MODE_KEY, viewMode);
-    } catch {
-      // ignore persistence failures
+    const handleFilterPersistenceChanged = (event: Event) => {
+      const detail = (event as CustomEvent<AccountsOverviewFilterPersistenceChangedDetail>).detail;
+      if (!detail || detail.scope !== QODER_FILTER_PERSISTENCE_SCOPE) {
+        return;
+      }
+      setFilterPersistenceEnabled(Boolean(detail.enabled));
+    };
+    window.addEventListener(
+      ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+      handleFilterPersistenceChanged as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+        handleFilterPersistenceChanged as EventListener,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        QODER_FILTER_PERSISTENCE_SCOPE,
+        QODER_FILTER_FIELD_VIEW_MODE,
+      );
+      return;
     }
-  }, [viewMode]);
+    writeAccountsOverviewFilterField(
+      QODER_FILTER_PERSISTENCE_SCOPE,
+      QODER_FILTER_FIELD_VIEW_MODE,
+      viewMode,
+    );
+  }, [filterPersistenceEnabled, viewMode]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        QODER_FILTER_PERSISTENCE_SCOPE,
+        QODER_FILTER_FIELD_SORT_BY,
+      );
+      return;
+    }
+    writeAccountsOverviewFilterField(
+      QODER_FILTER_PERSISTENCE_SCOPE,
+      QODER_FILTER_FIELD_SORT_BY,
+      sortBy,
+    );
+  }, [filterPersistenceEnabled, sortBy]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        QODER_FILTER_PERSISTENCE_SCOPE,
+        QODER_FILTER_FIELD_SORT_DIRECTION,
+      );
+      return;
+    }
+    writeAccountsOverviewFilterField(
+      QODER_FILTER_PERSISTENCE_SCOPE,
+      QODER_FILTER_FIELD_SORT_DIRECTION,
+      sortDirection,
+    );
+  }, [filterPersistenceEnabled, sortDirection]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        QODER_FILTER_PERSISTENCE_SCOPE,
+        QODER_FILTER_FIELD_FILTER_TYPES,
+      );
+      return;
+    }
+    writeAccountsOverviewFilterField(
+      QODER_FILTER_PERSISTENCE_SCOPE,
+      QODER_FILTER_FIELD_FILTER_TYPES,
+      filterTypes,
+    );
+  }, [filterPersistenceEnabled, filterTypes]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        QODER_FILTER_PERSISTENCE_SCOPE,
+        QODER_FILTER_FIELD_TAG_FILTER,
+      );
+      return;
+    }
+    writeAccountsOverviewFilterField(
+      QODER_FILTER_PERSISTENCE_SCOPE,
+      QODER_FILTER_FIELD_TAG_FILTER,
+      tagFilter,
+    );
+  }, [filterPersistenceEnabled, tagFilter]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(
+        QODER_FILTER_PERSISTENCE_SCOPE,
+        QODER_FILTER_FIELD_GROUP_BY_TAG,
+      );
+      return;
+    }
+    writeAccountsOverviewFilterField(
+      QODER_FILTER_PERSISTENCE_SCOPE,
+      QODER_FILTER_FIELD_GROUP_BY_TAG,
+      groupByTag,
+    );
+  }, [filterPersistenceEnabled, groupByTag]);
 
   useEffect(() => {
     if (!store.error) return;
@@ -594,8 +774,8 @@ export function QoderAccountsPage() {
     }
 
     return Array.from(groups.entries()).sort(([a], [b]) => {
-      if (a === UNTAGGED_KEY) return 1;
-      if (b === UNTAGGED_KEY) return -1;
+      if (a === UNTAGGED_KEY) return -1;
+      if (b === UNTAGGED_KEY) return 1;
       return a.localeCompare(b);
     });
   }, [filteredAccounts, groupByTag, tagFilter]);
@@ -737,8 +917,14 @@ export function QoderAccountsPage() {
 
   const handleSaveTags = useCallback(
     async (accountId: string, tags: string[]) => {
+      const scrollY = window.scrollY;
       await store.updateAccountTags(accountId, tags);
       setMessage({ text: t('accounts.tagUpdated', '标签已更新') });
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({ top: scrollY, behavior: 'auto' });
+        });
+      });
     },
     [store, t],
   );

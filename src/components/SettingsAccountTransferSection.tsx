@@ -155,7 +155,7 @@ export function SettingsAccountTransferSection() {
   const [backupRunning, setBackupRunning] = useState(false);
   const [backupDeletingFile, setBackupDeletingFile] = useState<string | null>(null);
   const [backupImportingFile, setBackupImportingFile] = useState<string | null>(null);
-  const [backupRetentionInput, setBackupRetentionInput] = useState('3');
+  const [backupRetentionInput, setBackupRetentionInput] = useState('15');
 
   const setExportFailed = useCallback(
     (error: unknown) => {

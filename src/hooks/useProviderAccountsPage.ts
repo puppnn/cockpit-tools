@@ -38,6 +38,17 @@ import {
   EXTERNAL_PROVIDER_IMPORT_EVENT,
 } from '../utils/externalProviderImport';
 import { useDropdownPanelPlacement } from './useDropdownPanelPlacement';
+import {
+  ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+  type AccountsOverviewFilterPersistenceChangedDetail,
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterField,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  setAccountsOverviewFilterPersistenceEnabled,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -140,19 +151,20 @@ const normalizeSortDirection = (value: string | null): SortDirection =>
 const normalizeViewMode = (value: string | null): ViewMode =>
   value === 'list' ? 'list' : DEFAULT_VIEW_MODE;
 
-const buildStorageScope = (platformKey: string) =>
-  platformKey.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+const FILTER_FIELD_VIEW_MODE = 'view_mode';
+const FILTER_FIELD_FILTER_TYPE = 'filter_type';
+const FILTER_FIELD_SORT_BY = 'sort_by';
+const FILTER_FIELD_SORT_DIRECTION = 'sort_direction';
+const FILTER_FIELD_TAGS = 'tags';
+const FILTER_FIELD_GROUP_BY_TAG = 'group_by_tag';
 
-const buildSortStorageKeys = (platformKey: string) => {
-  const scope = buildStorageScope(platformKey);
-  return {
-    sortByKey: `agtools.${scope}.accounts_sort_by`,
-    sortDirectionKey: `agtools.${scope}.accounts_sort_direction`,
-  };
-};
-
-const buildViewModeStorageKey = (platformKey: string) =>
-  `agtools.${buildStorageScope(platformKey)}.accounts_view_mode`;
+const normalizeStringArray = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
 
 // ---------------------------------------------------------------------------
 // Hook return type
@@ -175,6 +187,9 @@ export interface UseProviderAccountsPageReturn {
   // Search & Filter
   searchQuery: string;
   setSearchQuery: (q: string) => void;
+  filterPersistenceEnabled: boolean;
+  setFilterPersistenceEnabled: (enabled: boolean) => void;
+  filterPersistenceScope: string;
   filterType: string;
   setFilterType: (type: string) => void;
 
@@ -186,7 +201,7 @@ export interface UseProviderAccountsPageReturn {
 
   // Selection
   selected: Set<string>;
-  setSelected: (s: Set<string>) => void;
+  setSelected: Dispatch<SetStateAction<Set<string>>>;
   toggleSelect: (id: string) => void;
   toggleSelectAll: (filteredIds: string[]) => void;
 
@@ -232,8 +247,15 @@ export interface UseProviderAccountsPageReturn {
   confirmDelete: () => Promise<void>;
 
   // Messages
-  message: { text: string; tone?: 'error' } | null;
-  setMessage: (msg: { text: string; tone?: 'error' } | null) => void;
+  message: { text: string; tone?: 'error' | 'success' } | null;
+  setMessage: (
+    msg:
+      | {
+          text: string;
+          tone?: 'error' | 'success';
+        }
+      | null
+  ) => void;
 
   // Export
   exporting: boolean;
@@ -362,9 +384,42 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     setCurrentAccountId: setStoreCurrentAccountId,
     updateAccountTags,
   } = store;
-  const viewModeStorageKey = buildViewModeStorageKey(platformKey);
-  const { sortByKey, sortDirectionKey } = buildSortStorageKeys(platformKey);
+  const filterPersistenceScope = useMemo(
+    () => normalizeAccountsOverviewScope(platformKey),
+    [platformKey],
+  );
+  const [filterPersistenceEnabled, setFilterPersistenceEnabledState] = useState<boolean>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope),
+  );
   const managesCurrentAccountId = typeof setStoreCurrentAccountId === 'function';
+
+  const setFilterPersistenceEnabled = useCallback(
+    (enabled: boolean) => {
+      setFilterPersistenceEnabledState(enabled);
+      setAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope, enabled);
+    },
+    [filterPersistenceScope],
+  );
+
+  useEffect(() => {
+    const handleFilterPersistenceChanged = (event: Event) => {
+      const detail = (event as CustomEvent<AccountsOverviewFilterPersistenceChangedDetail>).detail;
+      if (!detail || detail.scope !== filterPersistenceScope) {
+        return;
+      }
+      setFilterPersistenceEnabledState(Boolean(detail.enabled));
+    };
+    window.addEventListener(
+      ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+      handleFilterPersistenceChanged as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
+        handleFilterPersistenceChanged as EventListener,
+      );
+    };
+  }, [filterPersistenceScope]);
 
   // ─── Privacy ──────────────────────────────────────────────────────────
   const [privacyModeEnabled, setPrivacyModeEnabled] = useState<boolean>(() =>
@@ -386,41 +441,90 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
 
   // ─── View Mode ────────────────────────────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    try {
-      return normalizeViewMode(localStorage.getItem(viewModeStorageKey));
-    } catch {
+    if (!readAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope)) {
       return DEFAULT_VIEW_MODE;
     }
+    const saved = readAccountsOverviewFilterField<string | null>(
+      filterPersistenceScope,
+      FILTER_FIELD_VIEW_MODE,
+      null,
+    );
+    return normalizeViewMode(saved);
   });
 
   // ─── Search & Filter ──────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>(() => {
+    if (!readAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope)) {
+      return 'all';
+    }
+    const saved = readAccountsOverviewFilterField<string | null>(
+      filterPersistenceScope,
+      FILTER_FIELD_FILTER_TYPE,
+      null,
+    );
+    return saved?.trim() ? saved : 'all';
+  });
 
   // ─── Sort ─────────────────────────────────────────────────────────────
   const [sortBy, setSortBy] = useState<string>(() => {
-    const saved = localStorage.getItem(sortByKey);
+    if (!readAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope)) {
+      return DEFAULT_SORT_BY;
+    }
+    const saved = readAccountsOverviewFilterField<string | null>(
+      filterPersistenceScope,
+      FILTER_FIELD_SORT_BY,
+      null,
+    );
     return saved?.trim() ? saved : DEFAULT_SORT_BY;
   });
-  const [sortDirection, setSortDirection] = useState<SortDirection>(() =>
-    normalizeSortDirection(localStorage.getItem(sortDirectionKey)),
-  );
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(viewModeStorageKey, viewMode);
-    } catch {
-      // ignore persistence failures
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() => {
+    if (!readAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope)) {
+      return DEFAULT_SORT_DIRECTION;
     }
-  }, [viewMode, viewModeStorageKey]);
+    const saved = readAccountsOverviewFilterField<string | null>(
+      filterPersistenceScope,
+      FILTER_FIELD_SORT_DIRECTION,
+      null,
+    );
+    return normalizeSortDirection(saved);
+  });
 
   useEffect(() => {
-    localStorage.setItem(sortByKey, sortBy);
-  }, [sortBy, sortByKey]);
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_VIEW_MODE);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_VIEW_MODE, viewMode);
+  }, [filterPersistenceEnabled, filterPersistenceScope, viewMode]);
 
   useEffect(() => {
-    localStorage.setItem(sortDirectionKey, sortDirection);
-  }, [sortDirection, sortDirectionKey]);
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_SORT_BY);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_SORT_BY, sortBy);
+  }, [filterPersistenceEnabled, filterPersistenceScope, sortBy]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_SORT_DIRECTION);
+      return;
+    }
+    writeAccountsOverviewFilterField(
+      filterPersistenceScope,
+      FILTER_FIELD_SORT_DIRECTION,
+      sortDirection,
+    );
+  }, [filterPersistenceEnabled, filterPersistenceScope, sortDirection]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_FILTER_TYPE);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_FILTER_TYPE, filterType);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterType]);
 
   // ─── Selection ────────────────────────────────────────────────────────
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -455,8 +559,26 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   );
 
   // ─── Tags ─────────────────────────────────────────────────────────────
-  const [tagFilter, setTagFilter] = useState<string[]>([]);
-  const [groupByTag, setGroupByTag] = useState(false);
+  const [tagFilter, setTagFilter] = useState<string[]>(() => {
+    if (!readAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope)) {
+      return [];
+    }
+    return normalizeStringArray(
+      readAccountsOverviewFilterStringArray(filterPersistenceScope, FILTER_FIELD_TAGS),
+    );
+  });
+  const [groupByTag, setGroupByTag] = useState<boolean>(() => {
+    if (!readAccountsOverviewFilterPersistenceEnabled(filterPersistenceScope)) {
+      return false;
+    }
+    return Boolean(
+      readAccountsOverviewFilterField<unknown>(
+        filterPersistenceScope,
+        FILTER_FIELD_GROUP_BY_TAG,
+        false,
+      ),
+    );
+  });
   const [showTagFilter, setShowTagFilter] = useState(false);
   const [showTagModal, setShowTagModal] = useState<string | null>(null);
   const [tagDeleteConfirm, rawSetTagDeleteConfirm] = useState<{
@@ -504,6 +626,26 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     setTagFilter([]);
   }, []);
 
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_TAGS);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_TAGS, tagFilter);
+  }, [filterPersistenceEnabled, filterPersistenceScope, tagFilter]);
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_FIELD_GROUP_BY_TAG);
+      return;
+    }
+    writeAccountsOverviewFilterField(
+      filterPersistenceScope,
+      FILTER_FIELD_GROUP_BY_TAG,
+      groupByTag,
+    );
+  }, [filterPersistenceEnabled, filterPersistenceScope, groupByTag]);
+
   const requestDeleteTag = useCallback(
     (tag: string) => {
       const normalized = normalizeTag(tag);
@@ -550,8 +692,14 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   const handleSaveTags = useCallback(
     async (tags: string[]) => {
       if (!showTagModal) return;
+      const scrollY = window.scrollY;
       await updateAccountTags(showTagModal, tags);
       setShowTagModal(null);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          window.scrollTo({ top: scrollY, behavior: 'auto' });
+        });
+      });
     },
     [showTagModal, updateAccountTags],
   );
@@ -588,7 +736,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     set: setDeleteConfirmError,
   } = useModalErrorState();
   const [deleting, setDeleting] = useState(false);
-  const [message, setMessage] = useState<{ text: string; tone?: 'error' } | null>(null);
+  const [message, setMessage] = useState<{ text: string; tone?: 'error' | 'success' } | null>(null);
   const setDeleteConfirm = useCallback((value: { ids: string[]; message: string } | null) => {
     setDeleteConfirmError(null);
     rawSetDeleteConfirm(value);
@@ -1547,6 +1695,9 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     setViewMode,
     searchQuery,
     setSearchQuery,
+    filterPersistenceEnabled,
+    setFilterPersistenceEnabled,
+    filterPersistenceScope,
     filterType,
     setFilterType,
     sortBy,

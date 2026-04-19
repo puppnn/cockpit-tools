@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "Frekvence automatického obnovení na pozadí",
       "qoderPathSelect": "Vybrat",
       "workbuddyAutoRefresh": "Automatické obnovení kvóty WorkBuddy",
-      "workbuddyAutoRefreshDesc": "Frekvence automatického obnovení na pozadí"
+      "workbuddyAutoRefreshDesc": "Frekvence automatického obnovení na pozadí",
+      "codexLocalAccessEntryVisible": "Zobrazit položku služby API",
+      "codexLocalAccessEntryVisibleDesc": "Určuje pouze, zda se v přehledu Codex zobrazuje položka služby API. Místní službu API to nezastaví; můžete ji znovu zapnout zde nebo v rychlém nastavení.",
+      "codexLocalAccessEnabled": "Zapnout službu API",
+      "codexLocalAccessEnabledDesc": "Určuje, zda místní služba Codex API skutečně běží.",
+      "codexLocalAccessEnabledRequiresCollection": "Před zapnutím nebo vypnutím služby nejprve přidejte účty do kolekce služby API."
     },
     "network": {
       "apiTitle": "Antigravity Cockpit API",
@@ -1016,11 +1021,13 @@
       "originPlugin": "Rozšíření",
       "originUnknown": "Neznámé",
       "autoReasonLabel": "Důvod automatiky: {{reason}}",
-      "autoReason": "Pravidlo: {{rule}}; práh: {{threshold}}%; rozsah: {{scope}}; sledované skupiny: {{selectedGroups}}; zasažené skupiny: {{hitGroups}}; kandidáti: {{candidates}}",
+      "autoReason": "Pravidlo: {{rule}}; práh kvóty: {{quotaThreshold}}%; práh kreditů: {{creditsThreshold}}; rozsah: {{scope}}; sledované skupiny: {{selectedGroups}}; zasažené skupiny: {{hitGroups}}; aktuální kredity: {{currentCredits}}; kandidáti: {{candidates}}",
       "autoReasonUnknown": "Bylo spuštěno automatické přepnutí, ale nebyl zaznamenán podrobný důvod",
       "autoReasonRuleCurrentDisabled": "Aktuální účet je zakázán",
       "autoReasonRuleQuotaForbidden": "Kvóta aktuálního účtu je omezená",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "Skupina modelů i kredity jsou pod prahem",
       "autoReasonRuleGroupBelowThreshold": "Skupina modelů pod prahem",
+      "autoReasonRuleCreditsBelowThreshold": "Zbývající kredity jsou pod prahem",
       "autoReasonScopeAnyGroup": "Libovolná skupina modelů",
       "autoReasonScopeSelectedGroups": "Vybrané skupiny modelů",
       "stageResult": "Lokálně: {{local}} / Plynule: {{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "Vložte obsah auth.json nebo JSON dat účtu",
       "placeholder": "Příklad: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "Formát exportu",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "sub2api formát",
+      "cpa": "cpa formát"
+    },
+    "localAccess": {
+      "title": "API služba",
+      "accountCount": "{{count}} účtů",
+      "baseUrl": "Adresa",
+      "apiKey": "Klíč",
+      "statusRunning": "Běží",
+      "statusStopped": "Zastaveno",
+      "statusDisabled": "Vypnuto",
+      "emptyMembers": "Ve skupině zatím nejsou žádné účty",
+      "footerHint": "Naslouchá jen na 127.0.0.1",
+      "manageAccounts": "Spravovat účty",
+      "rotateKey": "Obnovit klíč",
+      "rotateConfirmMessage": "Po resetu přestane aktuální klíč API služby okamžitě fungovat a probíhající požadavky mohou být nedostupné. Pokračovat?",
+      "disableService": "Vypnout službu",
+      "enableService": "Zapnout službu",
+      "saveSuccess": "Kolekce API služby byla aktualizována",
+      "removeSuccess": "Účet byl odebrán z API služby",
+      "rotateSuccess": "Klíč API služby byl obnoven",
+      "enabledSuccess": "API služba byla povolena",
+      "disabledSuccess": "API služba byla vypnuta",
+      "removeMember": "Odebrat z API služby",
+      "toggleService": "Přepnout API službu",
+      "showKey": "Zobrazit klíč",
+      "hideKey": "Skrýt klíč",
+      "modal": {
+        "title": "Přidat do API služby",
+        "desc": "Vyberte účty OAuth, které chcete zahrnout do kolekce API služby. Přidané účty se skryjí z běžného přehledu a budou spravovány pouze z karty API služby.",
+        "empty": "Nejsou k dispozici žádné účty OAuth",
+        "selected": "V API službě",
+        "available": "Běžný přehled",
+        "save": "Uložit kolekci"
+      },
+      "entryAction": "Přidat do API služby",
+      "testAction": "Otestovat API službu",
+      "testSuccess": "Test API služby byl úspěšný ({{count}} modelů)",
+      "testTimeout": "Test vypršel. Ověřte, že místní služba běží.",
+      "testUnavailable": "Aktuální adresa API služby není dostupná",
+      "activateAction": "Spustit API službu",
+      "activateSuccess": "Přepnuto na API službu",
+      "dashboardAction": "Panel služby",
+      "manageDesc": "Na jednom místě spravujte statistiky služby API, členy, port, klíč i test připojení.",
+      "memberOnlyLocal": "Jen Codex",
+      "configTitle": "Nastavení služby",
+      "configEmpty": "Nejprve uložte alespoň jeden účet do kolekce API služby, pak se vygeneruje adresa, klíč a port.",
+      "portLabel": "Port služby",
+      "portSave": "Uložit port",
+      "portSaveSuccess": "Port API služby byl aktualizován",
+      "portInvalid": "Zadejte port v rozsahu 1 až 65535",
+      "statsTitle": "Souhrn",
+      "accountStatsTitle": "Podle účtu",
+      "statsEmpty": "Zatím žádné statistiky",
+      "summaryMeta": "{{count}} účtů · Jen Codex",
+      "summaryMetaUnconfigured": "Nenastaveno · Jen Codex",
+      "memberTitle": "Členové kolekce",
+      "stats": {
+        "requests": "Požadavky",
+        "requestsDetail": "Úspěch {{success}} / Chyba {{failed}}",
+        "tokens": "Tokeny",
+        "tokensDetail": "Vstup {{input}} / Výstup {{output}}",
+        "specialTokens": "Cache / Přemýšlení",
+        "specialTokensDetail": "Cache {{cached}} / Přemýšlení {{reasoning}}",
+        "avgLatency": "Průměrná latence",
+        "successRate": "Úspěšnost {{rate}}%",
+        "accountRequests": "{{count}} požadavků",
+        "accountTokens": "{{count}} tokenů",
+        "accountResult": "Úspěch {{success}} / Chyba {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "Směrování",
+      "routingSaveSuccess": "Směrování služby API bylo aktualizováno",
+      "routingDescriptionAuto": "Upřednostní účty s vyšším tarifem a větší zbývající kvótou, ve stejném tarifu pak střídá.",
+      "routingDescriptionQuotaHighFirst": "Upřednostní účty s vyšší zbývající kvótou.",
+      "routingDescriptionQuotaLowFirst": "Upřednostní účty s nižší zbývající kvótou.",
+      "routingDescriptionPlanHighFirst": "Upřednostní účty ve vyšších tarifech.",
+      "routingDescriptionPlanLowFirst": "Upřednostní účty v nižších tarifech.",
+      "clearStats": "Vymazat statistiky",
+      "clearStatsConfirm": "Vymazat všechny statistiky služby API?",
+      "clearStatsSuccess": "Statistiky služby API byly vymazány",
+      "refreshStats": "Obnovit statistiky",
+      "refreshStatsSuccess": "Statistiky služby API byly obnoveny",
+      "routingStrategy": {
+        "auto": "Automaticky (doporučeno)",
+        "quotaHighFirst": "Nejvyšší kvóta napřed",
+        "quotaLowFirst": "Nejnižší kvóta napřed",
+        "planHighFirst": "Nejvyšší tarif napřed",
+        "planLowFirst": "Nejnižší tarif napřed"
+      },
+      "statusUnconfigured": "Nenastaveno",
+      "expandDetails": "Rozbalit detail",
+      "collapseDetails": "Sbalit detail",
+      "hideEntryAction": "Skrýt položku služby API",
+      "hideEntryConfirm": "Tím se skryje položka služby API z přehledu a zároveň se vypne aktuální služba API. Později ji můžete znovu zapnout v nastavení Codex nebo v rychlém nastavení.",
+      "hideEntryEffectHide": "Skrýt položku služby API z přehledu",
+      "hideEntryEffectDisable": "Vypnout aktuální službu API",
+      "hideEntryEffectRestore": "Později ji lze znovu zapnout v nastavení Codex nebo v rychlém nastavení",
+      "riskNotice": {
+        "title": "Upozornění na riziko",
+        "message": "Současné funkce služby Codex API jsou v podstatě řešením s reverzní proxy. V tuto chvíli proti tomuto chování oficiální služba výslovně nezasahuje, ale budoucí pravidla, zásady nebo dostupnost se mohou změnit. Pokud budete tuto funkci dál používat, potvrzujete, že tomu rozumíte a přijímáte související rizika na vlastní odpovědnost.",
+        "remember": "Rozumím a příště už nezobrazovat",
+        "acknowledge": "Rozumím",
+        "continueStart": "Pokračovat",
+        "continueSwitch": "Pokračovat"
+      },
+      "statsRange": {
+        "label": "Rozsah statistik",
+        "daily": "Den",
+        "weekly": "Týden",
+        "monthly": "Měsíc"
+      }
+    },
     "local": {
       "desc": "Importovat aktuální účet z ~/.codex/auth.json",
       "import": "Načíst lokální účet"
@@ -1832,7 +1955,8 @@
         "expand": "Rozbalit",
         "collapse": "Sbalit",
         "repairVisibility": "Opravit viditelnost",
-        "restoreSessions": "Obnovit relace"
+      "restoreSessions": "Obnovit relace",
+      "copySessionId": "Kopírovat ID relace"
       },
       "confirm": {
         "title": "Přesunout do koše",
@@ -1850,7 +1974,11 @@
         "pickRestoreOne": "Vyberte prosím alespoň jednu relaci k obnovení"
       },
       "groupCount": "{{count}} relací",
-      "updatedAt": "Aktualizováno",
+    "updatedAt": "Aktualizováno",
+    "labels": {
+      "sessionId": "ID relace",
+      "tokenUsage": "Využití tokenů"
+    },
       "locationRunning": " (spuštěno)",
       "untitled": "Nepojmenovaná relace",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "Cesta k aplikaci",
       "configToml": "Konfigurační soubor Codex",
       "openConfigToml": "Otevřít soubor",
-      "openConfigHint": "Rychle otevře aktivní soubor Codex config.toml."
+      "openConfigHint": "Rychle otevře aktivní soubor Codex config.toml.",
+      "localAccessEntryVisible": "Zobrazit položku služby API"
     },
     "githubCopilot": {
       "title": "Nastavení GitHub Copilot",
@@ -2176,7 +2305,10 @@
       "enable": "Automatické přepnutí",
       "threshold": "Práh přepnutí",
       "thresholdDesc": "Automatické přepnutí se spustí, když sledované skupiny modelů dosáhnou této procentní hranice",
-      "hint": "Automaticky přepne na účet s nejvyšší kvótou, když sledované skupiny modelů dosáhnou prahu.",
+      "hint": "Automaticky přepne, když sledované skupiny modelů dosáhnou prahu; při zapnutém sledování kreditů se spustí i při poklesu zbývajících kreditů pod práh.",
+      "creditsEnable": "Sledovat kredity",
+      "creditsThreshold": "Práh kreditů",
+      "creditsThresholdDesc": "Také automaticky přepnout, když zbývající kredity klesnou na tuto hodnotu nebo níže",
       "triggerModel": "Spouštěcí model",
       "scopeAnyGroup": "Libovolná skupina modelů",
       "scopeSelectedGroups": "Vybrané skupiny modelů",
@@ -2194,6 +2326,7 @@
     "apply": "Použít",
     "inputMinutes": "Zadejte minuty",
     "inputPercent": "Zadejte procento",
+    "inputCredits": "Zadejte kredity",
     "windsurf": {
       "title": "Nastavení Windsurf",
       "appPath": "Cesta k Windsurf"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Nastavení Zed",
       "appPath": "Cesta k Zed"
+    },
+    "filterPersistence": {
+      "title": "Paměť filtrů",
+      "enable": "Pamatovat filtry přehledu účtů (bez vyhledávání)",
+      "hint": "Ve výchozím stavu vypnuto. Po zapnutí se pro každou platformu uloží filtry, štítky a řazení."
     }
   },
   "quotaAlert": {

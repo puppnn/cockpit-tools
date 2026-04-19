@@ -387,6 +387,36 @@ function getQuotaAlertQuickSettingsType(platform: QuotaAlertPlatform): QuickSett
   }
 }
 
+function isElementVisible(element: HTMLElement): boolean {
+  return element.getClientRects().length > 0;
+}
+
+function triggerPageRefreshButton(): boolean {
+  const buttons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('button.btn.btn-secondary.icon-only:not(:disabled)'),
+  );
+
+  const target = buttons.find((button) => {
+    if (!isElementVisible(button)) {
+      return false;
+    }
+    return !!button.querySelector('svg.lucide-refresh-cw');
+  });
+
+  if (!target) {
+    return false;
+  }
+
+  target.click();
+  return true;
+}
+
+function isWindowsPlatform(): boolean {
+  const navWithUAData = navigator as Navigator & { userAgentData?: { platform?: string } };
+  const platform = navWithUAData.userAgentData?.platform || navigator.platform || '';
+  return platform.toLowerCase().includes('win');
+}
+
 function MainApp() {
   const { t } = useTranslation();
   const sideNavLayoutMode = useSideNavLayoutStore((state) => state.mode);
@@ -480,6 +510,7 @@ function MainApp() {
     if (!hasBreakoutSession) return;
     setShowBreakout(true);
   }, [hasBreakoutSession]);
+
   const {
     count: easterEggClickCount,
     registerClick: handleEasterEggTriggerClick,
@@ -500,6 +531,27 @@ function MainApp() {
   
   // 启用自动刷新 hook
   useAutoRefresh();
+
+  useEffect(() => {
+    const handleRefreshShortcut = (event: KeyboardEvent) => {
+      const isRefreshKey = event.key.toLowerCase() === 'r';
+      const isWindowsF5 = isWindowsPlatform() && event.key === 'F5';
+      const hasMainModifier = event.metaKey || event.ctrlKey;
+      const matchMainRefresh = isRefreshKey && hasMainModifier && !event.altKey && !event.shiftKey;
+      const matchWindowsRefresh = isWindowsF5 && !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey;
+      if ((!matchMainRefresh && !matchWindowsRefresh) || event.repeat) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      triggerPageRefreshButton();
+    };
+
+    window.addEventListener('keydown', handleRefreshShortcut, true);
+    return () => {
+      window.removeEventListener('keydown', handleRefreshShortcut, true);
+    };
+  }, []);
 
   useEffect(() => {
     void fetchTopRightAdState();
@@ -1342,7 +1394,9 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
+    const AUTO_BACKUP_STARTUP_DELAY_MS = 5 * 60 * 1000;
     const AUTO_BACKUP_POLL_INTERVAL_MS = 60 * 60 * 1000;
+    let startupTimerId: number | undefined;
     let intervalId: number | undefined;
     let inFlight = false;
 
@@ -1360,12 +1414,17 @@ function MainApp() {
       }
     };
 
-    void checkAutoBackup();
-    intervalId = window.setInterval(() => {
+    startupTimerId = window.setTimeout(() => {
       void checkAutoBackup();
-    }, AUTO_BACKUP_POLL_INTERVAL_MS);
+      intervalId = window.setInterval(() => {
+        void checkAutoBackup();
+      }, AUTO_BACKUP_POLL_INTERVAL_MS);
+    }, AUTO_BACKUP_STARTUP_DELAY_MS);
 
     return () => {
+      if (startupTimerId !== undefined) {
+        window.clearTimeout(startupTimerId);
+      }
       if (intervalId !== undefined) {
         window.clearInterval(intervalId);
       }

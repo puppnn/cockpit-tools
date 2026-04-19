@@ -1,4 +1,4 @@
-import { useMemo, useCallback, Fragment, useState } from 'react';
+import { useMemo, useCallback, Fragment, useState, useEffect } from 'react';
 import {
   Plus, RefreshCw, Download, Upload, Trash2, X, Globe, KeyRound, Database,
   Copy, Check, RotateCw, LayoutGrid, List, Search,
@@ -36,10 +36,19 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 const CB_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.codebuddy.flow_notice_collapsed';
 const CB_CURRENT_ACCOUNT_ID_KEY = 'agtools.codebuddy.current_account_id';
 const CB_KNOWN_PLAN_FILTERS = ['FREE', 'TRIAL', 'PRO', 'ENTERPRISE'] as const;
+const CODEBUDDY_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('CodeBuddy');
+const FILTER_TYPES_FIELD = 'filter_types';
 const QUOTA_NUMBER_FORMATTER = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
@@ -64,7 +73,14 @@ function getQuotaClassByRemainPercent(remainPercent: number | null): string {
 
 export function CodebuddyAccountsPage() {
   const [activeTab, setActiveTab] = useState<PlatformOverviewTab>('overview');
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(CODEBUDDY_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(
+          CODEBUDDY_FILTER_PERSISTENCE_SCOPE,
+          FILTER_TYPES_FIELD,
+        )
+      : [],
+  );
   const untaggedKey = '__untagged__';
   const store = useCodebuddyAccountStore();
 
@@ -106,6 +122,7 @@ export function CodebuddyAccountsPage() {
   const {
     t, locale, privacyModeEnabled, togglePrivacyMode, maskAccountText,
     viewMode, setViewMode, searchQuery, setSearchQuery,
+    filterPersistenceEnabled, filterPersistenceScope,
     sortDirection, sortBy,
     selected, toggleSelect, toggleSelectAll,
     tagFilter, groupByTag, setGroupByTag, showTagFilter, setShowTagFilter,
@@ -133,6 +150,14 @@ export function CodebuddyAccountsPage() {
     isFlowNoticeCollapsed, setIsFlowNoticeCollapsed,
     currentAccountId, formatDate, normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {
@@ -273,8 +298,8 @@ export function CodebuddyAccountsPage() {
       });
     });
     return Array.from(groups.entries()).sort(([aKey], [bKey]) => {
-      if (aKey === untaggedKey) return 1;
-      if (bKey === untaggedKey) return -1;
+      if (aKey === untaggedKey) return -1;
+      if (bKey === untaggedKey) return 1;
       return aKey.localeCompare(bKey);
     });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter, untaggedKey]);

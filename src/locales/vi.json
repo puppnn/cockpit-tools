@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "Tần suất tự động làm mới nền",
       "qoderPathSelect": "Chọn",
       "workbuddyAutoRefresh": "Tự động làm mới hạn ngạch WorkBuddy",
-      "workbuddyAutoRefreshDesc": "Tần suất tự động làm mới nền"
+      "workbuddyAutoRefreshDesc": "Tần suất tự động làm mới nền",
+      "codexLocalAccessEntryVisible": "Hiển thị mục Dịch vụ API",
+      "codexLocalAccessEntryVisibleDesc": "Chỉ kiểm soát việc mục Dịch vụ API có hiển thị trong tổng quan Codex hay không. Thao tác này không dừng dịch vụ API cục bộ; bạn có thể bật lại tại đây hoặc trong Cài đặt nhanh.",
+      "codexLocalAccessEnabled": "Bật Dịch vụ API",
+      "codexLocalAccessEnabledDesc": "Kiểm soát việc dịch vụ Codex API cục bộ có thực sự chạy hay không.",
+      "codexLocalAccessEnabledRequiresCollection": "Hãy thêm tài khoản vào bộ sưu tập Dịch vụ API trước khi bật hoặc tắt dịch vụ."
     },
     "network": {
       "apiTitle": "API Antigravity Cockpit",
@@ -1016,11 +1021,13 @@
       "originPlugin": "Tiện ích mở rộng",
       "originUnknown": "Không xác định",
       "autoReasonLabel": "Lý do tự động: {{reason}}",
-      "autoReason": "Quy tắc: {{rule}}; ngưỡng: {{threshold}}%; phạm vi: {{scope}}; nhóm theo dõi: {{selectedGroups}}; nhóm trúng ngưỡng: {{hitGroups}}; tài khoản ứng viên: {{candidates}}",
+      "autoReason": "Quy tắc: {{rule}}; ngưỡng quota: {{quotaThreshold}}%; ngưỡng credits: {{creditsThreshold}}; phạm vi: {{scope}}; nhóm theo dõi: {{selectedGroups}}; nhóm trúng ngưỡng: {{hitGroups}}; credits hiện tại: {{currentCredits}}; tài khoản ứng viên: {{candidates}}",
       "autoReasonUnknown": "Đã kích hoạt chuyển tự động nhưng không ghi lại lý do chi tiết",
       "autoReasonRuleCurrentDisabled": "Tài khoản hiện tại đã bị vô hiệu hóa",
       "autoReasonRuleQuotaForbidden": "Hạn mức của tài khoản hiện tại bị hạn chế",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "Nhóm mô hình và credits đều thấp hơn ngưỡng",
       "autoReasonRuleGroupBelowThreshold": "Nhóm mô hình thấp hơn ngưỡng",
+      "autoReasonRuleCreditsBelowThreshold": "Credits còn lại thấp hơn ngưỡng",
       "autoReasonScopeAnyGroup": "Bất kỳ nhóm mô hình nào",
       "autoReasonScopeSelectedGroups": "Nhóm mô hình đã chọn",
       "stageResult": "Cục bộ: {{local}} / Liền mạch: {{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "Dán nội dung auth.json hoặc dữ liệu JSON tài khoản",
       "placeholder": "Ví dụ: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "Định dạng xuất",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "Định dạng sub2api",
+      "cpa": "Định dạng cpa"
+    },
+    "localAccess": {
+      "title": "Dịch vụ API",
+      "accountCount": "{{count}} tài khoản",
+      "baseUrl": "Địa chỉ",
+      "apiKey": "Khóa",
+      "statusRunning": "Đang chạy",
+      "statusStopped": "Đã dừng",
+      "statusDisabled": "Đã tắt",
+      "emptyMembers": "Hiện chưa có tài khoản trong bộ sưu tập",
+      "footerHint": "Chỉ lắng nghe trên 127.0.0.1",
+      "manageAccounts": "Quản lý tài khoản",
+      "rotateKey": "Đổi khóa",
+      "rotateConfirmMessage": "Sau khi đặt lại, khóa dịch vụ API hiện tại sẽ mất hiệu lực ngay và các yêu cầu đang chạy có thể không dùng được nữa. Tiếp tục chứ?",
+      "disableService": "Tắt dịch vụ",
+      "enableService": "Bật dịch vụ",
+      "saveSuccess": "Đã cập nhật bộ dịch vụ API",
+      "removeSuccess": "Đã xóa tài khoản khỏi dịch vụ API",
+      "rotateSuccess": "Đã đặt lại khóa dịch vụ API",
+      "enabledSuccess": "Đã bật dịch vụ API",
+      "disabledSuccess": "Đã tắt dịch vụ API",
+      "removeMember": "Xóa khỏi dịch vụ API",
+      "toggleService": "Chuyển dịch vụ API",
+      "showKey": "Hiện khóa",
+      "hideKey": "Ẩn khóa",
+      "modal": {
+        "title": "Thêm vào dịch vụ API",
+        "desc": "Chọn các tài khoản OAuth muốn đưa vào bộ dịch vụ API. Các tài khoản được thêm sẽ bị ẩn khỏi bảng thông thường và chỉ được quản lý từ thẻ dịch vụ API.",
+        "empty": "Không có tài khoản OAuth khả dụng",
+        "selected": "Trong dịch vụ API",
+        "available": "Bảng thông thường",
+        "save": "Lưu bộ"
+      },
+      "entryAction": "Thêm vào dịch vụ API",
+      "testAction": "Kiểm tra dịch vụ API",
+      "testSuccess": "Kiểm tra dịch vụ API thành công ({{count}} mô hình)",
+      "testTimeout": "Kiểm tra đã hết thời gian. Hãy xác nhận dịch vụ cục bộ đang chạy.",
+      "testUnavailable": "URL dịch vụ API hiện tại không khả dụng",
+      "activateAction": "Khởi động dịch vụ API",
+      "activateSuccess": "Đã chuyển sang dịch vụ API",
+      "dashboardAction": "Bảng dịch vụ",
+      "manageDesc": "Quản lý thống kê dịch vụ API, thành viên, cổng, khóa và kiểm tra kết nối tại một nơi.",
+      "memberOnlyLocal": "Chỉ Codex",
+      "configTitle": "Cấu hình dịch vụ",
+      "configEmpty": "Hãy lưu ít nhất một tài khoản vào bộ sưu tập dịch vụ API trước khi tạo URL, khóa và cổng.",
+      "portLabel": "Cổng dịch vụ",
+      "portSave": "Lưu cổng",
+      "portSaveSuccess": "Đã cập nhật cổng dịch vụ API",
+      "portInvalid": "Nhập cổng từ 1 đến 65535",
+      "statsTitle": "Tổng quan",
+      "accountStatsTitle": "Theo tài khoản",
+      "statsEmpty": "Chưa có thống kê",
+      "summaryMeta": "{{count}} tài khoản · Chỉ Codex",
+      "summaryMetaUnconfigured": "Chưa cấu hình · Chỉ Codex",
+      "memberTitle": "Thành viên bộ sưu tập",
+      "stats": {
+        "requests": "Yêu cầu",
+        "requestsDetail": "Thành công {{success}} / Thất bại {{failed}}",
+        "tokens": "Token",
+        "tokensDetail": "Đầu vào {{input}} / Đầu ra {{output}}",
+        "specialTokens": "Bộ đệm / Suy luận",
+        "specialTokensDetail": "Bộ đệm {{cached}} / Suy luận {{reasoning}}",
+        "avgLatency": "Độ trễ TB",
+        "successRate": "Tỷ lệ thành công {{rate}}%",
+        "accountRequests": "{{count}} yêu cầu",
+        "accountTokens": "{{count}} token",
+        "accountResult": "Thành công {{success}} / Thất bại {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "Định tuyến",
+      "routingSaveSuccess": "Đã cập nhật định tuyến dịch vụ API",
+      "routingDescriptionAuto": "Ưu tiên tài khoản gói cao hơn và còn nhiều hạn mức hơn, sau đó luân phiên trong cùng gói.",
+      "routingDescriptionQuotaHighFirst": "Ưu tiên tài khoản còn nhiều hạn mức hơn.",
+      "routingDescriptionQuotaLowFirst": "Ưu tiên tài khoản còn ít hạn mức hơn.",
+      "routingDescriptionPlanHighFirst": "Ưu tiên tài khoản ở bậc thuê bao cao hơn.",
+      "routingDescriptionPlanLowFirst": "Ưu tiên tài khoản ở bậc thuê bao thấp hơn.",
+      "clearStats": "Xóa thống kê",
+      "clearStatsConfirm": "Xóa toàn bộ thống kê dịch vụ API?",
+      "clearStatsSuccess": "Đã xóa thống kê dịch vụ API",
+      "refreshStats": "Làm mới thống kê",
+      "refreshStatsSuccess": "Đã làm mới thống kê dịch vụ API",
+      "routingStrategy": {
+        "auto": "Tự động (khuyến nghị)",
+        "quotaHighFirst": "Ưu tiên hạn mức cao",
+        "quotaLowFirst": "Ưu tiên hạn mức thấp",
+        "planHighFirst": "Ưu tiên gói cao",
+        "planLowFirst": "Ưu tiên gói thấp"
+      },
+      "statusUnconfigured": "Chưa cấu hình",
+      "expandDetails": "Mở chi tiết",
+      "collapseDetails": "Thu gọn",
+      "hideEntryAction": "Ẩn mục Dịch vụ API",
+      "hideEntryConfirm": "Thao tác này sẽ ẩn mục Dịch vụ API khỏi phần tổng quan và đồng thời tắt dịch vụ API hiện tại. Bạn có thể bật lại sau trong Cài đặt Codex hoặc Cài đặt nhanh.",
+      "hideEntryEffectHide": "Ẩn mục Dịch vụ API khỏi phần tổng quan",
+      "hideEntryEffectDisable": "Tắt dịch vụ API hiện tại",
+      "hideEntryEffectRestore": "Bạn có thể bật lại trong Cài đặt Codex hoặc Cài đặt nhanh",
+      "riskNotice": {
+        "title": "Lưu ý rủi ro",
+        "message": "Các tính năng liên quan đến dịch vụ Codex API hiện tại về bản chất là cách dùng thông qua reverse proxy. Ở thời điểm hiện tại, phía chính thức chưa hạn chế rõ ràng hành vi này, nhưng chính sách, quy định hoặc khả năng sử dụng có thể thay đổi trong tương lai. Khi tiếp tục sử dụng tính năng này, bạn xác nhận đã hiểu tình huống này và tự chịu các rủi ro liên quan.",
+        "remember": "Tôi đã hiểu, đừng nhắc lại",
+        "acknowledge": "Tôi đã hiểu",
+        "continueStart": "Tiếp tục",
+        "continueSwitch": "Tiếp tục"
+      },
+      "statsRange": {
+        "label": "Khoảng thống kê",
+        "daily": "Ngày",
+        "weekly": "Tuần",
+        "monthly": "Tháng"
+      }
+    },
     "local": {
       "desc": "Nhập tài khoản hiện tại từ ~/.codex/auth.json",
       "import": "Lấy tài khoản cục bộ"
@@ -1832,7 +1955,8 @@
         "expand": "Mở rộng",
         "collapse": "Thu gọn",
         "repairVisibility": "Sửa hiển thị",
-        "restoreSessions": "Khôi phục phiên"
+      "restoreSessions": "Khôi phục phiên",
+      "copySessionId": "Sao chép ID phiên"
       },
       "confirm": {
         "title": "Chuyển vào thùng rác",
@@ -1850,7 +1974,11 @@
         "pickRestoreOne": "Hãy chọn ít nhất một phiên để khôi phục"
       },
       "groupCount": "{{count}} phiên",
-      "updatedAt": "Đã cập nhật",
+    "updatedAt": "Đã cập nhật",
+    "labels": {
+      "sessionId": "ID phiên",
+      "tokenUsage": "Mức dùng token"
+    },
       "locationRunning": " (đang chạy)",
       "untitled": "Phiên chưa đặt tên",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "Đường dẫn ứng dụng",
       "configToml": "Tệp cấu hình Codex",
       "openConfigToml": "Mở tệp",
-      "openConfigHint": "Mở nhanh tệp Codex config.toml đang hoạt động."
+      "openConfigHint": "Mở nhanh tệp Codex config.toml đang hoạt động.",
+      "localAccessEntryVisible": "Hiển thị mục Dịch vụ API"
     },
     "githubCopilot": {
       "title": "Cài đặt GitHub Copilot",
@@ -2176,7 +2305,10 @@
       "enable": "Tự động chuyển đổi",
       "threshold": "Ngưỡng chuyển đổi",
       "thresholdDesc": "Tự động chuyển sẽ kích hoạt khi các nhóm mô hình đang theo dõi chạm ngưỡng phần trăm này",
-      "hint": "Tự động chuyển sang tài khoản có hạn mức cao nhất khi các nhóm mô hình đang theo dõi chạm ngưỡng.",
+      "hint": "Tự động chuyển khi các nhóm mô hình đang theo dõi chạm ngưỡng; nếu bật theo dõi credits, nó cũng sẽ kích hoạt khi credits còn lại thấp hơn ngưỡng.",
+      "creditsEnable": "Theo dõi credits",
+      "creditsThreshold": "Ngưỡng credits",
+      "creditsThresholdDesc": "Cũng tự động chuyển khi credits còn lại nhỏ hơn hoặc bằng giá trị này",
       "triggerModel": "Mô hình kích hoạt",
       "scopeAnyGroup": "Bất kỳ nhóm mô hình nào",
       "scopeSelectedGroups": "Nhóm mô hình đã chọn",
@@ -2194,6 +2326,7 @@
     "apply": "Áp dụng",
     "inputMinutes": "Nhập số phút",
     "inputPercent": "Nhập phần trăm",
+    "inputCredits": "Nhập credits",
     "windsurf": {
       "title": "Cài đặt Windsurf",
       "appPath": "Đường dẫn Windsurf"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Cài đặt Zed",
       "appPath": "Đường dẫn Zed"
+    },
+    "filterPersistence": {
+      "title": "Ghi nhớ bộ lọc",
+      "enable": "Ghi nhớ bộ lọc tổng quan tài khoản (không gồm tìm kiếm)",
+      "hint": "Mặc định tắt. Khi bật, mỗi nền tảng sẽ giữ bộ lọc, thẻ và thứ tự sắp xếp."
     }
   },
   "quotaAlert": {

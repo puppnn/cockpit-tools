@@ -62,9 +62,18 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 const WINDSURF_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.windsurf.flow_notice_collapsed';
 const WINDSURF_CURRENT_ACCOUNT_ID_KEY = 'agtools.windsurf.current_account_id';
+const WINDSURF_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('Windsurf');
+const FILTER_TYPES_FIELD = 'filter_types';
 const WINDSURF_TOKEN_SINGLE_EXAMPLE = `sk-ws-xxxxx 或 eyJxxxxx`;
 const WINDSURF_TOKEN_BATCH_EXAMPLE = `[
   {
@@ -292,7 +301,14 @@ function parseWindsurfPasswordBatchTextInput(
 
 export function WindsurfAccountsPage() {
   const [activeTab, setActiveTab] = useState<WindsurfTab>('overview');
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(WINDSURF_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(
+          WINDSURF_FILTER_PERSISTENCE_SCOPE,
+          FILTER_TYPES_FIELD,
+        )
+      : [],
+  );
   const untaggedKey = '__untagged__';
 
   const store = useWindsurfAccountStore();
@@ -336,6 +352,7 @@ export function WindsurfAccountsPage() {
   const {
     t, locale, privacyModeEnabled, togglePrivacyMode, maskAccountText,
     viewMode, setViewMode, searchQuery, setSearchQuery,
+    filterPersistenceEnabled, filterPersistenceScope,
     sortBy, setSortBy, sortDirection, setSortDirection,
     selected, toggleSelect, toggleSelectAll,
     tagFilter, groupByTag, setGroupByTag, showTagFilter, setShowTagFilter,
@@ -365,6 +382,14 @@ export function WindsurfAccountsPage() {
     currentAccountId,
     formatDate, normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {
@@ -1084,7 +1109,7 @@ export function WindsurfAccountsPage() {
       if (matchedTags.length === 0) { if (!groups.has(untaggedKey)) groups.set(untaggedKey, []); groups.get(untaggedKey)?.push(account); return; }
       matchedTags.forEach((tag) => { if (!groups.has(tag)) groups.set(tag, []); groups.get(tag)?.push(account); });
     });
-    return Array.from(groups.entries()).sort(([aKey], [bKey]) => { if (aKey === untaggedKey) return 1; if (bKey === untaggedKey) return -1; return aKey.localeCompare(bKey); });
+    return Array.from(groups.entries()).sort(([aKey], [bKey]) => { if (aKey === untaggedKey) return -1; if (bKey === untaggedKey) return 1; return aKey.localeCompare(bKey); });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter, untaggedKey]);
 
   const paginatedGroupedAccounts = useMemo(

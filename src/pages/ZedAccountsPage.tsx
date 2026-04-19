@@ -54,6 +54,13 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 import './ZedAccountsPage.css';
 
 type ZedSortKey = 'created_at' | 'token_spend' | 'billing_end';
@@ -61,6 +68,8 @@ type ZedSortKey = 'created_at' | 'token_spend' | 'billing_end';
 const ZED_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.zed.flow_notice_collapsed';
 const ZED_CURRENT_ACCOUNT_ID_KEY = 'agtools.zed.current_account_id';
 const ZED_UNTAGGED_KEY = '__untagged__';
+const ZED_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('Zed');
+const FILTER_TYPES_FIELD = 'filter_types';
 
 function parseFiniteNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -183,7 +192,11 @@ export function ZedAccountsPage() {
   const { t } = useTranslation();
   const isMacOS = usePlatformRuntimeSupport('macos-only');
   const store = useZedAccountStore();
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(ZED_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(ZED_FILTER_PERSISTENCE_SCOPE, FILTER_TYPES_FIELD)
+      : [],
+  );
 
   const page = useProviderAccountsPage<ZedAccount>({
     platformKey: 'Zed',
@@ -237,6 +250,8 @@ export function ZedAccountsPage() {
     setViewMode,
     searchQuery,
     setSearchQuery,
+    filterPersistenceEnabled,
+    filterPersistenceScope,
     sortBy,
     setSortBy,
     sortDirection,
@@ -335,6 +350,14 @@ export function ZedAccountsPage() {
     formatDate,
     normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const accounts = store.accounts;
   const loading = store.loading;
@@ -517,8 +540,8 @@ export function ZedAccountsPage() {
     });
 
     return Array.from(groups.entries()).sort(([leftKey], [rightKey]) => {
-      if (leftKey === ZED_UNTAGGED_KEY) return 1;
-      if (rightKey === ZED_UNTAGGED_KEY) return -1;
+      if (leftKey === ZED_UNTAGGED_KEY) return -1;
+      if (rightKey === ZED_UNTAGGED_KEY) return 1;
       return leftKey.localeCompare(rightKey);
     });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter]);

@@ -7,7 +7,10 @@ import { useLaunchTerminalOptions } from "../hooks/useLaunchTerminalOptions";
 import { useCodexInstanceStore } from "../stores/useCodexInstanceStore";
 import { useCodexAccountStore } from "../stores/useCodexAccountStore";
 import type { CodexAccount } from "../types/codex";
-import type { InstanceProfile } from "../types/instance";
+import {
+  CODEX_API_SERVICE_BIND_ID,
+  type InstanceProfile,
+} from "../types/instance";
 import { usePlatformRuntimeSupport } from "../hooks/usePlatformRuntimeSupport";
 import {
   buildCodexAccountPresentation,
@@ -144,10 +147,13 @@ export function CodexInstancesContent({
     const boundAccount = instance.bindAccountId
       ? accountMap.get(instance.bindAccountId)
       : undefined;
-    const accountLabel = boundAccount
-      ? buildCodexAccountPresentation(boundAccount, t).displayName ||
-        boundAccount.email
-      : null;
+    const accountLabel =
+      instance.bindAccountId === CODEX_API_SERVICE_BIND_ID
+        ? t("codex.localAccess.title", "API 服务")
+        : boundAccount
+          ? buildCodexAccountPresentation(boundAccount, t).displayName ||
+            boundAccount.email
+          : null;
     const instanceName = instance.isDefault
       ? t("instances.defaultName", "默认实例")
       : instance.name || t("instances.defaultName", "默认实例");

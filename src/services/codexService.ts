@@ -33,11 +33,11 @@ export async function getCodexQuickConfig(): Promise<CodexQuickConfig> {
 
 /** 保存 Codex config.toml 快捷配置 */
 export async function saveCodexQuickConfig(
-  contextWindow1m: boolean,
+  modelContextWindow?: number,
   autoCompactTokenLimit?: number,
 ): Promise<CodexQuickConfig> {
   return await invoke('save_codex_quick_config', {
-    contextWindow1m,
+    modelContextWindow: modelContextWindow ?? null,
     autoCompactTokenLimit: autoCompactTokenLimit ?? null,
   });
 }

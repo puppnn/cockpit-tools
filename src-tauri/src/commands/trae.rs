@@ -205,6 +205,10 @@ pub async fn inject_trae_account(app: AppHandle, account_id: String) -> Result<S
     }
 
     trae_account::inject_to_trae(&account_id)?;
+    crate::modules::provider_current_state::set_current_account_id(
+        "trae",
+        Some(account_id.as_str()),
+    )?;
 
     if let Err(err) = crate::modules::trae_instance::update_default_settings(
         Some(Some(account_id.clone())),

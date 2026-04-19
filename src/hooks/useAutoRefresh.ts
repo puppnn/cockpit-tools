@@ -102,7 +102,6 @@ function buildEnabledPlatformsSummary(
 
 export function useAutoRefresh() {
   const refreshAllQuotas = useAccountStore((state) => state.refreshAllQuotas);
-  const syncCurrentFromClient = useAccountStore((state) => state.syncCurrentFromClient);
   const fetchAccounts = useAccountStore((state) => state.fetchAccounts);
   const fetchCurrentAccount = useAccountStore((state) => state.fetchCurrentAccount);
 
@@ -342,11 +341,9 @@ export function useAutoRefresh() {
               fullRefreshingRef: agRefreshingRef,
               currentRefreshingRef: agCurrentRefreshingRef,
               runFullRefresh: async () => {
-                await syncCurrentFromClient();
                 await refreshAllQuotas();
               },
               runCurrentRefresh: async () => {
-                await syncCurrentFromClient();
                 if (!useAccountStore.getState().currentAccount?.id) {
                   await fetchCurrentAccount();
                 }
@@ -657,7 +654,6 @@ export function useAutoRefresh() {
     refreshWorkbuddyToken,
     refreshZedToken,
     stopScheduler,
-    syncCurrentFromClient,
   ]);
 
   useEffect(() => {

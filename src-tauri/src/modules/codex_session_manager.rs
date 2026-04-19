@@ -1,7 +1,10 @@
 use std::collections::{HashMap, HashSet};
-use std::fs;
+use std::fs::{self, File};
+use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
+use std::sync::{LazyLock, Mutex};
 use std::time::Duration;
+use std::time::SystemTime;
 
 use chrono::{DateTime, Utc};
 use rusqlite::{params_from_iter, types::Value, Connection, OpenFlags};
@@ -16,6 +19,10 @@ const DEFAULT_INSTANCE_NAME: &str = "默认实例";
 const STATE_DB_FILE: &str = "state_5.sqlite";
 const SESSION_INDEX_FILE: &str = "session_index.jsonl";
 const SESSION_TRASH_ROOT_DIR: &str = "cockpit-tools-codex-session-trash";
+const TOKEN_STATS_READ_CHUNK_BYTES: usize = 64 * 1024;
+
+static TOKEN_STATS_CACHE: LazyLock<Mutex<HashMap<PathBuf, TokenStatsCacheEntry>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -34,6 +41,15 @@ pub struct CodexSessionRecord {
     pub updated_at: Option<i64>,
     pub location_count: usize,
     pub locations: Vec<CodexSessionLocation>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexSessionTokenStats {
+    pub session_id: String,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub total_tokens: u64,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -148,6 +164,148 @@ struct TrashedSessionEntry {
     trashed_rollout_path: PathBuf,
 }
 
+#[derive(Debug, Clone)]
+struct TokenStatsCacheEntry {
+    file_len: u64,
+    modified_at: Option<SystemTime>,
+    stats: Option<(u64, u64, u64)>,
+}
+
+/// 从 rollout JSONL 文件中读取 token 统计信息
+/// 返回 (input_tokens, output_tokens, total_tokens)
+fn read_token_stats_from_rollout(rollout_path: &Path) -> Option<(u64, u64, u64)> {
+    let metadata = fs::metadata(rollout_path).ok()?;
+    let cache_key = rollout_path.to_path_buf();
+    let file_len = metadata.len();
+    let modified_at = metadata.modified().ok();
+
+    {
+        let cache = TOKEN_STATS_CACHE
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if let Some(entry) = cache.get(&cache_key) {
+            if entry.file_len == file_len && entry.modified_at == modified_at {
+                return entry.stats;
+            }
+        }
+    }
+
+    let stats = read_token_stats_from_rollout_uncached(rollout_path, file_len);
+    let mut cache = TOKEN_STATS_CACHE
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    cache.insert(
+        cache_key,
+        TokenStatsCacheEntry {
+            file_len,
+            modified_at,
+            stats,
+        },
+    );
+    stats
+}
+
+fn read_token_stats_from_rollout_uncached(
+    rollout_path: &Path,
+    file_len: u64,
+) -> Option<(u64, u64, u64)> {
+    let mut file = File::open(rollout_path).ok()?;
+    let mut offset = file_len;
+    let mut pending_prefix = Vec::new();
+
+    while offset > 0 {
+        let chunk_len = TOKEN_STATS_READ_CHUNK_BYTES.min(offset as usize);
+        offset -= chunk_len as u64;
+
+        file.seek(SeekFrom::Start(offset)).ok()?;
+        let mut chunk = vec![0u8; chunk_len];
+        file.read_exact(&mut chunk).ok()?;
+
+        let starts_on_line_boundary = offset == 0 || byte_before_is_newline(&mut file, offset).ok()?;
+        chunk.extend_from_slice(&pending_prefix);
+
+        let parse_from_index = if starts_on_line_boundary {
+            pending_prefix.clear();
+            0
+        } else if let Some(newline_index) = chunk.iter().position(|byte| *byte == b'\n') {
+            pending_prefix = chunk[..newline_index].to_vec();
+            newline_index + 1
+        } else {
+            pending_prefix = chunk;
+            continue;
+        };
+
+        if let Some(stats) = parse_token_stats_lines(&chunk[parse_from_index..]) {
+            return Some(stats);
+        }
+    }
+
+    if pending_prefix.is_empty() {
+        None
+    } else {
+        parse_token_stats_lines(&pending_prefix)
+    }
+}
+
+fn byte_before_is_newline(file: &mut File, offset: u64) -> std::io::Result<bool> {
+    if offset == 0 {
+        return Ok(true);
+    }
+
+    file.seek(SeekFrom::Start(offset - 1))?;
+    let mut byte = [0u8; 1];
+    file.read_exact(&mut byte)?;
+    Ok(byte[0] == b'\n')
+}
+
+fn parse_token_stats_lines(content: &[u8]) -> Option<(u64, u64, u64)> {
+    for line in content.split(|byte| *byte == b'\n').rev() {
+        let raw = String::from_utf8_lossy(line);
+        let trimmed = raw.trim();
+        if trimmed.is_empty()
+            || !trimmed.contains("\"token_count\"")
+            || !trimmed.contains("\"total_token_usage\"")
+        {
+            continue;
+        }
+
+        let Ok(parsed) = serde_json::from_str::<JsonValue>(trimmed) else {
+            continue;
+        };
+        if parsed.get("type").and_then(|value| value.as_str()) != Some("event_msg") {
+            continue;
+        }
+        let Some(payload) = parsed.get("payload") else {
+            continue;
+        };
+        if payload.get("type").and_then(|value| value.as_str()) != Some("token_count") {
+            continue;
+        }
+        let Some(usage) = payload
+            .get("info")
+            .and_then(|info| info.get("total_token_usage"))
+        else {
+            continue;
+        };
+
+        let input = usage
+            .get("input_tokens")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0);
+        let output = usage
+            .get("output_tokens")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0);
+        let total = usage
+            .get("total_tokens")
+            .and_then(|value| value.as_u64())
+            .unwrap_or(0);
+        return Some((input, output, total));
+    }
+
+    None
+}
+
 pub fn list_sessions_across_instances() -> Result<Vec<CodexSessionRecord>, String> {
     let instances = collect_instances()?;
     let process_entries = modules::process::collect_codex_process_entries();
@@ -197,6 +355,56 @@ pub fn list_sessions_across_instances() -> Result<Vec<CodexSessionRecord>, Strin
             .then_with(|| left.title.cmp(&right.title))
     });
     Ok(sessions)
+}
+
+pub fn get_session_token_stats_across_instances(
+    session_ids: Vec<String>,
+) -> Result<Vec<CodexSessionTokenStats>, String> {
+    let requested_ids = session_ids
+        .into_iter()
+        .map(|item| item.trim().to_string())
+        .filter(|item| !item.is_empty())
+        .collect::<HashSet<_>>();
+    if requested_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let instances = collect_instances()?;
+    let mut pending_ids = requested_ids.clone();
+    let mut stats_by_session_id = HashMap::<String, CodexSessionTokenStats>::new();
+
+    for instance in &instances {
+        if pending_ids.is_empty() {
+            break;
+        }
+
+        for snapshot in load_thread_snapshots(instance)? {
+            if !pending_ids.contains(&snapshot.id) {
+                continue;
+            }
+
+            let Some((input_tokens, output_tokens, total_tokens)) =
+                read_token_stats_from_rollout(&snapshot.rollout_path)
+            else {
+                continue;
+            };
+
+            stats_by_session_id.insert(
+                snapshot.id.clone(),
+                CodexSessionTokenStats {
+                    session_id: snapshot.id.clone(),
+                    input_tokens,
+                    output_tokens,
+                    total_tokens,
+                },
+            );
+            pending_ids.remove(&snapshot.id);
+        }
+    }
+
+    let mut stats = stats_by_session_id.into_values().collect::<Vec<_>>();
+    stats.sort_by(|left, right| left.session_id.cmp(&right.session_id));
+    Ok(stats)
 }
 
 pub fn move_sessions_to_trash_across_instances(

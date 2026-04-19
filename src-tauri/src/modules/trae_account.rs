@@ -1869,18 +1869,20 @@ fn ensure_auth_raw_for_inject(account: &TraeAccount, existing_auth_raw: Option<&
 
     let user_id = resolve_account_user_id_for_auth_object(account, &roots);
 
-    let username = pick_string_multi(
-        &roots,
-        &[
-            &["ScreenName"],
-            &["nickname"],
-            &["name"],
-            &["displayName"],
-            &["account", "username"],
-        ],
-    )
-    .or_else(|| normalize_non_empty(account.nickname.as_deref()))
-    .unwrap_or_else(|| account.email.clone());
+    let username = normalize_non_empty(account.nickname.as_deref())
+        .or_else(|| {
+            pick_string_multi(
+                &roots,
+                &[
+                    &["ScreenName"],
+                    &["nickname"],
+                    &["name"],
+                    &["displayName"],
+                    &["account", "username"],
+                ],
+            )
+        })
+        .unwrap_or_else(|| account.email.clone());
 
     let email = normalize_email(
         pick_string_multi(
@@ -1963,8 +1965,9 @@ fn ensure_auth_raw_for_inject(account: &TraeAccount, existing_auth_raw: Option<&
     .map(|value| to_store_region(value.as_str()))
     .unwrap_or_else(|| "UNKNOWN".to_string());
 
+    let ai_region_roots = [profile_root, server_raw, auth_raw];
     let ai_region = pick_string_multi(
-        &roots,
+        &ai_region_roots,
         &[
             &["AIRegion"],
             &["userRegion", "_aiRegion"],
@@ -2229,32 +2232,10 @@ pub fn import_from_local() -> Result<Option<TraeAccount>, String> {
 }
 
 pub(crate) fn resolve_current_account_id(accounts: &[TraeAccount]) -> Option<String> {
-    let payload = read_local_trae_auth().ok()??;
-    let normalized_user_id = normalize_non_empty(payload.user_id.as_deref());
-    let normalized_email = normalize_email(Some(payload.email.as_str()));
-
-    accounts
-        .iter()
-        .find(|account| {
-            if let (Some(existing), Some(incoming)) = (
-                normalize_non_empty(account.user_id.as_deref()),
-                normalized_user_id.clone(),
-            ) {
-                if existing == incoming {
-                    return true;
-                }
-            }
-
-            if let (Some(existing), Some(incoming)) = (
-                normalize_email(Some(account.email.as_str())),
-                normalized_email.clone(),
-            ) {
-                return existing == incoming;
-            }
-
-            false
-        })
-        .map(|account| account.id.clone())
+    crate::modules::provider_current_state::resolve_existing_current_account_id(
+        "trae",
+        accounts.iter().map(|account| account.id.as_str()),
+    )
 }
 
 pub fn inject_to_trae(account_id: &str) -> Result<(), String> {

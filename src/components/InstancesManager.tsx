@@ -27,11 +27,13 @@ import {
 import { confirm as confirmDialog, open } from "@tauri-apps/plugin-dialog";
 import md5 from "blueimp-md5";
 import {
+  CODEX_API_SERVICE_BIND_ID,
   InstanceInitMode,
   InstanceLaunchMode,
   InstanceProfile,
 } from "../types/instance";
 import type { PlatformId } from "../types/platform";
+import type { CodexQuickConfig } from "../types/codex";
 import {
   FileCorruptedModal,
   parseFileCorruptedError,
@@ -44,9 +46,14 @@ import {
   maskSensitiveValue,
   persistPrivacyModeEnabled,
 } from "../utils/privacy";
+import {
+  getCodexInstanceQuickConfig,
+  openCodexInstanceConfigToml,
+  saveCodexInstanceQuickConfig,
+} from "../services/codexInstanceService";
 
 type MessageState = { text: string; tone?: "error" };
-type AccountLike = { id: string; email: string };
+type AccountLike = { id: string; email: string; tags?: string[] | null };
 type InstanceSortField = "createdAt" | "lastLaunchedAt";
 type SortDirection = "asc" | "desc";
 type StartInstanceOutcome =
@@ -92,6 +99,82 @@ const ACCOUNT_SELECT_PORTAL_SAFE_MARGIN = 12;
 const ACCOUNT_SELECT_PORTAL_MAX_HEIGHT = 320;
 const ACCOUNT_SELECT_PORTAL_MIN_HEIGHT = 140;
 const ACCOUNT_SELECT_PORTAL_Z_INDEX = 10020;
+const DEFAULT_AUTO_COMPACT_TOKEN_LIMIT = 900000;
+const CONTEXT_WINDOW_516K = 516000;
+const AUTO_COMPACT_TOKEN_LIMIT_516K = 460000;
+const CONTEXT_WINDOW_1M = 1000000;
+const AUTO_COMPACT_TOKEN_LIMIT_1M = 900000;
+
+type CodexQuickConfigBuiltInPresetId = "default" | "preset_516k" | "preset_1m";
+type CodexQuickConfigPresetId = CodexQuickConfigBuiltInPresetId | "custom";
+
+interface CodexQuickConfigTarget {
+  modelContextWindow: number | null;
+  autoCompactTokenLimit: number | null;
+}
+
+const CODEX_QUICK_CONFIG_PRESETS: Record<
+  CodexQuickConfigBuiltInPresetId,
+  CodexQuickConfigTarget
+> = {
+  default: {
+    modelContextWindow: null,
+    autoCompactTokenLimit: null,
+  },
+  preset_516k: {
+    modelContextWindow: CONTEXT_WINDOW_516K,
+    autoCompactTokenLimit: AUTO_COMPACT_TOKEN_LIMIT_516K,
+  },
+  preset_1m: {
+    modelContextWindow: CONTEXT_WINDOW_1M,
+    autoCompactTokenLimit: AUTO_COMPACT_TOKEN_LIMIT_1M,
+  },
+};
+
+const parsePositiveInteger = (value: string): number | null => {
+  const parsed = Number.parseInt(value.trim(), 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+  return parsed;
+};
+
+const resolveCodexQuickConfigPresetId = (
+  modelContextWindow: number | null,
+  autoCompactTokenLimit: number | null,
+): CodexQuickConfigPresetId => {
+  if (modelContextWindow === null && autoCompactTokenLimit === null) {
+    return "default";
+  }
+  if (
+    modelContextWindow === CODEX_QUICK_CONFIG_PRESETS.preset_516k.modelContextWindow &&
+    autoCompactTokenLimit === CODEX_QUICK_CONFIG_PRESETS.preset_516k.autoCompactTokenLimit
+  ) {
+    return "preset_516k";
+  }
+  if (
+    modelContextWindow === CODEX_QUICK_CONFIG_PRESETS.preset_1m.modelContextWindow &&
+    autoCompactTokenLimit === CODEX_QUICK_CONFIG_PRESETS.preset_1m.autoCompactTokenLimit
+  ) {
+    return "preset_1m";
+  }
+  return "custom";
+};
+
+const normalizeInstanceAccountTag = (tag: string) => tag.trim().toLowerCase();
+
+const collectInstanceAccountTags = <TAccount extends AccountLike>(
+  accounts: TAccount[],
+): string[] => {
+  const values = new Set<string>();
+  accounts.forEach((account) => {
+    (account.tags || []).forEach((tag) => {
+      const normalized = normalizeInstanceAccountTag(tag);
+      if (normalized) {
+        values.add(normalized);
+      }
+    });
+  });
+  return Array.from(values).sort((left, right) => left.localeCompare(right));
+};
 
 const resolveAccountSelectPortalPosition = (
   trigger: HTMLButtonElement | null,
@@ -238,6 +321,20 @@ export function InstancesManager<TAccount extends AccountLike>({
   const [formLaunchMode, setFormLaunchMode] =
     useState<InstanceLaunchMode>("app");
   const [formBindAccountId, setFormBindAccountId] = useState<string>("");
+  const [formCodexQuickConfig, setFormCodexQuickConfig] =
+    useState<CodexQuickConfig | null>(null);
+  const [formCodexQuickConfigPresetId, setFormCodexQuickConfigPresetId] =
+    useState<CodexQuickConfigPresetId>("default");
+  const [formCodexQuickContextWindowInput, setFormCodexQuickContextWindowInput] =
+    useState(String(CONTEXT_WINDOW_1M));
+  const [formCodexQuickCompactLimitInput, setFormCodexQuickCompactLimitInput] =
+    useState(String(DEFAULT_AUTO_COMPACT_TOKEN_LIMIT));
+  const [formCodexQuickConfigLoading, setFormCodexQuickConfigLoading] =
+    useState(false);
+  const [formCodexQuickConfigError, setFormCodexQuickConfigError] =
+    useState<string | null>(null);
+  const [formCodexOpenConfigLoading, setFormCodexOpenConfigLoading] =
+    useState(false);
   const [formCopySourceInstanceId, setFormCopySourceInstanceId] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const formErrorRef = useRef<HTMLDivElement | null>(null);
@@ -295,6 +392,29 @@ export function InstancesManager<TAccount extends AccountLike>({
   const floatingCardPlatformId = useMemo(
     () => resolveFloatingCardPlatformId(appType),
     [appType],
+  );
+  const resolveApiServiceLabel = useCallback(
+    () => t("codex.localAccess.title", "API 服务"),
+    [t],
+  );
+  const isApiServiceBindId = useCallback(
+    (value?: string | null) =>
+      isCodexApp && value === CODEX_API_SERVICE_BIND_ID,
+    [isCodexApp],
+  );
+  const resolveBoundAccount = useCallback(
+    (bindAccountId?: string | null) => {
+      if (!bindAccountId) {
+        return { account: null, missing: false, isApiService: false };
+      }
+      if (isApiServiceBindId(bindAccountId)) {
+        return { account: null, missing: false, isApiService: true };
+      }
+      const account =
+        accounts.find((item) => item.id === bindAccountId) || null;
+      return { account, missing: !account, isApiService: false };
+    },
+    [accounts, isApiServiceBindId],
   );
 
   const markInstanceStarting = useCallback((instanceId: string) => {
@@ -419,20 +539,29 @@ export function InstancesManager<TAccount extends AccountLike>({
       const displayName = instance.isDefault
         ? t("instances.defaultName", "默认实例")
         : instance.name || "";
-      const account = instance.bindAccountId
-        ? accounts.find((item) => item.id === instance.bindAccountId) || null
-        : null;
-      const accountText = account
-        ? getAccountSearchText
-          ? getAccountSearchText(account)
-          : account.email
-        : "";
+      const { account, isApiService } = resolveBoundAccount(
+        instance.bindAccountId,
+      );
+      const accountText = isApiService
+        ? resolveApiServiceLabel()
+        : account
+          ? getAccountSearchText
+            ? getAccountSearchText(account)
+            : account.email
+          : "";
       const haystack = [displayName, accountText, instance.userDataDir || ""]
         .join(" ")
         .toLowerCase();
       return haystack.includes(query);
     });
-  }, [accounts, getAccountSearchText, searchQuery, sortedInstances, t]);
+  }, [
+    getAccountSearchText,
+    resolveApiServiceLabel,
+    resolveBoundAccount,
+    searchQuery,
+    sortedInstances,
+    t,
+  ]);
 
   const defaultRoot = defaults?.rootDir ?? "";
 
@@ -460,6 +589,13 @@ export function InstancesManager<TAccount extends AccountLike>({
     setFormInitMode("copy");
     setFormLaunchMode(isGeminiApp ? "cli" : "app");
     setFormBindAccountId("");
+    setFormCodexQuickConfig(null);
+    setFormCodexQuickConfigPresetId("default");
+    setFormCodexQuickContextWindowInput(String(CONTEXT_WINDOW_1M));
+    setFormCodexQuickCompactLimitInput(String(DEFAULT_AUTO_COMPACT_TOKEN_LIMIT));
+    setFormCodexQuickConfigLoading(false);
+    setFormCodexQuickConfigError(null);
+    setFormCodexOpenConfigLoading(false);
     setFormCopySourceInstanceId(defaultInstanceId);
     setFormError(null);
     setPathAuto(true);
@@ -504,6 +640,13 @@ export function InstancesManager<TAccount extends AccountLike>({
     setFormInitMode("copy");
     setFormLaunchMode(resolveInstanceLaunchMode(instance));
     setFormBindAccountId(instance.bindAccountId || "");
+    setFormCodexQuickConfig(null);
+    setFormCodexQuickConfigPresetId("default");
+    setFormCodexQuickContextWindowInput(String(CONTEXT_WINDOW_1M));
+    setFormCodexQuickCompactLimitInput(String(DEFAULT_AUTO_COMPACT_TOKEN_LIMIT));
+    setFormCodexQuickConfigLoading(isCodexApp);
+    setFormCodexQuickConfigError(null);
+    setFormCodexOpenConfigLoading(false);
     setFormError(null);
     setPathAuto(false);
     setShowModal(true);
@@ -597,6 +740,17 @@ export function InstancesManager<TAccount extends AccountLike>({
       return;
     }
 
+    if (
+      editing &&
+      isCodexApp &&
+      formCodexQuickConfigDirty &&
+      formCodexQuickValidationError
+    ) {
+      setFormError(formCodexQuickValidationError);
+      setFormErrorTick((prev) => prev + 1);
+      return;
+    }
+
     try {
       const nextLaunchMode = supportsLaunchModeSelect
         ? formLaunchMode
@@ -633,6 +787,13 @@ export function InstancesManager<TAccount extends AccountLike>({
         }
 
         await updateInstance(updatePayload);
+        if (isCodexApp && formCodexQuickConfigDirty) {
+          await saveCodexInstanceQuickConfig(
+            editing.id,
+            formCodexQuickTargetConfig.modelContextWindow ?? undefined,
+            formCodexQuickTargetConfig.autoCompactTokenLimit ?? undefined,
+          );
+        }
         setMessage({ text: t("instances.messages.updated", "实例已更新") });
       } else {
         setActionLoading("create");
@@ -987,12 +1148,7 @@ export function InstancesManager<TAccount extends AccountLike>({
   };
 
   const resolveAccount = (instance: InstanceProfile) => {
-    if (!instance.bindAccountId) {
-      return { account: null, missing: false };
-    }
-    const account =
-      accounts.find((item) => item.id === instance.bindAccountId) || null;
-    return { account, missing: !account };
+    return resolveBoundAccount(instance.bindAccountId);
   };
 
   const selectedCopySourceInstance = useMemo(() => {
@@ -1003,6 +1159,246 @@ export function InstancesManager<TAccount extends AccountLike>({
       instances.find((item) => item.id === formCopySourceInstanceId) || null
     );
   }, [defaultInstanceId, formCopySourceInstanceId, instances]);
+
+  const formCodexQuickPresetOptions = useMemo(
+    () => [
+      {
+        id: "default" as CodexQuickConfigPresetId,
+        label: t("instances.form.codexQuickConfig.presetDefaultShort", "默认"),
+        desc: t(
+          "instances.form.codexQuickConfig.presetDefaultDesc",
+          "移除两个字段，回到官方默认",
+        ),
+      },
+      {
+        id: "preset_516k" as CodexQuickConfigPresetId,
+        label: t("instances.form.codexQuickConfig.preset516kShort", "516K"),
+        desc: t(
+          "instances.form.codexQuickConfig.preset516kDesc",
+          "context=516000 / compact=460000",
+        ),
+      },
+      {
+        id: "preset_1m" as CodexQuickConfigPresetId,
+        label: t("instances.form.codexQuickConfig.preset1mShort", "1M"),
+        desc: t(
+          "instances.form.codexQuickConfig.preset1mDesc",
+          "context=1000000 / compact=900000",
+        ),
+      },
+      {
+        id: "custom" as CodexQuickConfigPresetId,
+        label: t("instances.form.codexQuickConfig.presetCustomShort", "自定义"),
+        desc: t(
+          "instances.form.codexQuickConfig.presetCustomDesc",
+          "手动填写上下文与压缩阈值",
+        ),
+      },
+    ],
+    [t],
+  );
+
+  const applyFormCodexQuickConfig = useCallback((nextConfig: CodexQuickConfig) => {
+    const detectedModelContextWindow =
+      nextConfig.detected_model_context_window ?? null;
+    const detectedAutoCompactTokenLimit =
+      nextConfig.detected_auto_compact_token_limit ?? null;
+    const presetId = resolveCodexQuickConfigPresetId(
+      detectedModelContextWindow,
+      detectedAutoCompactTokenLimit,
+    );
+    setFormCodexQuickConfig(nextConfig);
+    setFormCodexQuickConfigPresetId(presetId);
+    setFormCodexQuickContextWindowInput(
+      String(detectedModelContextWindow ?? CONTEXT_WINDOW_1M),
+    );
+    setFormCodexQuickCompactLimitInput(
+      String(detectedAutoCompactTokenLimit ?? DEFAULT_AUTO_COMPACT_TOKEN_LIMIT),
+    );
+  }, []);
+
+  const formCodexQuickIsCustomPreset = formCodexQuickConfigPresetId === "custom";
+  const formCodexQuickDetectedModelContextWindow =
+    formCodexQuickConfig?.detected_model_context_window ?? null;
+  const formCodexQuickDetectedAutoCompactTokenLimit =
+    formCodexQuickConfig?.detected_auto_compact_token_limit ?? null;
+  const formCodexQuickParsedContextWindow = useMemo(
+    () => parsePositiveInteger(formCodexQuickContextWindowInput),
+    [formCodexQuickContextWindowInput],
+  );
+  const formCodexQuickParsedCompactLimit = useMemo(
+    () => parsePositiveInteger(formCodexQuickCompactLimitInput),
+    [formCodexQuickCompactLimitInput],
+  );
+  const formCodexQuickContextWindowError = useMemo(() => {
+    if (!formCodexQuickIsCustomPreset) return null;
+    if (formCodexQuickParsedContextWindow !== null) return null;
+    return t(
+      "instances.form.codexQuickConfig.validation.contextWindowInvalid",
+      "上下文窗口必须是大于 0 的整数",
+    );
+  }, [formCodexQuickIsCustomPreset, formCodexQuickParsedContextWindow, t]);
+  const formCodexQuickCompactLimitError = useMemo(() => {
+    if (!formCodexQuickIsCustomPreset) return null;
+    if (formCodexQuickParsedCompactLimit !== null) return null;
+    return t(
+      "instances.form.codexQuickConfig.validation.autoCompactInvalid",
+      "自动压缩阈值必须是大于 0 的整数",
+    );
+  }, [formCodexQuickIsCustomPreset, formCodexQuickParsedCompactLimit, t]);
+  const formCodexQuickValidationError =
+    formCodexQuickContextWindowError ?? formCodexQuickCompactLimitError;
+  const formCodexQuickTargetConfig = useMemo<CodexQuickConfigTarget>(() => {
+    if (formCodexQuickConfigPresetId === "custom") {
+      return {
+        modelContextWindow: formCodexQuickParsedContextWindow,
+        autoCompactTokenLimit: formCodexQuickParsedCompactLimit,
+      };
+    }
+    return CODEX_QUICK_CONFIG_PRESETS[formCodexQuickConfigPresetId];
+  }, [
+    formCodexQuickConfigPresetId,
+    formCodexQuickParsedCompactLimit,
+    formCodexQuickParsedContextWindow,
+  ]);
+  const formCodexQuickDetectedPresetId = useMemo(
+    () =>
+      resolveCodexQuickConfigPresetId(
+        formCodexQuickDetectedModelContextWindow,
+        formCodexQuickDetectedAutoCompactTokenLimit,
+      ),
+    [
+      formCodexQuickDetectedAutoCompactTokenLimit,
+      formCodexQuickDetectedModelContextWindow,
+    ],
+  );
+  const formCodexQuickConfigDirty = useMemo(() => {
+    if (!formCodexQuickConfig) return false;
+    return (
+      formCodexQuickDetectedModelContextWindow !==
+        formCodexQuickTargetConfig.modelContextWindow ||
+      formCodexQuickDetectedAutoCompactTokenLimit !==
+        formCodexQuickTargetConfig.autoCompactTokenLimit
+    );
+  }, [
+    formCodexQuickConfig,
+    formCodexQuickDetectedAutoCompactTokenLimit,
+    formCodexQuickDetectedModelContextWindow,
+    formCodexQuickTargetConfig.autoCompactTokenLimit,
+    formCodexQuickTargetConfig.modelContextWindow,
+  ]);
+  const formCodexQuickConfigWarning = useMemo(() => {
+    if (!formCodexQuickConfig) return null;
+    if (
+      (formCodexQuickDetectedModelContextWindow == null) !==
+      (formCodexQuickDetectedAutoCompactTokenLimit == null)
+    ) {
+      return t("instances.form.codexQuickConfig.partialDetected", {
+        defaultValue:
+          "检测到当前两个字段并不完整：model_context_window={{context}}，model_auto_compact_token_limit={{compact}}。保存后会按当前方案改写。",
+        context:
+          formCodexQuickDetectedModelContextWindow ??
+          t("instances.form.codexQuickConfig.notSet", "未设置"),
+        compact:
+          formCodexQuickDetectedAutoCompactTokenLimit ??
+          t("instances.form.codexQuickConfig.notSet", "未设置"),
+      });
+    }
+    if (
+      formCodexQuickDetectedPresetId === "custom" &&
+      formCodexQuickConfigPresetId !== "custom"
+    ) {
+      return t("instances.form.codexQuickConfig.customDetected", {
+        defaultValue:
+          "检测到当前 config.toml 为自定义值：model_context_window={{context}}，model_auto_compact_token_limit={{compact}}。保存后会按你选择的预设改写。",
+        context:
+          formCodexQuickDetectedModelContextWindow ??
+          t("instances.form.codexQuickConfig.notSet", "未设置"),
+        compact:
+          formCodexQuickDetectedAutoCompactTokenLimit ??
+          t("instances.form.codexQuickConfig.notSet", "未设置"),
+      });
+    }
+    return null;
+  }, [
+    formCodexQuickConfig,
+    formCodexQuickConfigPresetId,
+    formCodexQuickDetectedAutoCompactTokenLimit,
+    formCodexQuickDetectedModelContextWindow,
+    formCodexQuickDetectedPresetId,
+    t,
+  ]);
+
+  const handleFormCodexQuickPresetChange = useCallback(
+    (nextPreset: CodexQuickConfigPresetId) => {
+      setFormCodexQuickConfigError(null);
+      setFormCodexQuickConfigPresetId(nextPreset);
+      if (nextPreset !== "custom") {
+        const preset = CODEX_QUICK_CONFIG_PRESETS[nextPreset];
+        setFormCodexQuickContextWindowInput(
+          String(preset.modelContextWindow ?? CONTEXT_WINDOW_1M),
+        );
+        setFormCodexQuickCompactLimitInput(
+          String(
+            preset.autoCompactTokenLimit ?? DEFAULT_AUTO_COMPACT_TOKEN_LIMIT,
+          ),
+        );
+      }
+    },
+    [],
+  );
+
+  const handleOpenFormCodexConfigToml = useCallback(async () => {
+    if (!editing) return;
+    setFormCodexQuickConfigError(null);
+    setFormCodexOpenConfigLoading(true);
+    try {
+      await openCodexInstanceConfigToml(editing.id);
+    } catch (error) {
+      setFormCodexQuickConfigError(
+        t("instances.form.codexQuickConfig.openFailed", {
+          defaultValue: "打开 config.toml 失败：{{error}}",
+          error: String(error),
+        }),
+      );
+    } finally {
+      setFormCodexOpenConfigLoading(false);
+    }
+  }, [editing, t]);
+
+  useEffect(() => {
+    if (!isCodexApp || !showModal || !editing) return;
+    let active = true;
+    setFormCodexQuickConfigLoading(true);
+    setFormCodexQuickConfigError(null);
+    void getCodexInstanceQuickConfig(editing.id)
+      .then((quickConfig) => {
+        if (!active) return;
+        applyFormCodexQuickConfig(quickConfig);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setFormCodexQuickConfigError(
+          t("instances.form.codexQuickConfig.loadFailed", {
+            defaultValue: "加载当前 Codex 配置失败：{{error}}",
+            error: String(error),
+          }),
+        );
+      })
+      .finally(() => {
+        if (!active) return;
+        setFormCodexQuickConfigLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [
+    applyFormCodexQuickConfig,
+    editing,
+    isCodexApp,
+    showModal,
+    t,
+  ]);
 
   type BaseAccountSelectProps = {
     value: string | null;
@@ -1017,6 +1413,13 @@ export function InstancesManager<TAccount extends AccountLike>({
   };
 
   const renderAccountMenuItems = ({
+    visibleAccounts,
+    availableTags,
+    searchValue,
+    onSearchChange,
+    tagFilter,
+    onToggleTagFilter,
+    onClearTagFilter,
     value,
     isFollowingCurrent = false,
     allowFollowCurrent = false,
@@ -1026,6 +1429,13 @@ export function InstancesManager<TAccount extends AccountLike>({
     onClose,
     selectedAccount,
   }: {
+    visibleAccounts: TAccount[];
+    availableTags: string[];
+    searchValue: string;
+    onSearchChange: (value: string) => void;
+    tagFilter: string[];
+    onToggleTagFilter: (tag: string) => void;
+    onClearTagFilter: () => void;
     value: string | null;
     isFollowingCurrent?: boolean;
     allowFollowCurrent?: boolean;
@@ -1036,6 +1446,47 @@ export function InstancesManager<TAccount extends AccountLike>({
     selectedAccount: TAccount | null;
   }) => (
     <>
+      <div className="account-select-menu-toolbar">
+        <label className="account-select-search-box">
+          <Search size={14} />
+          <input
+            type="text"
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder={t("accounts.search", "搜索账号...")}
+          />
+        </label>
+        {availableTags.length > 0 ? (
+          <div className="account-select-tag-filter">
+            <span className="account-select-tag-filter-label">
+              {t("accounts.filterTags", "标签筛选")}
+            </span>
+            <div className="account-select-tag-filter-list">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`account-select-tag-pill ${
+                    tagFilter.includes(tag) ? "active" : ""
+                  }`}
+                  onClick={() => onToggleTagFilter(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+              {tagFilter.length > 0 ? (
+                <button
+                  type="button"
+                  className="account-select-tag-clear"
+                  onClick={onClearTagFilter}
+                >
+                  {t("accounts.clearFilter", "清空筛选")}
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </div>
       {allowFollowCurrent && (
         <button
           type="button"
@@ -1076,7 +1527,26 @@ export function InstancesManager<TAccount extends AccountLike>({
           </span>
         </button>
       )}
-      {accounts.map((account) => (
+      {isCodexApp && (
+        <button
+          type="button"
+          className={`account-select-item ${value === CODEX_API_SERVICE_BIND_ID && !isFollowingCurrent ? "active" : ""}`}
+          data-account-select-active={
+            value === CODEX_API_SERVICE_BIND_ID && !isFollowingCurrent
+              ? "true"
+              : undefined
+          }
+          onClick={() => {
+            onChange(CODEX_API_SERVICE_BIND_ID);
+            onClose();
+          }}
+        >
+          <span className="account-select-email">
+            {resolveApiServiceLabel()}
+          </span>
+        </button>
+      )}
+      {visibleAccounts.map((account) => (
         <button
           type="button"
           key={account.id}
@@ -1101,6 +1571,14 @@ export function InstancesManager<TAccount extends AccountLike>({
           {renderAccountQuotaPreview(account)}
         </button>
       ))}
+      {visibleAccounts.length === 0 &&
+      !isCodexApp &&
+      !allowUnbound &&
+      !allowFollowCurrent ? (
+        <div className="account-select-empty">
+          {t("common.noData", "暂无数据")}
+        </div>
+      ) : null}
     </>
   );
 
@@ -1130,10 +1608,52 @@ export function InstancesManager<TAccount extends AccountLike>({
     const isOpen = instanceId ? currentOpenId === instanceId : false;
     const [portalPos, setPortalPos] =
       useState<AccountSelectPortalPosition | null>(null);
+    const [searchValue, setSearchValue] = useState("");
+    const [tagFilter, setTagFilter] = useState<string[]>([]);
+
+    const availableTags = useMemo(
+      () => collectInstanceAccountTags(accounts),
+      [accounts],
+    );
+    const visibleAccounts = useMemo(() => {
+      const normalizedQuery = searchValue.trim().toLowerCase();
+      const selectedTags = new Set(tagFilter.map(normalizeInstanceAccountTag));
+      return accounts.filter((account) => {
+        if (selectedTags.size > 0) {
+          const accountTags = (account.tags || [])
+            .map(normalizeInstanceAccountTag)
+            .filter(Boolean);
+          if (!accountTags.some((tag) => selectedTags.has(tag))) {
+            return false;
+          }
+        }
+        if (!normalizedQuery) return true;
+        const haystack = [
+          account.email,
+          getAccountSearchText ? getAccountSearchText(account) : "",
+          ...(account.tags || []),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(normalizedQuery);
+      });
+    }, [accounts, getAccountSearchText, searchValue, tagFilter]);
+
+    const toggleTagFilter = useCallback((tag: string) => {
+      setTagFilter((prev) =>
+        prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag],
+      );
+    }, []);
 
     const updatePortalPos = useCallback(() => {
       setPortalPos(resolveAccountSelectPortalPosition(triggerRef.current));
     }, []);
+
+    useEffect(() => {
+      if (isOpen) return;
+      setSearchValue("");
+      setTagFilter([]);
+    }, [isOpen]);
 
     useEffect(() => {
       if (!isOpen) return;
@@ -1182,7 +1702,7 @@ export function InstancesManager<TAccount extends AccountLike>({
         window.cancelAnimationFrame(frameId);
       };
     }, [
-      accounts.length,
+      visibleAccounts.length,
       isFollowingCurrent,
       isOpen,
       portalPos?.placement,
@@ -1195,7 +1715,8 @@ export function InstancesManager<TAccount extends AccountLike>({
       }
     }, [disabled, isOpen, onOpenChange]);
 
-    const selectedAccount = accounts.find((item) => item.id === value) || null;
+    const isApiServiceSelected = isApiServiceBindId(value);
+    const selectedAccount = resolveBoundAccount(value).account;
     const basePlaceholder =
       placeholder ||
       (allowUnbound
@@ -1206,6 +1727,8 @@ export function InstancesManager<TAccount extends AccountLike>({
       : isFollowingCurrent
         ? maskAccountText(selectedAccount?.email) ||
           t("instances.form.followCurrent", "跟随当前账号")
+        : isApiServiceSelected
+          ? resolveApiServiceLabel()
         : maskAccountText(selectedAccount?.email) || basePlaceholder;
     const selectedBadge =
       !missing && selectedAccount
@@ -1260,6 +1783,13 @@ export function InstancesManager<TAccount extends AccountLike>({
               >
                 <div ref={portalMenuRef} className="account-select-menu">
                   {renderAccountMenuItems({
+                    visibleAccounts,
+                    availableTags,
+                    searchValue,
+                    onSearchChange: setSearchValue,
+                    tagFilter,
+                    onToggleTagFilter: toggleTagFilter,
+                    onClearTagFilter: () => setTagFilter([]),
                     value,
                     isFollowingCurrent,
                     allowFollowCurrent,
@@ -1297,6 +1827,42 @@ export function InstancesManager<TAccount extends AccountLike>({
     const [open, setOpen] = useState(false);
     const [portalPos, setPortalPos] =
       useState<AccountSelectPortalPosition | null>(null);
+    const [searchValue, setSearchValue] = useState("");
+    const [tagFilter, setTagFilter] = useState<string[]>([]);
+
+    const availableTags = useMemo(
+      () => collectInstanceAccountTags(accounts),
+      [accounts],
+    );
+    const visibleAccounts = useMemo(() => {
+      const normalizedQuery = searchValue.trim().toLowerCase();
+      const selectedTags = new Set(tagFilter.map(normalizeInstanceAccountTag));
+      return accounts.filter((account) => {
+        if (selectedTags.size > 0) {
+          const accountTags = (account.tags || [])
+            .map(normalizeInstanceAccountTag)
+            .filter(Boolean);
+          if (!accountTags.some((tag) => selectedTags.has(tag))) {
+            return false;
+          }
+        }
+        if (!normalizedQuery) return true;
+        const haystack = [
+          account.email,
+          getAccountSearchText ? getAccountSearchText(account) : "",
+          ...(account.tags || []),
+        ]
+          .join(" ")
+          .toLowerCase();
+        return haystack.includes(normalizedQuery);
+      });
+    }, [accounts, getAccountSearchText, searchValue, tagFilter]);
+
+    const toggleTagFilter = useCallback((tag: string) => {
+      setTagFilter((prev) =>
+        prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag],
+      );
+    }, []);
 
     const updatePortalPos = useCallback(() => {
       setPortalPos(resolveAccountSelectPortalPosition(triggerRef.current));
@@ -1346,7 +1912,7 @@ export function InstancesManager<TAccount extends AccountLike>({
       return () => {
         window.cancelAnimationFrame(frameId);
       };
-    }, [accounts.length, isFollowingCurrent, open, portalPos?.placement, value]);
+    }, [isFollowingCurrent, open, portalPos?.placement, value, visibleAccounts.length]);
 
     useEffect(() => {
       if (disabled && open) {
@@ -1354,7 +1920,14 @@ export function InstancesManager<TAccount extends AccountLike>({
       }
     }, [disabled, open]);
 
-    const selectedAccount = accounts.find((item) => item.id === value) || null;
+    useEffect(() => {
+      if (open) return;
+      setSearchValue("");
+      setTagFilter([]);
+    }, [open]);
+
+    const isApiServiceSelected = isApiServiceBindId(value);
+    const selectedAccount = resolveBoundAccount(value).account;
     const basePlaceholder =
       placeholder ||
       (allowUnbound
@@ -1365,6 +1938,8 @@ export function InstancesManager<TAccount extends AccountLike>({
       : isFollowingCurrent
         ? maskAccountText(selectedAccount?.email) ||
           t("instances.form.followCurrent", "跟随当前账号")
+        : isApiServiceSelected
+          ? resolveApiServiceLabel()
         : maskAccountText(selectedAccount?.email) || basePlaceholder;
     const selectedBadge =
       !missing && selectedAccount
@@ -1419,6 +1994,13 @@ export function InstancesManager<TAccount extends AccountLike>({
               >
                 <div ref={portalMenuRef} className="account-select-menu">
                   {renderAccountMenuItems({
+                    visibleAccounts,
+                    availableTags,
+                    searchValue,
+                    onSearchChange: setSearchValue,
+                    tagFilter,
+                    onToggleTagFilter: toggleTagFilter,
+                    onClearTagFilter: () => setTagFilter([]),
                     value,
                     isFollowingCurrent,
                     allowFollowCurrent,
@@ -1736,7 +2318,10 @@ export function InstancesManager<TAccount extends AccountLike>({
             <div>{t("instances.columns.actions", "操作")}</div>
           </div>
           {filteredInstances.map((instance) => {
-            const { missing: accountMissing } = resolveAccount(instance);
+            const {
+              missing: accountMissing,
+              isApiService: accountIsApiService,
+            } = resolveAccount(instance);
             const accountDisabledByInit =
               !instance.isDefault && instance.initialized === false;
             const isInstanceStarting = startingInstanceIdSet.has(instance.id);
@@ -1766,7 +2351,9 @@ export function InstancesManager<TAccount extends AccountLike>({
                     ? t("instances.status.ready", "已准备")
                     : t("instances.status.stopped", "未运行");
             const canShowFloatingCard =
-              Boolean(instance.bindAccountId) && !accountMissing;
+              Boolean(instance.bindAccountId) &&
+              !accountMissing &&
+              !accountIsApiService;
             const floatingCardActionTitle = canShowFloatingCard
               ? t("instances.actions.showFloatingCard", "显示悬浮框")
               : accountMissing
@@ -2101,7 +2688,10 @@ export function InstancesManager<TAccount extends AccountLike>({
 
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal modal-lg instance-editor-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
               <h2>
                 {editing
@@ -2384,6 +2974,7 @@ export function InstancesManager<TAccount extends AccountLike>({
                       onChange={handleFormAccountChange}
                       missing={Boolean(
                         formBindAccountId &&
+                        !isApiServiceBindId(formBindAccountId) &&
                         !accounts.find((item) => item.id === formBindAccountId),
                       )}
                     />
@@ -2409,6 +3000,157 @@ export function InstancesManager<TAccount extends AccountLike>({
                   )}
                 </p>
               </div>
+
+              {isCodexApp && editing && (
+                <div className="form-group instance-codex-quick-config">
+                  <div className="instance-codex-quick-header">
+                    <label>
+                      {t(
+                        "instances.form.codexQuickConfig.title",
+                        "上下文与压缩阈值",
+                      )}
+                    </label>
+                    <button
+                      type="button"
+                      className="btn btn-secondary instance-codex-quick-open-btn"
+                      onClick={() => void handleOpenFormCodexConfigToml()}
+                      disabled={
+                        formCodexOpenConfigLoading || formCodexQuickConfigLoading
+                      }
+                    >
+                      <FolderOpen size={14} />
+                      {formCodexOpenConfigLoading
+                        ? t("common.loading", "加载中...")
+                        : t(
+                            "instances.form.codexQuickConfig.openConfig",
+                            "打开 config.toml",
+                          )}
+                    </button>
+                  </div>
+                  {formCodexQuickConfigLoading ? (
+                    <p className="form-hint">{t("common.loading", "加载中...")}</p>
+                  ) : (
+                    <>
+                      <div
+                        className="instance-codex-quick-presets"
+                        role="radiogroup"
+                        aria-label={t(
+                          "instances.form.codexQuickConfig.presetLabel",
+                          "配置预设",
+                        )}
+                      >
+                        {formCodexQuickPresetOptions.map((option) => (
+                          <button
+                            key={option.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={formCodexQuickConfigPresetId === option.id}
+                            className={`instance-codex-quick-preset-btn ${
+                              formCodexQuickConfigPresetId === option.id
+                                ? "active"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              handleFormCodexQuickPresetChange(option.id)
+                            }
+                          >
+                            <span className="instance-codex-quick-preset-btn__label">
+                              {option.label}
+                            </span>
+                            <span className="instance-codex-quick-preset-btn__desc">
+                              {option.desc}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="form-hint">
+                        {t(
+                          "instances.form.codexQuickConfig.presetHint",
+                          "可直接选择预设（默认 / 516K / 1M），或切到自定义手动填写两个字段。",
+                        )}
+                      </p>
+                      <div className="instance-codex-quick-fields">
+                        <div className="instance-codex-quick-field">
+                          <label>
+                            {t(
+                              "instances.form.codexQuickConfig.contextWindow",
+                              "上下文窗口",
+                            )}
+                          </label>
+                          <input
+                            className="form-input"
+                            type="text"
+                            inputMode="numeric"
+                            value={formCodexQuickContextWindowInput}
+                            onChange={(event) => {
+                              setFormCodexQuickConfigError(null);
+                              setFormCodexQuickContextWindowInput(
+                                event.target.value,
+                              );
+                            }}
+                            disabled={!formCodexQuickIsCustomPreset}
+                            placeholder={String(CONTEXT_WINDOW_1M)}
+                          />
+                          <p className="form-hint">
+                            {t(
+                              "instances.form.codexQuickConfig.contextWindowHint",
+                              "写入 model_context_window。仅在“自定义”模式可编辑。",
+                            )}
+                          </p>
+                          {formCodexQuickContextWindowError && (
+                            <div className="form-error instance-codex-quick-field-error">
+                              {formCodexQuickContextWindowError}
+                            </div>
+                          )}
+                        </div>
+                        <div className="instance-codex-quick-field">
+                          <label>
+                            {t(
+                              "instances.form.codexQuickConfig.autoCompactLimit",
+                              "自动压缩阈值",
+                            )}
+                          </label>
+                          <input
+                            className="form-input"
+                            type="text"
+                            inputMode="numeric"
+                            value={formCodexQuickCompactLimitInput}
+                            onChange={(event) => {
+                              setFormCodexQuickConfigError(null);
+                              setFormCodexQuickCompactLimitInput(
+                                event.target.value,
+                              );
+                            }}
+                            disabled={!formCodexQuickIsCustomPreset}
+                            placeholder={String(DEFAULT_AUTO_COMPACT_TOKEN_LIMIT)}
+                          />
+                          <p className="form-hint">
+                            {t(
+                              "instances.form.codexQuickConfig.autoCompactLimitHint",
+                              "写入 model_auto_compact_token_limit。仅在“自定义”模式可编辑。",
+                            )}
+                          </p>
+                          {formCodexQuickCompactLimitError && (
+                            <div className="form-error instance-codex-quick-field-error">
+                              {formCodexQuickCompactLimitError}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {formCodexQuickConfigWarning && (
+                        <p className="form-hint warning">
+                          {formCodexQuickConfigWarning}
+                        </p>
+                      )}
+                      {formCodexQuickConfigError && (
+                        <div className="form-error">
+                          {formCodexQuickConfigError}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               {formError && (
                 <div className="form-error" ref={formErrorRef}>
                   {formError}

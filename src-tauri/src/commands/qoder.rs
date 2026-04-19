@@ -177,6 +177,10 @@ pub async fn inject_qoder_account(app: AppHandle, account_id: String) -> Result<
         .ok_or_else(|| format!("Qoder 账号不存在: {}", account_id))?;
 
     qoder_account::inject_to_qoder(&account_id)?;
+    crate::modules::provider_current_state::set_current_account_id(
+        "qoder",
+        Some(account_id.as_str()),
+    )?;
 
     if let Err(err) = crate::modules::qoder_instance::update_default_settings(
         Some(Some(account_id.clone())),

@@ -183,7 +183,6 @@ export const useAccountStore = create<AccountState>()(
           
           fetchCurrentPromise = (async () => {
               try {
-                  await accountService.syncCurrentFromClient();
                   const account = await accountService.getCurrentAccount();
                   set({ currentAccount: account });
               } catch (e) {
@@ -346,22 +345,19 @@ export const useAccountStore = create<AccountState>()(
 
     syncCurrentFromClient: async () => {
         const previousCurrentAccountId = get().currentAccount?.id ?? null;
-        const result = await accountService.syncCurrentFromClient();
-        if (result) {
-            try {
-                const account = await accountService.getCurrentAccount();
-                set({ currentAccount: account });
-                const nextCurrentAccountId = account?.id ?? null;
-                if (previousCurrentAccountId !== nextCurrentAccountId) {
-                    await emitCurrentAccountChanged({
-                        platformId: 'antigravity',
-                        accountId: nextCurrentAccountId,
-                        reason: 'sync',
-                    });
-                }
-            } catch (e) {
-                console.error('Failed to refresh current account after client sync:', e);
+        try {
+            const account = await accountService.getCurrentAccount();
+            set({ currentAccount: account });
+            const nextCurrentAccountId = account?.id ?? null;
+            if (previousCurrentAccountId !== nextCurrentAccountId) {
+                await emitCurrentAccountChanged({
+                    platformId: 'antigravity',
+                    accountId: nextCurrentAccountId,
+                    reason: 'sync',
+                });
             }
+        } catch (e) {
+            console.error('Failed to refresh current account:', e);
         }
     },
 

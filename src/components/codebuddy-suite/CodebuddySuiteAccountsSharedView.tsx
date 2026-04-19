@@ -1,4 +1,4 @@
-import { useMemo, useCallback, Fragment, useState, type ComponentType } from 'react';
+import { useMemo, useCallback, Fragment, useState, useEffect, type ComponentType } from 'react';
 import {
   Plus, RefreshCw, Download, Upload, Trash2, X, Globe, KeyRound, Database,
   Copy, Check, RotateCw, LayoutGrid, List, Search,
@@ -23,6 +23,13 @@ import { CodeBuddyQuotaCategoryList } from '../codebuddy/CodeBuddyQuotaCategoryL
 import { MultiSelectFilterDropdown, type MultiSelectFilterOption } from '../MultiSelectFilterDropdown';
 import type { CodebuddySuiteAccountBase, QuotaCategoryGroup, CodebuddyUsage } from '../../types/codebuddy-suite';
 import { buildValidAccountsFilterOption } from '../../utils/accountValidityFilter';
+import {
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../../utils/accountsOverviewFilterPersistence';
+
+const FILTER_TYPES_FIELD = 'filter_types';
 
 interface CheckinModalProps<TAccount extends CodebuddySuiteAccountBase> {
   accounts: TAccount[];
@@ -100,7 +107,11 @@ export function CodebuddySuiteAccountsSharedView<TAccount extends CodebuddySuite
   platformConfig,
   onRefreshAccounts,
 }: CodebuddySuiteAccountsSharedViewProps<TAccount>) {
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    page.filterPersistenceEnabled
+      ? readAccountsOverviewFilterStringArray(page.filterPersistenceScope, FILTER_TYPES_FIELD)
+      : [],
+  );
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
@@ -108,6 +119,7 @@ export function CodebuddySuiteAccountsSharedView<TAccount extends CodebuddySuite
   const {
     t, locale, privacyModeEnabled, togglePrivacyMode, maskAccountText,
     viewMode, setViewMode, searchQuery, setSearchQuery,
+    filterPersistenceEnabled, filterPersistenceScope,
     sortDirection,
     selected, toggleSelect, toggleSelectAll,
     tagFilter, groupByTag, setGroupByTag, showTagFilter, setShowTagFilter,
@@ -135,6 +147,14 @@ export function CodebuddySuiteAccountsSharedView<TAccount extends CodebuddySuite
     isFlowNoticeCollapsed, setIsFlowNoticeCollapsed,
     currentAccountId, formatDate, normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {

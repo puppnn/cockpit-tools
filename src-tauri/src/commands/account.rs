@@ -347,69 +347,9 @@ pub async fn get_bound_accounts(fingerprint_id: String) -> Result<Vec<models::Ac
 }
 
 /// 从本地客户端同步当前账号状态
-/// 读取本地 state.vscdb 中的 refresh_token，与 Tools 账号列表对比
-/// 如匹配账号与当前账号不同，则静默更新 current_account_id
+/// 当前实现已禁用“跟随本地客户端当前账号”，保留空结果以兼容旧调用。
 #[tauri::command]
-pub async fn sync_current_from_client(app: tauri::AppHandle) -> Result<Option<String>, String> {
-    use base64::{engine::general_purpose, Engine as _};
-
-    // 读取本地数据库中的 refresh_token
-    let db_path = modules::db::get_db_path()?;
-    let conn =
-        rusqlite::Connection::open(&db_path).map_err(|e| format!("打开数据库失败: {}", e))?;
-
-    let state_data: Result<String, _> = conn.query_row(
-        "SELECT value FROM ItemTable WHERE key = ?",
-        ["jetskiStateSync.agentManagerInitState"],
-        |row| row.get(0),
-    );
-
-    let state_data = match state_data {
-        Ok(data) => data,
-        Err(_) => {
-            // 未找到登录状态，可能客户端未登录
-            return Ok(None);
-        }
-    };
-
-    // Base64 解码
-    let blob = general_purpose::STANDARD
-        .decode(&state_data)
-        .map_err(|e| format!("Base64 解码失败: {}", e))?;
-
-    // 提取 refresh_token
-    let local_refresh_token = match crate::utils::protobuf::extract_refresh_token(&blob) {
-        Some(token) if !token.is_empty() => token,
-        _ => return Ok(None),
-    };
-
-    // 获取当前 Tools 记录的账号 ID
-    let current_account_id = modules::get_current_account_id().ok().flatten();
-
-    // 遍历账号列表，查找匹配的 refresh_token
-    let accounts = modules::list_accounts()?;
-
-    for account in &accounts {
-        if account.token.refresh_token == local_refresh_token {
-            // 找到匹配账号
-            if current_account_id.as_ref() != Some(&account.id) {
-                // 当前账号不一致，静默更新
-                modules::logger::log_info(&format!(
-                    "[SyncClient] 检测到客户端账号变更，同步至: {}",
-                    account.email
-                ));
-                modules::set_current_account_id(&account.id)?;
-                let _ = crate::modules::tray::update_tray_menu(&app);
-                return Ok(Some(account.id.clone()));
-            } else {
-                // 已经是当前账号，无需操作
-                return Ok(None);
-            }
-        }
-    }
-
-    // 未找到匹配账号（可能是新账号，未导入到 Tools）
-    modules::logger::log_info("[SyncClient] 本地客户端账号未在 Tools 中找到");
+pub async fn sync_current_from_client(_app: tauri::AppHandle) -> Result<Option<String>, String> {
     Ok(None)
 }
 

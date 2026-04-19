@@ -49,6 +49,10 @@ fn resolve_provider_current_account_id(platform: &str) -> Result<Option<String>,
             let accounts = crate::modules::workbuddy_account::list_accounts();
             Ok(crate::modules::workbuddy_account::resolve_current_account_id(&accounts))
         }
+        "github_copilot" | "github-copilot" | "ghcp" => {
+            let accounts = crate::modules::github_copilot_account::list_accounts();
+            Ok(crate::modules::github_copilot_account::resolve_current_account_id(&accounts))
+        }
         "zed" => Ok(crate::modules::zed_account::resolve_current_account_id()),
         other => Err(format!("不支持的平台: {}", other)),
     }

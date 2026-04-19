@@ -5,12 +5,14 @@ import type {
   CodexInstanceThreadSyncSummary,
   CodexSessionRecord,
   CodexSessionViewerRecord,
+  CodexSessionTokenStats,
   CodexSessionTrashSummary,
   CodexTrashedSessionRecord,
   CodexSessionRestoreSummary,
   CodexSessionTimeline,
   CodexSessionTitleUpdateResult,
   CodexSessionFavoriteResult,
+  CodexQuickConfig,
 } from "../types/codex";
 import type { InstanceLaunchMode, InstanceProfile } from "../types/instance";
 
@@ -77,6 +79,34 @@ export async function updateInstance(payload: {
     body.launchMode = payload.launchMode;
   }
   return await invoke("codex_update_instance", body);
+}
+
+export async function getCodexInstanceQuickConfig(
+  instanceId: string,
+): Promise<CodexQuickConfig> {
+  return await invoke("codex_get_instance_quick_config", {
+    instanceId,
+  });
+}
+
+export async function saveCodexInstanceQuickConfig(
+  instanceId: string,
+  modelContextWindow?: number,
+  autoCompactTokenLimit?: number,
+): Promise<CodexQuickConfig> {
+  return await invoke("codex_save_instance_quick_config", {
+    instanceId,
+    modelContextWindow: modelContextWindow ?? null,
+    autoCompactTokenLimit: autoCompactTokenLimit ?? null,
+  });
+}
+
+export async function openCodexInstanceConfigToml(
+  instanceId: string,
+): Promise<void> {
+  return await invoke("codex_open_instance_config_toml", {
+    instanceId,
+  });
 }
 
 export interface CodexInstanceLaunchInfo {
@@ -154,6 +184,14 @@ export async function unfavoriteSession(
 ): Promise<CodexSessionFavoriteResult> {
   return await invoke("codex_unfavorite_session", {
     sessionId,
+  });
+}
+
+export async function getSessionTokenStatsAcrossInstances(
+  sessionIds: string[],
+): Promise<CodexSessionTokenStats[]> {
+  return await invoke("codex_get_session_token_stats_across_instances", {
+    sessionIds,
   });
 }
 

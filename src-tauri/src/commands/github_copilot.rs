@@ -184,6 +184,10 @@ pub async fn inject_github_copilot_to_vscode(
             account_id
         ));
     }
+    crate::modules::provider_current_state::set_current_account_id(
+        "github_copilot",
+        Some(account_id.as_str()),
+    )?;
 
     let user_config = config::get_user_config();
     let mut opencode_updated = false;

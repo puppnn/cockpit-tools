@@ -1275,24 +1275,76 @@ pub fn import_payload_from_local() -> Result<Option<WorkbuddyOAuthCompletePayloa
     Ok(Some(payload))
 }
 
-pub(crate) fn resolve_current_account_id(accounts: &[WorkbuddyAccount]) -> Option<String> {
-    let payload = import_payload_from_local().ok()??;
-    let incoming_uid = normalize_identity(payload.uid.as_deref());
-    let incoming_email = normalize_email_identity(Some(payload.email.as_str()));
+fn build_default_client_session_json(account: &WorkbuddyAccount) -> String {
+    let uid = account.uid.as_deref().unwrap_or("");
+    let nickname = account.nickname.as_deref().unwrap_or("");
+    let enterprise_id = account.enterprise_id.as_deref().unwrap_or("");
+    let enterprise_name = account.enterprise_name.as_deref().unwrap_or("");
+    let domain = account.domain.as_deref().unwrap_or("");
+    let refresh_token = account.refresh_token.as_deref().unwrap_or("");
+    let expires_at = account.expires_at.unwrap_or(0);
 
-    accounts
-        .iter()
-        .find(|account| {
-            let existing_uid = normalize_identity(account.uid.as_deref());
-            let existing_email = normalize_email_identity(Some(account.email.as_str()));
-            account_matches_payload_identity(
-                existing_uid.as_ref(),
-                existing_email.as_ref(),
-                incoming_uid.as_ref(),
-                incoming_email.as_ref(),
-            )
-        })
-        .map(|account| account.id.clone())
+    serde_json::json!({
+        "id": "Tencent-Cloud.genie-ide-cn",
+        "token": account.access_token,
+        "refreshToken": refresh_token,
+        "expiresAt": expires_at,
+        "domain": domain,
+        "accessToken": format!("{}+{}", uid, account.access_token),
+        "converted": true,
+        "account": {
+            "id": uid,
+            "uid": uid,
+            "label": nickname,
+            "nickname": nickname,
+            "enterpriseId": enterprise_id,
+            "enterpriseName": enterprise_name,
+            "pluginEnabled": true,
+            "lastLogin": true,
+        },
+        "auth": {
+            "accessToken": account.access_token,
+            "refreshToken": refresh_token,
+            "tokenType": account.token_type.as_deref().unwrap_or("Bearer"),
+            "domain": domain,
+            "expiresAt": expires_at,
+            "expiresIn": expires_at,
+            "refreshExpiresIn": 0,
+            "refreshExpiresAt": 0,
+            "lastRefreshTime": chrono::Utc::now().timestamp_millis(),
+        }
+    })
+    .to_string()
+}
+
+pub fn sync_account_to_default_client(account_id: &str) -> Result<(), String> {
+    let account =
+        load_account(account_id).ok_or_else(|| format!("WorkBuddy 账号不存在: {}", account_id))?;
+    let state_db = get_default_workbuddy_state_db_path()
+        .ok_or_else(|| "无法定位默认 WorkBuddy state.vscdb 路径".to_string())?;
+    if !state_db.exists() {
+        return Err(format!(
+            "未找到默认 WorkBuddy state.vscdb: {}",
+            state_db.display()
+        ));
+    }
+
+    let secret_key = r#"{"extensionId":"tencent-cloud.coding-copilot","key":"planning-genie.new.accessTokencn"}"#;
+    let db_key = format!("secret://{}", secret_key);
+    let session_json = build_default_client_session_json(&account);
+    crate::modules::vscode_inject::inject_secret_to_state_db_for_workbuddy(
+        &state_db,
+        &db_key,
+        &session_json,
+    )?;
+    Ok(())
+}
+
+pub(crate) fn resolve_current_account_id(accounts: &[WorkbuddyAccount]) -> Option<String> {
+    crate::modules::provider_current_state::resolve_existing_current_account_id(
+        "workbuddy",
+        accounts.iter().map(|account| account.id.as_str()),
+    )
 }
 
 pub fn run_quota_alert_if_needed() -> Result<(), String> {

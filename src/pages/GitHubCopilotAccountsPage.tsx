@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, Fragment } from 'react';
+import { useState, useMemo, useCallback, useEffect, Fragment } from 'react';
 import {
   Plus,
   RefreshCw,
@@ -53,9 +53,18 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 const GHCP_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.github_copilot.flow_notice_collapsed';
 const GHCP_CURRENT_ACCOUNT_ID_KEY = 'agtools.github_copilot.current_account_id';
+const GHCP_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('GitHubCopilot');
+const FILTER_TYPES_FIELD = 'filter_types';
 const GHCP_TOKEN_SINGLE_EXAMPLE = `ghu_xxx... 或 github_pat_xxx...`;
 const GHCP_TOKEN_BATCH_EXAMPLE = `[
   {
@@ -71,7 +80,11 @@ const GHCP_TOKEN_BATCH_EXAMPLE = `[
 
 export function GitHubCopilotAccountsPage() {
   const [activeTab, setActiveTab] = useState<GitHubCopilotTab>('overview');
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(GHCP_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(GHCP_FILTER_PERSISTENCE_SCOPE, FILTER_TYPES_FIELD)
+      : [],
+  );
   const untaggedKey = '__untagged__';
 
   const store = useGitHubCopilotAccountStore();
@@ -113,6 +126,7 @@ export function GitHubCopilotAccountsPage() {
   const {
     t, privacyModeEnabled, togglePrivacyMode, maskAccountText,
     viewMode, setViewMode, searchQuery, setSearchQuery,
+    filterPersistenceEnabled, filterPersistenceScope,
     sortBy, setSortBy, sortDirection, setSortDirection,
     selected, toggleSelect, toggleSelectAll,
     tagFilter, groupByTag, setGroupByTag, showTagFilter, setShowTagFilter,
@@ -139,6 +153,14 @@ export function GitHubCopilotAccountsPage() {
     currentAccountId,
     formatDate,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {
@@ -361,8 +383,8 @@ export function GitHubCopilotAccountsPage() {
     });
 
     return Array.from(groups.entries()).sort(([aKey], [bKey]) => {
-      if (aKey === untaggedKey) return 1;
-      if (bKey === untaggedKey) return -1;
+      if (aKey === untaggedKey) return -1;
+      if (bKey === untaggedKey) return 1;
       return aKey.localeCompare(bKey);
     });
   }, [filteredAccounts, groupByTag, tagFilter, untaggedKey]);

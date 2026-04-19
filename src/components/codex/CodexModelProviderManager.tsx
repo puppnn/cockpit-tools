@@ -12,6 +12,7 @@ import {
   Trash2,
   X,
   Search,
+  Settings,
 } from 'lucide-react';
 import type { CodexAccount } from '../../types/codex';
 import {
@@ -88,6 +89,7 @@ export function CodexModelProviderManager({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ text: string; tone: 'success' | 'error' } | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showQuickConfigModal, setShowQuickConfigModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [form, setForm] = useState<ProviderFormState>(EMPTY_FORM);
@@ -399,7 +401,9 @@ export function CodexModelProviderManager({
         </div>
       )}
 
-      <CodexQuickConfigCard />
+      {showQuickConfigModal && (
+        <CodexQuickConfigCard onClose={() => setShowQuickConfigModal(false)} />
+      )}
 
       <div className="toolbar">
         <div className="toolbar-left">
@@ -414,6 +418,10 @@ export function CodexModelProviderManager({
           </div>
         </div>
         <div className="toolbar-right">
+          <button className="btn btn-secondary" onClick={() => setShowQuickConfigModal(true)}>
+            <Settings size={14} />
+            {t('codex.modelProviders.quickConfig.title', '当前 Codex 配置')}
+          </button>
           <button className="btn btn-primary" onClick={openCreateModal}>
             <Plus size={14} />
             {t('codex.modelProviders.add', '新增供应商')}

@@ -4,6 +4,7 @@ import type {
   CodexInstanceThreadSyncSummary,
   CodexSessionRecord,
   CodexSessionViewerRecord,
+  CodexSessionTokenStats,
   CodexSessionTrashSummary,
   CodexTrashedSessionRecord,
   CodexSessionRestoreSummary,
@@ -22,6 +23,7 @@ type CodexInstanceStoreState = InstanceStoreState & {
   updateSessionTitle: (sessionId: string, title: string) => Promise<CodexSessionTitleUpdateResult>;
   favoriteSession: (sessionId: string) => Promise<CodexSessionFavoriteResult>;
   unfavoriteSession: (sessionId: string) => Promise<CodexSessionFavoriteResult>;
+  getSessionTokenStatsAcrossInstances: (sessionIds: string[]) => Promise<CodexSessionTokenStats[]>;
   moveSessionsToTrashAcrossInstances: (sessionIds: string[]) => Promise<CodexSessionTrashSummary>;
   listTrashedSessionsAcrossInstances: () => Promise<CodexTrashedSessionRecord[]>;
   restoreSessionsFromTrashAcrossInstances: (sessionIds: string[]) => Promise<CodexSessionRestoreSummary>;
@@ -83,6 +85,12 @@ const unfavoriteSession = async (
   return await codexInstanceService.unfavoriteSession(sessionId);
 };
 
+const getSessionTokenStatsAcrossInstances = async (
+  sessionIds: string[],
+): Promise<CodexSessionTokenStats[]> => {
+  return await codexInstanceService.getSessionTokenStatsAcrossInstances(sessionIds);
+};
+
 const moveSessionsToTrashAcrossInstances = async (
   sessionIds: string[],
 ): Promise<CodexSessionTrashSummary> => {
@@ -112,6 +120,7 @@ typedBaseStore.setState({
   updateSessionTitle,
   favoriteSession,
   unfavoriteSession,
+  getSessionTokenStatsAcrossInstances,
   moveSessionsToTrashAcrossInstances,
   listTrashedSessionsAcrossInstances,
   restoreSessionsFromTrashAcrossInstances,

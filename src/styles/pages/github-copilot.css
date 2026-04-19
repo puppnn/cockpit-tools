@@ -455,12 +455,22 @@
 .ghcp-account-card .tier-badge,
 .ghcp-accounts-page .account-table .tier-badge {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px 10px;
   font-size: 11px;
   font-weight: 600;
   border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ghcp-account-card .tier-badge::before,
+.ghcp-accounts-page .account-table .tier-badge::before {
+  display: none;
 }
 
 .ghcp-account-card .tier-badge.raw-value,
@@ -1527,6 +1537,7 @@
 
 .ghcp-accounts-page .account-table th {
   background: rgba(15, 23, 42, 0.06);
+  white-space: nowrap;
 }
 
 .ghcp-accounts-page .account-table tr.current {
@@ -1539,6 +1550,24 @@
 
 .ghcp-accounts-page .account-table .quota-item {
   min-height: 52px;
+}
+
+.ghcp-accounts-page .account-table th:nth-child(3),
+.ghcp-accounts-page .account-table td:nth-child(3) {
+  min-width: 96px;
+}
+
+.ghcp-accounts-page .account-table th:nth-child(6),
+.ghcp-accounts-page .account-table td:nth-child(6) {
+  min-width: 150px;
+}
+
+@media (min-width: 1800px) {
+  .ghcp-accounts-page .account-table th,
+  .ghcp-accounts-page .account-table td {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
 }
 
 .ghcp-accounts-page .account-table .quota-progress-track {

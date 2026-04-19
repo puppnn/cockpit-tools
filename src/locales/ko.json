@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "백그라운드 자동 갱신 빈도",
       "qoderPathSelect": "선택",
       "workbuddyAutoRefresh": "WorkBuddy 자동 할당량 갱신",
-      "workbuddyAutoRefreshDesc": "백그라운드 자동 갱신 빈도"
+      "workbuddyAutoRefreshDesc": "백그라운드 자동 갱신 빈도",
+      "codexLocalAccessEntryVisible": "API 서비스 항목 표시",
+      "codexLocalAccessEntryVisibleDesc": "Codex 개요에서 API 서비스 항목을 표시할지만 제어합니다. 로컬 API 서비스 자체를 중지하지 않으며, 여기나 빠른 설정에서 다시 켤 수 있습니다.",
+      "codexLocalAccessEnabled": "API 서비스 사용",
+      "codexLocalAccessEnabledDesc": "로컬 Codex API 서비스가 실제로 실행될지 제어합니다.",
+      "codexLocalAccessEnabledRequiresCollection": "서비스를 켜거나 끄기 전에 먼저 API 서비스 컬렉션에 계정을 추가하세요."
     },
     "network": {
       "apiTitle": "반중력 조종석 API",
@@ -1016,11 +1021,13 @@
       "originPlugin": "확장 프로그램",
       "originUnknown": "알 수 없음",
       "autoReasonLabel": "자동 사유: {{reason}}",
-      "autoReason": "규칙: {{rule}}; 임계값: {{threshold}}%; 범위: {{scope}}; 모니터링 그룹: {{selectedGroups}}; 적중 그룹: {{hitGroups}}; 후보 계정: {{candidates}}",
+      "autoReason": "규칙: {{rule}}; 쿼터 임계값: {{quotaThreshold}}%; 크레딧 임계값: {{creditsThreshold}}; 범위: {{scope}}; 모니터링 그룹: {{selectedGroups}}; 적중 그룹: {{hitGroups}}; 현재 크레딧: {{currentCredits}}; 후보 계정: {{candidates}}",
       "autoReasonUnknown": "자동 전환이 실행되었지만 상세 사유가 기록되지 않았습니다",
       "autoReasonRuleCurrentDisabled": "현재 계정이 비활성화됨",
       "autoReasonRuleQuotaForbidden": "현재 계정의 할당량이 제한됨",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "모델 그룹과 크레딧이 모두 임계값 아래",
       "autoReasonRuleGroupBelowThreshold": "모델 그룹이 임계값 미만",
+      "autoReasonRuleCreditsBelowThreshold": "남은 크레딧이 임계값 아래",
       "autoReasonScopeAnyGroup": "임의 모델 그룹",
       "autoReasonScopeSelectedGroups": "선택한 모델 그룹",
       "stageResult": "로컬: {{local}} / 원활 전환: {{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "auth.json 내용 또는 계정 JSON 데이터를 붙여넣으세요",
       "placeholder": "예시: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "내보내기 형식",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "sub2api 형식",
+      "cpa": "cpa 형식"
+    },
+    "localAccess": {
+      "title": "API 서비스",
+      "accountCount": "{{count}}개 계정",
+      "baseUrl": "주소",
+      "apiKey": "키",
+      "statusRunning": "실행 중",
+      "statusStopped": "중지됨",
+      "statusDisabled": "비활성화됨",
+      "emptyMembers": "컬렉션에 계정이 없습니다",
+      "footerHint": "127.0.0.1 에서만 수신합니다",
+      "manageAccounts": "계정 관리",
+      "rotateKey": "키 재발급",
+      "rotateConfirmMessage": "재설정하면 현재 API 서비스 키가 즉시 무효화되며, 진행 중인 요청이 더 이상 사용되지 않을 수 있습니다. 계속할까요?",
+      "disableService": "서비스 끄기",
+      "enableService": "서비스 켜기",
+      "saveSuccess": "API 서비스 모음을 업데이트했습니다",
+      "removeSuccess": "계정을 API 서비스에서 제거했습니다",
+      "rotateSuccess": "API 서비스 키를 재설정했습니다",
+      "enabledSuccess": "API 서비스를 활성화했습니다",
+      "disabledSuccess": "API 서비스를 비활성화했습니다",
+      "removeMember": "API 서비스에서 제거",
+      "toggleService": "API 서비스 전환",
+      "showKey": "키 표시",
+      "hideKey": "키 숨기기",
+      "modal": {
+        "title": "API 서비스에 추가",
+        "desc": "API 서비스 모음에 포함할 OAuth 계정을 선택하세요. 추가된 계정은 일반 개요에서 숨겨지고 API 서비스 카드에서만 관리됩니다.",
+        "empty": "사용 가능한 OAuth 계정이 없습니다",
+        "selected": "API 서비스에 포함됨",
+        "available": "일반 개요",
+        "save": "모음 저장"
+      },
+      "entryAction": "API 서비스에 추가",
+      "testAction": "API 서비스 테스트",
+      "testSuccess": "API 서비스 테스트 성공 ({{count}}개 모델)",
+      "testTimeout": "테스트 시간이 초과되었습니다. 로컬 서비스가 실행 중인지 확인하세요.",
+      "testUnavailable": "현재 API 서비스 URL을 사용할 수 없습니다",
+      "activateAction": "API 서비스 시작",
+      "activateSuccess": "API 서비스로 전환했습니다",
+      "dashboardAction": "서비스 패널",
+      "manageDesc": "API 서비스 통계, 멤버, 포트, 키, 연결 테스트를 한곳에서 관리합니다.",
+      "memberOnlyLocal": "Codex 전용",
+      "configTitle": "서비스 설정",
+      "configEmpty": "URL, 키, 포트를 생성하려면 먼저 하나 이상의 계정을 API 서비스 컬렉션에 저장하세요.",
+      "portLabel": "서비스 포트",
+      "portSave": "포트 저장",
+      "portSaveSuccess": "API 서비스 포트가 업데이트되었습니다",
+      "portInvalid": "1에서 65535 사이의 포트를 입력하세요",
+      "statsTitle": "전체",
+      "accountStatsTitle": "계정별",
+      "statsEmpty": "아직 통계가 없습니다",
+      "summaryMeta": "{{count}}개 계정 · Codex 전용",
+      "summaryMetaUnconfigured": "미설정 · Codex 전용",
+      "memberTitle": "컬렉션 멤버",
+      "stats": {
+        "requests": "요청",
+        "requestsDetail": "성공 {{success}} / 실패 {{failed}}",
+        "tokens": "토큰",
+        "tokensDetail": "입력 {{input}} / 출력 {{output}}",
+        "specialTokens": "캐시 / 추론",
+        "specialTokensDetail": "캐시 {{cached}} / 추론 {{reasoning}}",
+        "avgLatency": "평균 지연",
+        "successRate": "성공률 {{rate}}%",
+        "accountRequests": "{{count}}건 요청",
+        "accountTokens": "{{count}} 토큰",
+        "accountResult": "성공 {{success}} / 실패 {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "라우팅",
+      "routingSaveSuccess": "API 서비스 라우팅을 업데이트했습니다",
+      "routingDescriptionAuto": "상위 요금제이면서 남은 할당량이 많은 계정을 우선하고, 같은 요금제 내에서 순환합니다.",
+      "routingDescriptionQuotaHighFirst": "남은 할당량이 많은 계정을 우선합니다.",
+      "routingDescriptionQuotaLowFirst": "남은 할당량이 적은 계정을 우선합니다.",
+      "routingDescriptionPlanHighFirst": "상위 구독 요금제 계정을 우선합니다.",
+      "routingDescriptionPlanLowFirst": "하위 구독 요금제 계정을 우선합니다.",
+      "clearStats": "통계 지우기",
+      "clearStatsConfirm": "API 서비스 통계를 모두 지울까요?",
+      "clearStatsSuccess": "API 서비스 통계를 지웠습니다",
+      "refreshStats": "통계 새로고침",
+      "refreshStatsSuccess": "API 서비스 통계를 새로고침했습니다",
+      "routingStrategy": {
+        "auto": "자동(권장)",
+        "quotaHighFirst": "높은 할당량 우선",
+        "quotaLowFirst": "낮은 할당량 우선",
+        "planHighFirst": "상위 요금제 우선",
+        "planLowFirst": "하위 요금제 우선"
+      },
+      "statusUnconfigured": "미설정",
+      "expandDetails": "세부 정보 펼치기",
+      "collapseDetails": "세부 정보 접기",
+      "hideEntryAction": "API 서비스 항목 숨기기",
+      "hideEntryConfirm": "이 작업을 하면 개요에서 API 서비스 항목이 숨겨지고 현재 API 서비스도 비활성화됩니다. 나중에 Codex 설정이나 빠른 설정에서 다시 켤 수 있습니다.",
+      "hideEntryEffectHide": "개요에서 API 서비스 항목 숨기기",
+      "hideEntryEffectDisable": "현재 API 서비스 비활성화",
+      "hideEntryEffectRestore": "Codex 설정이나 빠른 설정에서 다시 켤 수 있습니다",
+      "riskNotice": {
+        "title": "위험 안내",
+        "message": "현재 Codex API 서비스 관련 기능은 본질적으로 리버스 프록시 방식에 해당합니다. 현재까지 공식 측이 이 동작을 명확히 제한하고 있지는 않지만, 향후 정책, 규정 또는 사용 가능 여부는 달라질 수 있습니다. 이 기능을 계속 사용하면 해당 상황을 이해했으며 관련 위험을 스스로 부담하는 것으로 간주됩니다.",
+        "remember": "이해했으며 다시 표시하지 않기",
+        "acknowledge": "이해했습니다",
+        "continueStart": "계속",
+        "continueSwitch": "전환 계속"
+      },
+      "statsRange": {
+        "label": "통계 범위",
+        "daily": "일",
+        "weekly": "주",
+        "monthly": "월"
+      }
+    },
     "local": {
       "desc": "~/.codex/auth.json에서 현재 로그인된 계정 가져오기",
       "import": "로컬 계정 가져오기"
@@ -1832,7 +1955,8 @@
         "expand": "펼치기",
         "collapse": "접기",
         "repairVisibility": "표시 정보 복구",
-        "restoreSessions": "세션 복원"
+      "restoreSessions": "세션 복원",
+      "copySessionId": "세션 ID 복사"
       },
       "confirm": {
         "title": "휴지통으로 이동",
@@ -1850,7 +1974,11 @@
         "pickRestoreOne": "복원할 세션을 하나 이상 선택하세요"
       },
       "groupCount": "{{count}}개 세션",
-      "updatedAt": "업데이트됨",
+    "updatedAt": "업데이트됨",
+    "labels": {
+      "sessionId": "세션 ID",
+      "tokenUsage": "토큰 사용량"
+    },
       "locationRunning": " (실행 중)",
       "untitled": "제목 없는 세션",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "앱 경로",
       "configToml": "Codex 구성 파일",
       "openConfigToml": "파일 열기",
-      "openConfigHint": "현재 활성화된 Codex config.toml 파일을 빠르게 엽니다."
+      "openConfigHint": "현재 활성화된 Codex config.toml 파일을 빠르게 엽니다.",
+      "localAccessEntryVisible": "API 서비스 항목 표시"
     },
     "githubCopilot": {
       "title": "GitHub Copilot 설정",
@@ -2176,7 +2305,10 @@
       "enable": "자동 전환",
       "threshold": "전환 임계값",
       "thresholdDesc": "모니터링 중인 모델 그룹이 이 비율 임계값에 도달하면 자동 전환이 실행됩니다",
-      "hint": "모니터링 중인 모델 그룹이 임계값에 도달하면 할당량이 가장 높은 계정으로 자동 전환합니다.",
+      "hint": "모니터링 중인 모델 그룹이 임계값에 도달하면 자동 전환합니다. 크레딧 모니터링을 켜면 남은 크레딧이 임계값 아래로 내려가도 전환합니다.",
+      "creditsEnable": "크레딧 모니터링",
+      "creditsThreshold": "크레딧 임계값",
+      "creditsThresholdDesc": "남은 크레딧이 이 값 이하일 때도 자동 전환",
       "triggerModel": "트리거 모델",
       "scopeAnyGroup": "임의 모델 그룹",
       "scopeSelectedGroups": "선택한 모델 그룹",
@@ -2194,6 +2326,7 @@
     "apply": "적용",
     "inputMinutes": "분 입력",
     "inputPercent": "백분율 입력",
+    "inputCredits": "크레딧 입력",
     "windsurf": {
       "title": "Windsurf 설정",
       "appPath": "Windsurf 경로"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Zed 설정",
       "appPath": "Zed 경로"
+    },
+    "filterPersistence": {
+      "title": "필터 기억",
+      "enable": "계정 개요 필터 기억(검색 제외)",
+      "hint": "기본값은 꺼짐입니다. 켜면 플랫폼별로 필터, 태그, 정렬이 유지됩니다."
     }
   },
   "quotaAlert": {

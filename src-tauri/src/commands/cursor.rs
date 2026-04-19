@@ -195,6 +195,10 @@ pub async fn inject_cursor_account(app: AppHandle, account_id: String) -> Result
         .ok_or_else(|| format!("Cursor account not found: {}", account_id))?;
 
     cursor_account::inject_to_cursor(&account_id)?;
+    crate::modules::provider_current_state::set_current_account_id(
+        "cursor",
+        Some(account_id.as_str()),
+    )?;
 
     if let Err(err) = crate::modules::cursor_instance::update_default_settings(
         Some(Some(account_id.clone())),

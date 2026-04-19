@@ -368,6 +368,10 @@ pub async fn inject_workbuddy_to_vscode(
     ) {
         logger::log_warn(&format!("更新 WorkBuddy 默认实例绑定账号失败：{}", err));
     }
+    crate::modules::provider_current_state::set_current_account_id(
+        "workbuddy",
+        Some(account_id.as_str()),
+    )?;
 
     let launch_warning = match crate::commands::workbuddy_instance::workbuddy_start_instance(
         "__default__".to_string(),

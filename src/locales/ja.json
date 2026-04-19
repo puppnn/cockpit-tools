@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "バックグラウンド自動更新頻度",
       "qoderPathSelect": "選択",
       "workbuddyAutoRefresh": "WorkBuddy 自動配額更新",
-      "workbuddyAutoRefreshDesc": "バックグラウンド自動更新頻度"
+      "workbuddyAutoRefreshDesc": "バックグラウンド自動更新頻度",
+      "codexLocalAccessEntryVisible": "APIサービス入口を表示",
+      "codexLocalAccessEntryVisibleDesc": "Codex 概要で API サービス入口を表示するかどうかだけを切り替えます。ローカル API サービス自体は停止せず、ここかクイック設定から再表示できます。",
+      "codexLocalAccessEnabled": "APIサービスを有効化",
+      "codexLocalAccessEnabledDesc": "ローカルの Codex API サービスを実際に稼働させるかどうかを切り替えます。",
+      "codexLocalAccessEnabledRequiresCollection": "サービスを有効化または無効化する前に、API サービスのコレクションへアカウントを追加してください。"
     },
     "network": {
       "apiTitle": "反重力コックピット API",
@@ -1016,11 +1021,13 @@
       "originPlugin": "拡張機能",
       "originUnknown": "不明",
       "autoReasonLabel": "自動理由: {{reason}}",
-      "autoReason": "ルール: {{rule}}；しきい値: {{threshold}}%；範囲: {{scope}}；監視グループ: {{selectedGroups}}；命中グループ: {{hitGroups}}；候補アカウント: {{candidates}}",
+      "autoReason": "ルール: {{rule}}；クォータしきい値: {{quotaThreshold}}%；Credits しきい値: {{creditsThreshold}}；範囲: {{scope}}；監視グループ: {{selectedGroups}}；命中グループ: {{hitGroups}}；現在の Credits: {{currentCredits}}；候補アカウント: {{candidates}}",
       "autoReasonUnknown": "自動切替は実行されましたが、詳細な理由は記録されていません",
       "autoReasonRuleCurrentDisabled": "現在のアカウントは無効です",
       "autoReasonRuleQuotaForbidden": "現在のアカウントのクォータは制限されています",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "モデルグループと Credits の両方がしきい値を下回っています",
       "autoReasonRuleGroupBelowThreshold": "モデルグループがしきい値未満",
+      "autoReasonRuleCreditsBelowThreshold": "残り Credits がしきい値を下回っています",
       "autoReasonScopeAnyGroup": "任意のモデルグループ",
       "autoReasonScopeSelectedGroups": "指定したモデルグループ",
       "stageResult": "ローカル: {{local}} / シームレス: {{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "auth.json の内容またはアカウント JSON を貼り付けてください",
       "placeholder": "例: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "エクスポート形式",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "sub2api 形式",
+      "cpa": "cpa 形式"
+    },
+    "localAccess": {
+      "title": "API サービス",
+      "accountCount": "{{count}}アカウント",
+      "baseUrl": "アドレス",
+      "apiKey": "キー",
+      "statusRunning": "稼働中",
+      "statusStopped": "停止",
+      "statusDisabled": "無効",
+      "emptyMembers": "この集合にはまだアカウントがありません",
+      "footerHint": "127.0.0.1 のみで待ち受けます",
+      "manageAccounts": "アカウント管理",
+      "rotateKey": "キーを再発行",
+      "rotateConfirmMessage": "リセット後は現在の API サービスキーがすぐに無効になり、進行中のリクエストが利用できなくなる可能性があります。続行しますか？",
+      "disableService": "サービスを無効化",
+      "enableService": "サービスを有効化",
+      "saveSuccess": "API サービスのコレクションを更新しました",
+      "removeSuccess": "アカウントを API サービスから削除しました",
+      "rotateSuccess": "API サービスキーを再生成しました",
+      "enabledSuccess": "API サービスを有効にしました",
+      "disabledSuccess": "API サービスを無効にしました",
+      "removeMember": "API サービスから削除",
+      "toggleService": "API サービスを切り替え",
+      "showKey": "キーを表示",
+      "hideKey": "キーを非表示",
+      "modal": {
+        "title": "API サービスに追加",
+        "desc": "API サービスのコレクションに含める OAuth アカウントを選択します。追加したアカウントは通常の一覧から非表示になり、API サービスカードからのみ管理されます。",
+        "empty": "利用可能な OAuth アカウントがありません",
+        "selected": "API サービスに追加済み",
+        "available": "通常一覧",
+        "save": "コレクションを保存"
+      },
+      "entryAction": "API サービスに追加",
+      "testAction": "API サービスをテスト",
+      "testSuccess": "API サービスのテストに成功しました（{{count}} モデル）",
+      "testTimeout": "テストがタイムアウトしました。ローカルサービスが起動しているか確認してください。",
+      "testUnavailable": "現在の API サービス URL は利用できません",
+      "activateAction": "API サービスを起動",
+      "activateSuccess": "API サービスに切り替えました",
+      "dashboardAction": "サービスパネル",
+      "manageDesc": "API サービスの統計、メンバー、ポート、キー、接続テストをここでまとめて管理します。",
+      "memberOnlyLocal": "Codex のみ",
+      "configTitle": "サービス設定",
+      "configEmpty": "URL、キー、ポートを生成するには、先に少なくとも 1 つのアカウントを API サービス集合に保存してください。",
+      "portLabel": "サービスポート",
+      "portSave": "ポートを保存",
+      "portSaveSuccess": "API サービスのポートを更新しました",
+      "portInvalid": "1 から 65535 のポートを入力してください",
+      "statsTitle": "合計",
+      "accountStatsTitle": "アカウント別",
+      "statsEmpty": "まだ統計はありません",
+      "summaryMeta": "{{count}} 件のアカウント · Codex のみ",
+      "summaryMetaUnconfigured": "未設定 · Codex のみ",
+      "memberTitle": "集合メンバー",
+      "stats": {
+        "requests": "リクエスト",
+        "requestsDetail": "成功 {{success}} / 失敗 {{failed}}",
+        "tokens": "トークン",
+        "tokensDetail": "入力 {{input}} / 出力 {{output}}",
+        "specialTokens": "キャッシュ / 思考",
+        "specialTokensDetail": "キャッシュ {{cached}} / 思考 {{reasoning}}",
+        "avgLatency": "平均遅延",
+        "successRate": "成功率 {{rate}}%",
+        "accountRequests": "{{count}} 件のリクエスト",
+        "accountTokens": "{{count}} トークン",
+        "accountResult": "成功 {{success}} / 失敗 {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "ルーティング",
+      "routingSaveSuccess": "API サービスのルーティングを更新しました",
+      "routingDescriptionAuto": "上位プランかつ残クォータが多いアカウントを優先し、同一プラン内でローテーションします。",
+      "routingDescriptionQuotaHighFirst": "残りクォータが多いアカウントを優先します。",
+      "routingDescriptionQuotaLowFirst": "残りクォータが少ないアカウントを優先します。",
+      "routingDescriptionPlanHighFirst": "上位サブスクプランのアカウントを優先します。",
+      "routingDescriptionPlanLowFirst": "下位サブスクプランのアカウントを優先します。",
+      "clearStats": "統計をクリア",
+      "clearStatsConfirm": "API サービスの統計をすべてクリアしますか？",
+      "clearStatsSuccess": "API サービスの統計をクリアしました",
+      "refreshStats": "統計を更新",
+      "refreshStatsSuccess": "API サービスの統計を更新しました",
+      "routingStrategy": {
+        "auto": "自動（推奨）",
+        "quotaHighFirst": "高クォータ優先",
+        "quotaLowFirst": "低クォータ優先",
+        "planHighFirst": "上位プラン優先",
+        "planLowFirst": "下位プラン優先"
+      },
+      "statusUnconfigured": "未設定",
+      "expandDetails": "詳細を開く",
+      "collapseDetails": "詳細を閉じる",
+      "hideEntryAction": "APIサービス入口を非表示",
+      "hideEntryConfirm": "これを実行すると、概要から API サービス入口を非表示にし、現在の API サービスも無効化します。後で Codex 設定またはクイック設定から再度有効にできます。",
+      "hideEntryEffectHide": "概要から API サービス入口を非表示",
+      "hideEntryEffectDisable": "現在の API サービスを無効化",
+      "hideEntryEffectRestore": "Codex 設定またはクイック設定から再度有効化できます",
+      "riskNotice": {
+        "title": "リスクに関する注意",
+        "message": "現在の Codex API サービス関連機能は、本質的にはリバースプロキシ型の利用です。現時点では公式がこの挙動を明確に制限していませんが、今後の方針、ルール、提供状況が変わる可能性があります。この機能を引き続き利用する場合は、その点を理解し、関連するリスクを自己責任で負うことに同意したものとみなされます。",
+        "remember": "理解しました。今後は表示しない",
+        "acknowledge": "理解しました",
+        "continueStart": "続行",
+        "continueSwitch": "切り替える"
+      },
+      "statsRange": {
+        "label": "統計範囲",
+        "daily": "日",
+        "weekly": "週",
+        "monthly": "月"
+      }
+    },
     "local": {
       "desc": "~/.codex/auth.json から現在ログイン中のアカウントをインポート",
       "import": "ローカルアカウント取得"
@@ -1832,7 +1955,8 @@
         "expand": "展開",
         "collapse": "折りたたむ",
         "repairVisibility": "表示情報を修復",
-        "restoreSessions": "セッションを復元"
+      "restoreSessions": "セッションを復元",
+      "copySessionId": "セッション ID をコピー"
       },
       "confirm": {
         "title": "ゴミ箱へ移動",
@@ -1850,7 +1974,11 @@
         "pickRestoreOne": "復元するセッションを 1 つ以上選択してください"
       },
       "groupCount": "{{count}} 件のセッション",
-      "updatedAt": "更新済み",
+    "updatedAt": "更新済み",
+    "labels": {
+      "sessionId": "セッション ID",
+      "tokenUsage": "Token 使用量"
+    },
       "locationRunning": "（実行中）",
       "untitled": "無題のセッション",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "アプリパス",
       "configToml": "Codex 設定ファイル",
       "openConfigToml": "ファイルを開く",
-      "openConfigHint": "現在有効な Codex の config.toml をすばやく開きます。"
+      "openConfigHint": "現在有効な Codex の config.toml をすばやく開きます。",
+      "localAccessEntryVisible": "APIサービス入口を表示"
     },
     "githubCopilot": {
       "title": "GitHub Copilot 設定",
@@ -2176,7 +2305,10 @@
       "enable": "自動切替",
       "threshold": "切替閾値",
       "thresholdDesc": "監視対象のモデルグループがこの割合に達したときに自動切替を実行します",
-      "hint": "監視対象のモデルグループがしきい値に達したとき、最もクォータが高いアカウントへ自動で切り替えます。",
+      "hint": "監視対象のモデルグループがしきい値に達すると自動切替します。Credits 監視を有効にすると、残り Credits がしきい値を下回った場合にも実行されます。",
+      "creditsEnable": "Credits を監視",
+      "creditsThreshold": "Credits しきい値",
+      "creditsThresholdDesc": "残り Credits がこの値以下になった場合も自動切替します",
       "triggerModel": "トリガーモデル",
       "scopeAnyGroup": "任意のモデルグループ",
       "scopeSelectedGroups": "指定したモデルグループ",
@@ -2194,6 +2326,7 @@
     "apply": "適用",
     "inputMinutes": "分数を入力",
     "inputPercent": "パーセントを入力",
+    "inputCredits": "Credits を入力",
     "windsurf": {
       "title": "Windsurf 設定",
       "appPath": "Windsurf パス"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Zed 設定",
       "appPath": "Zed パス"
+    },
+    "filterPersistence": {
+      "title": "フィルター記憶",
+      "enable": "アカウント概要のフィルターを記憶（検索を除く）",
+      "hint": "既定ではオフ。オンにすると、プラットフォームごとにフィルター・タグ・並び順を保持します。"
     }
   },
   "quotaAlert": {

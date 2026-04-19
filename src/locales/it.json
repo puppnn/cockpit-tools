@@ -666,7 +666,12 @@
       "qoderAutoRefreshDesc": "Frequenza di aggiornamento automatico in background",
       "qoderPathSelect": "Seleziona",
       "workbuddyAutoRefresh": "Aggiornamento automatico quota WorkBuddy",
-      "workbuddyAutoRefreshDesc": "Frequenza di aggiornamento automatico in background"
+      "workbuddyAutoRefreshDesc": "Frequenza di aggiornamento automatico in background",
+      "codexLocalAccessEntryVisible": "Mostra voce del servizio API",
+      "codexLocalAccessEntryVisibleDesc": "Controlla solo se la voce del servizio API viene mostrata nella panoramica Codex. Non arresta il servizio API locale; puoi riattivarla qui o nelle Impostazioni rapide.",
+      "codexLocalAccessEnabled": "Abilita servizio API",
+      "codexLocalAccessEnabledDesc": "Controlla se il servizio API locale di Codex è effettivamente in esecuzione.",
+      "codexLocalAccessEnabledRequiresCollection": "Aggiungi prima gli account alla raccolta del servizio API prima di abilitare o disabilitare il servizio."
     },
     "network": {
       "apiTitle": "API della cabina di pilotaggio antigravità",
@@ -1016,11 +1021,13 @@
       "originPlugin": "Estensione",
       "originUnknown": "Sconosciuto",
       "autoReasonLabel": "Motivo automatico: {{reason}}",
-      "autoReason": "Regola: {{rule}}; soglia: {{threshold}}%; ambito: {{scope}}; gruppi monitorati: {{selectedGroups}}; gruppi colpiti: {{hitGroups}}; candidati: {{candidates}}",
+      "autoReason": "Regola: {{rule}}; soglia quota: {{quotaThreshold}}%; soglia crediti: {{creditsThreshold}}; ambito: {{scope}}; gruppi monitorati: {{selectedGroups}}; gruppi colpiti: {{hitGroups}}; crediti attuali: {{currentCredits}}; account candidati: {{candidates}}",
       "autoReasonUnknown": "È stato attivato il cambio automatico, ma non è stato registrato un motivo dettagliato",
       "autoReasonRuleCurrentDisabled": "L’account corrente è disabilitato",
       "autoReasonRuleQuotaForbidden": "La quota dell’account corrente è limitata",
+      "autoReasonRuleGroupAndCreditsBelowThreshold": "Gruppo modelli e crediti entrambi sotto soglia",
       "autoReasonRuleGroupBelowThreshold": "Gruppo di modelli sotto soglia",
+      "autoReasonRuleCreditsBelowThreshold": "Crediti rimanenti sotto soglia",
       "autoReasonScopeAnyGroup": "Qualsiasi gruppo di modelli",
       "autoReasonScopeSelectedGroups": "Gruppi di modelli selezionati",
       "stageResult": "Locale: {{local}} / Fluido: {{seamless}}",
@@ -1575,6 +1582,122 @@
       "desc": "Incolla il contenuto di auth.json o i dati JSON dell'account",
       "placeholder": "Esempio: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
     },
+    "exportFormat": {
+      "label": "Formato di esportazione",
+      "cockpitTools": "Cockpit Tools",
+      "sub2api": "Formato sub2api",
+      "cpa": "Formato cpa"
+    },
+    "localAccess": {
+      "title": "Servizio API",
+      "accountCount": "{{count}} account",
+      "baseUrl": "Indirizzo",
+      "apiKey": "Chiave",
+      "statusRunning": "In esecuzione",
+      "statusStopped": "Arrestato",
+      "statusDisabled": "Disattivato",
+      "emptyMembers": "Nessun account nella raccolta",
+      "footerHint": "Ascolta solo su 127.0.0.1",
+      "manageAccounts": "Gestisci account",
+      "rotateKey": "Ruota chiave",
+      "rotateConfirmMessage": "Dopo il reset, la chiave attuale del servizio API smetterà subito di funzionare e le richieste in corso potrebbero non essere più disponibili. Continuare?",
+      "disableService": "Disattiva servizio",
+      "enableService": "Attiva servizio",
+      "saveSuccess": "Raccolta del servizio API aggiornata",
+      "removeSuccess": "Account rimosso dal servizio API",
+      "rotateSuccess": "Chiave del servizio API reimpostata",
+      "enabledSuccess": "Servizio API abilitato",
+      "disabledSuccess": "Servizio API disabilitato",
+      "removeMember": "Rimuovi dal servizio API",
+      "toggleService": "Attiva/disattiva servizio API",
+      "showKey": "Mostra chiave",
+      "hideKey": "Nascondi chiave",
+      "modal": {
+        "title": "Aggiungi al servizio API",
+        "desc": "Scegli gli account OAuth da includere nella raccolta del servizio API. Gli account aggiunti verranno nascosti dalla panoramica normale e gestiti solo dalla scheda del servizio API.",
+        "empty": "Nessun account OAuth disponibile",
+        "selected": "Nel servizio API",
+        "available": "Panoramica normale",
+        "save": "Salva raccolta"
+      },
+      "entryAction": "Aggiungi al servizio API",
+      "testAction": "Testa il servizio API",
+      "testSuccess": "Test del servizio API riuscito ({{count}} modelli)",
+      "testTimeout": "Test scaduto. Verifica che il servizio locale sia in esecuzione.",
+      "testUnavailable": "L’URL corrente del servizio API non è disponibile",
+      "activateAction": "Avvia servizio API",
+      "activateSuccess": "Passato al servizio API",
+      "dashboardAction": "Pannello servizio",
+      "manageDesc": "Gestisci in un solo posto statistiche del servizio API, membri, porta, chiave e test di connettività.",
+      "memberOnlyLocal": "Solo Codex",
+      "configTitle": "Config servizio",
+      "configEmpty": "Salva prima almeno un account nella raccolta del servizio API per generare URL, chiave e porta.",
+      "portLabel": "Porta servizio",
+      "portSave": "Salva porta",
+      "portSaveSuccess": "La porta del servizio API è stata aggiornata",
+      "portInvalid": "Inserisci una porta tra 1 e 65535",
+      "statsTitle": "Totali",
+      "accountStatsTitle": "Per account",
+      "statsEmpty": "Nessuna statistica ancora",
+      "summaryMeta": "{{count}} account · Solo Codex",
+      "summaryMetaUnconfigured": "Non configurato · Solo Codex",
+      "memberTitle": "Membri della raccolta",
+      "stats": {
+        "requests": "Richieste",
+        "requestsDetail": "Successi {{success}} / Errori {{failed}}",
+        "tokens": "Token",
+        "tokensDetail": "Input {{input}} / Output {{output}}",
+        "specialTokens": "Cache / Ragionamento",
+        "specialTokensDetail": "Cache {{cached}} / Ragionamento {{reasoning}}",
+        "avgLatency": "Latenza media",
+        "successRate": "Tasso di successo {{rate}}%",
+        "accountRequests": "{{count}} richieste",
+        "accountTokens": "{{count}} token",
+        "accountResult": "Successi {{success}} / Errori {{failed}}",
+        "accountTokensCompact": "{{value}}"
+      },
+      "routingLabel": "Instradamento",
+      "routingSaveSuccess": "Instradamento del servizio API aggiornato",
+      "routingDescriptionAuto": "Dà priorità agli account con piano più alto e quota residua maggiore, poi ruota nello stesso livello.",
+      "routingDescriptionQuotaHighFirst": "Dà priorità agli account con più quota residua.",
+      "routingDescriptionQuotaLowFirst": "Dà priorità agli account con meno quota residua.",
+      "routingDescriptionPlanHighFirst": "Dà priorità agli account con livelli di abbonamento più alti.",
+      "routingDescriptionPlanLowFirst": "Dà priorità agli account con livelli di abbonamento più bassi.",
+      "clearStats": "Cancella statistiche",
+      "clearStatsConfirm": "Cancellare tutte le statistiche del servizio API?",
+      "clearStatsSuccess": "Le statistiche del servizio API sono state cancellate",
+      "refreshStats": "Aggiorna statistiche",
+      "refreshStatsSuccess": "Le statistiche del servizio API sono state aggiornate",
+      "routingStrategy": {
+        "auto": "Automatico (consigliato)",
+        "quotaHighFirst": "Quota alta prima",
+        "quotaLowFirst": "Quota bassa prima",
+        "planHighFirst": "Piano alto prima",
+        "planLowFirst": "Piano basso prima"
+      },
+      "statusUnconfigured": "Non configurato",
+      "expandDetails": "Espandi dettagli",
+      "collapseDetails": "Comprimi dettagli",
+      "hideEntryAction": "Nascondi voce del servizio API",
+      "hideEntryConfirm": "Questa azione nasconderà la voce del servizio API dalla panoramica e disattiverà anche il servizio API attuale. Potrai riattivarla più tardi nelle Impostazioni Codex o nelle Impostazioni rapide.",
+      "hideEntryEffectHide": "Nascondi la voce del servizio API dalla panoramica",
+      "hideEntryEffectDisable": "Disattiva il servizio API attuale",
+      "hideEntryEffectRestore": "Potrai riattivarla nelle Impostazioni Codex o nelle Impostazioni rapide",
+      "riskNotice": {
+        "title": "Avviso di rischio",
+        "message": "Le attuali funzionalità relative al servizio Codex API si basano, di fatto, su un uso tramite proxy inverso. Al momento il servizio ufficiale non limita esplicitamente questo comportamento, ma politiche, regole o disponibilità potrebbero cambiare in futuro. Continuando a usare questa funzione, riconosci la situazione e accetti di assumerti personalmente i rischi correlati.",
+        "remember": "Ho capito, non mostrare più",
+        "acknowledge": "Ho capito",
+        "continueStart": "Continua",
+        "continueSwitch": "Continua"
+      },
+      "statsRange": {
+        "label": "Intervallo statistiche",
+        "daily": "Giorno",
+        "weekly": "Settimana",
+        "monthly": "Mese"
+      }
+    },
     "local": {
       "desc": "Importa l'account attuale da ~/.codex/auth.json",
       "import": "Ottieni account locale"
@@ -1832,7 +1955,8 @@
         "expand": "Espandi",
         "collapse": "Comprimi",
         "repairVisibility": "Ripara visibilità",
-        "restoreSessions": "Ripristina sessioni"
+      "restoreSessions": "Ripristina sessioni",
+      "copySessionId": "Copia ID sessione"
       },
       "confirm": {
         "title": "Sposta nel cestino",
@@ -1850,7 +1974,11 @@
         "pickRestoreOne": "Seleziona almeno una sessione da ripristinare"
       },
       "groupCount": "{{count}} sessioni",
-      "updatedAt": "Aggiornato",
+    "updatedAt": "Aggiornato",
+    "labels": {
+      "sessionId": "ID sessione",
+      "tokenUsage": "Utilizzo token"
+    },
       "locationRunning": " (in esecuzione)",
       "untitled": "Sessione senza titolo",
       "restoreModal": {
@@ -2162,7 +2290,8 @@
       "appPath": "Percorso app",
       "configToml": "File di configurazione di Codex",
       "openConfigToml": "Apri file",
-      "openConfigHint": "Apri rapidamente il file config.toml attivo di Codex."
+      "openConfigHint": "Apri rapidamente il file config.toml attivo di Codex.",
+      "localAccessEntryVisible": "Mostra voce del servizio API"
     },
     "githubCopilot": {
       "title": "Impostazioni GitHub Copilot",
@@ -2176,7 +2305,10 @@
       "enable": "Cambio automatico",
       "threshold": "Soglia di cambio",
       "thresholdDesc": "Il cambio automatico si attiva quando i gruppi di modelli monitorati raggiungono questa soglia percentuale",
-      "hint": "Passa automaticamente all’account con quota più alta quando i gruppi di modelli monitorati raggiungono la soglia.",
+      "hint": "Passa automaticamente quando i gruppi di modelli monitorati raggiungono la soglia; con il monitoraggio crediti attivo si attiva anche quando i crediti rimanenti scendono sotto la soglia.",
+      "creditsEnable": "Monitora crediti",
+      "creditsThreshold": "Soglia crediti",
+      "creditsThresholdDesc": "Attiva anche il cambio automatico quando i crediti rimanenti sono pari o inferiori a questo valore",
       "triggerModel": "Modello di attivazione",
       "scopeAnyGroup": "Qualsiasi gruppo di modelli",
       "scopeSelectedGroups": "Gruppi di modelli selezionati",
@@ -2194,6 +2326,7 @@
     "apply": "Applica",
     "inputMinutes": "Inserire i minuti",
     "inputPercent": "Inserire la percentuale",
+    "inputCredits": "Inserire i crediti",
     "windsurf": {
       "title": "Impostazioni Windsurf",
       "appPath": "Percorso Windsurf"
@@ -2243,6 +2376,11 @@
     "zed": {
       "title": "Impostazioni Zed",
       "appPath": "Percorso Zed"
+    },
+    "filterPersistence": {
+      "title": "Memoria filtri",
+      "enable": "Ricorda i filtri della panoramica account (esclusa la ricerca)",
+      "hint": "Disattivato per impostazione predefinita. Se attivato, ogni piattaforma mantiene filtri, tag e ordinamento."
     }
   },
   "quotaAlert": {

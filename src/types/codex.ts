@@ -20,6 +20,7 @@ export interface CodexAccount {
   api_console_token?: string;
   user_id?: string;
   plan_type?: string;
+  auth_file_plan_type?: string;
   account_id?: string;
   organization_id?: string;
   account_name?: string;
@@ -210,6 +211,13 @@ export interface CodexSessionFavoriteResult {
   backupPaths: string[];
   warnings: string[];
   message: string;
+}
+
+export interface CodexSessionTokenStats {
+  sessionId: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
 }
 
 export interface CodexSessionTrashSummary {
@@ -466,6 +474,46 @@ export function getCodexPlanDisplayName(planType?: string): string {
   if (upper.includes('PLUS')) return 'PLUS';
   if (upper.includes('PRO')) return 'PRO';
   return upper;
+}
+
+function normalizeCodexPlanKey(planType?: string): string {
+  const normalized = (planType || '').trim().toLowerCase();
+  if (!normalized) return 'free';
+  if (normalized.includes('api')) return 'api_key';
+  if (normalized.includes('enterprise')) return 'enterprise';
+  if (normalized.includes('business')) return 'business';
+  if (normalized.includes('team')) return 'team';
+  if (normalized.includes('edu')) return 'edu';
+  if (normalized.includes('go')) return 'go';
+  if (normalized.includes('plus')) return 'plus';
+  if (normalized.includes('pro')) return 'pro';
+  if (normalized.includes('free')) return 'free';
+  return normalized;
+}
+
+function normalizeCodexAuthFilePlanType(value?: string): 'prolite' | 'promax' | undefined {
+  const normalized = (value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
+  if (normalized === 'prolite' || normalized === 'pro-lite') return 'prolite';
+  if (normalized === 'promax' || normalized === 'pro-max') return 'promax';
+  return undefined;
+}
+
+export function getCodexPlanBadgeLabel(account: CodexAccount): string {
+  const baseLabel = getCodexPlanDisplayName(account.plan_type);
+  if (normalizeCodexPlanKey(account.plan_type) !== 'pro') {
+    return baseLabel;
+  }
+
+  const authFilePlanType =
+    normalizeCodexAuthFilePlanType(account.auth_file_plan_type) ??
+    normalizeCodexAuthFilePlanType(account.plan_type);
+  if (authFilePlanType === 'prolite') {
+    return `${baseLabel} 5x`;
+  }
+  if (authFilePlanType === 'promax') {
+    return `${baseLabel} 20x`;
+  }
+  return baseLabel;
 }
 
 export function isCodexTeamLikePlan(planType?: string): boolean {

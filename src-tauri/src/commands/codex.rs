@@ -1,9 +1,10 @@
 use crate::models::codex::{
     CodexAccount, CodexApiProviderMode, CodexQuickConfig, CodexQuota, CodexTokens,
 };
+use crate::models::codex_local_access::{CodexLocalAccessRoutingStrategy, CodexLocalAccessState};
 use crate::modules::{
-    codex_account, codex_oauth, codex_quota, codex_wakeup, codex_wakeup_scheduler, config, logger,
-    openclaw_auth, opencode_auth, process,
+    codex_account, codex_local_access, codex_oauth, codex_quota, codex_wakeup,
+    codex_wakeup_scheduler, config, logger, openclaw_auth, opencode_auth, process,
 };
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::AppHandle;
@@ -49,10 +50,10 @@ pub fn get_codex_quick_config() -> Result<CodexQuickConfig, String> {
 
 #[tauri::command]
 pub fn save_codex_quick_config(
-    context_window_1m: bool,
+    model_context_window: Option<i64>,
     auto_compact_token_limit: Option<i64>,
 ) -> Result<CodexQuickConfig, String> {
-    codex_account::save_current_quick_config(context_window_1m, auto_compact_token_limit)
+    codex_account::save_current_quick_config(model_context_window, auto_compact_token_limit)
 }
 
 /// 刷新账号资料（团队名/结构）
@@ -685,4 +686,150 @@ pub async fn save_codex_model_providers(data: String) -> Result<(), String> {
     }
     let path = dir.join(CODEX_MODEL_PROVIDERS_FILE);
     std::fs::write(&path, data).map_err(|e| format!("Failed to write codex model providers: {}", e))
+}
+
+#[tauri::command]
+pub async fn codex_local_access_get_state() -> Result<CodexLocalAccessState, String> {
+    codex_local_access::get_local_access_state().await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_save_accounts(
+    account_ids: Vec<String>,
+) -> Result<CodexLocalAccessState, String> {
+    codex_local_access::save_local_access_accounts(account_ids).await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_remove_account(
+    account_id: String,
+) -> Result<CodexLocalAccessState, String> {
+    codex_local_access::remove_local_access_account(&account_id).await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_rotate_api_key() -> Result<CodexLocalAccessState, String> {
+    codex_local_access::rotate_local_access_api_key().await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_clear_stats() -> Result<CodexLocalAccessState, String> {
+    codex_local_access::clear_local_access_stats().await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_update_port(port: u16) -> Result<CodexLocalAccessState, String> {
+    codex_local_access::update_local_access_port(port).await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_update_routing_strategy(
+    strategy: CodexLocalAccessRoutingStrategy,
+) -> Result<CodexLocalAccessState, String> {
+    codex_local_access::update_local_access_routing_strategy(strategy).await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_set_enabled(
+    enabled: bool,
+) -> Result<CodexLocalAccessState, String> {
+    codex_local_access::set_local_access_enabled(enabled).await
+}
+
+#[tauri::command]
+pub async fn codex_local_access_activate(app: AppHandle) -> Result<CodexLocalAccessState, String> {
+    let codex_home = codex_account::get_codex_home();
+    let provider_before =
+        crate::modules::codex_session_visibility::read_history_visibility_provider_for_dir(
+            &codex_home,
+        )
+        .map(Some)
+        .unwrap_or_else(|error| {
+            logger::log_warn(&format!(
+                "切换 API 服务前读取 Codex provider 失败，跳过自动修复预判: {}",
+                error
+            ));
+            None
+        });
+    let state = codex_local_access::activate_local_access_for_dir(&codex_home).await?;
+
+    let mut index = codex_account::load_account_index();
+    index.current_account_id = None;
+    codex_account::save_account_index(&index)?;
+
+    if let Err(e) = crate::modules::codex_instance::update_default_settings(
+        Some(Some(
+            crate::modules::codex_instance::CODEX_API_SERVICE_BIND_ACCOUNT_ID.to_string(),
+        )),
+        None,
+        Some(false),
+        None,
+    ) {
+        logger::log_warn(&format!("更新 Codex 默认实例为 API 服务模式失败: {}", e));
+    } else {
+        logger::log_info("已同步更新 Codex 默认实例为 API 服务模式");
+    }
+
+    let provider_after =
+        crate::modules::codex_session_visibility::read_history_visibility_provider_for_dir(
+            &codex_home,
+        )
+        .map(Some)
+        .unwrap_or_else(|error| {
+            logger::log_warn(&format!(
+                "切换 API 服务后读取 Codex provider 失败，跳过自动修复可见性: {}",
+                error
+            ));
+            None
+        });
+    let should_repair_visibility = match (provider_before.as_deref(), provider_after.as_deref()) {
+        (Some(before), Some(after)) => before != after,
+        (None, Some(_)) => true,
+        _ => false,
+    };
+    if should_repair_visibility {
+        match crate::modules::codex_session_visibility::repair_session_visibility_across_instances()
+        {
+            Ok(summary) => {
+                logger::log_info(&format!(
+                    "切换 API 服务后已自动执行历史会话可见性修复: {}",
+                    summary.message
+                ));
+            }
+            Err(error) => {
+                logger::log_warn(&format!(
+                    "API 服务切换成功，但自动修复历史会话可见性失败，请稍后在会话管理中手动补跑: {}",
+                    error
+                ));
+            }
+        }
+    }
+
+    let user_config = config::get_user_config();
+    logger::log_info("API 服务启动模式下跳过 OpenCode / OpenClaw OAuth 同步");
+
+    if user_config.codex_launch_on_switch {
+        #[cfg(target_os = "macos")]
+        if process::is_codex_running() {
+            logger::log_info("检测到 Codex 正在运行，将按默认实例 PID 逻辑重启");
+        }
+        match crate::commands::codex_instance::codex_start_instance("__default__".to_string()).await
+        {
+            Ok(_) => {}
+            Err(e) => {
+                logger::log_warn(&format!("Codex 启动失败: {}", e));
+                if e.starts_with("APP_PATH_NOT_FOUND:") {
+                    let _ = app.emit(
+                        "app:path_missing",
+                        serde_json::json!({ "app": "codex", "retry": { "kind": "default" } }),
+                    );
+                }
+            }
+        }
+    } else {
+        logger::log_info("已关闭切换 Codex 时自动启动 Codex App");
+    }
+
+    let _ = crate::modules::tray::update_tray_menu(&app);
+    Ok(state)
 }

@@ -24,6 +24,14 @@ pub struct AntigravityAutoSwitchReason {
     pub threshold: i32,
     pub scope_mode: String,
     #[serde(default)]
+    pub credits_enabled: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub credits_threshold: Option<i32>,
+    #[serde(default)]
+    pub credits_triggered: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current_credits_remaining: Option<f64>,
+    #[serde(default)]
     pub selected_group_ids: Vec<String>,
     #[serde(default)]
     pub selected_group_names: Vec<String>,

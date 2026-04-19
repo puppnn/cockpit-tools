@@ -938,12 +938,6 @@ fn write_local_selected_auth_type_to_path(
     fs::write(path, content).map_err(|e| format!("写入本地 Gemini settings.json 失败: {}", e))
 }
 
-pub fn get_local_active_email() -> Option<String> {
-    read_local_google_accounts()
-        .ok()
-        .and_then(|data| normalize_non_empty(data.active.as_deref()))
-}
-
 pub fn import_from_local() -> Result<Option<GeminiAccount>, String> {
     let local_creds = match read_local_oauth_creds()? {
         Some(creds) => creds,
@@ -1773,20 +1767,13 @@ pub(crate) fn extract_account_model_remaining(account: &GeminiAccount) -> Vec<(S
 }
 
 pub(crate) fn resolve_current_account(accounts: &[GeminiAccount]) -> Option<GeminiAccount> {
-    let active_email = get_local_active_email();
-
-    if let Some(active_email) = active_email {
-        if let Some(found) = accounts
-            .iter()
-            .find(|account| account.email.eq_ignore_ascii_case(&active_email))
-        {
-            return Some(found.clone());
-        }
-    }
-
+    let current_id = crate::modules::provider_current_state::resolve_existing_current_account_id(
+        "gemini",
+        accounts.iter().map(|account| account.id.as_str()),
+    )?;
     accounts
         .iter()
-        .max_by_key(|account| account.last_used.max(account.created_at))
+        .find(|account| account.id == current_id)
         .cloned()
 }
 

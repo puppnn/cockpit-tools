@@ -102,9 +102,9 @@ interface DashboardPageProps {
   topCenterBanner?: React.ReactNode;
 }
 
-const DASHBOARD_DEFERRED_PREFETCH_DELAY_MS = 1200;
-const DASHBOARD_DEFERRED_PREFETCH_BATCH_SIZE = 3;
-const DASHBOARD_DEFERRED_PREFETCH_BATCH_DELAY_MS = 250;
+const DASHBOARD_DEFERRED_PREFETCH_DELAY_MS = 6000;
+const DASHBOARD_DEFERRED_PREFETCH_BATCH_SIZE = 1;
+const DASHBOARD_DEFERRED_PREFETCH_BATCH_DELAY_MS = 1200;
 let dashboardStartupPrefetched = false;
 
 function toFiniteNumber(value: number | null | undefined): number | null {
@@ -467,8 +467,6 @@ export function DashboardPage({
     if (!dashboardStartupPrefetched) {
       dashboardStartupPrefetched = true;
       deferredTimer = window.setTimeout(loadDeferredPlatforms, DASHBOARD_DEFERRED_PREFETCH_DELAY_MS);
-    } else {
-      loadDeferredPlatforms();
     }
 
     return () => {

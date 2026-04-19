@@ -130,6 +130,10 @@ pub fn run() {
                 modules::web_report::start_server().await;
             });
 
+            tauri::async_runtime::spawn(async {
+                modules::codex_local_access::restore_local_access_gateway().await;
+            });
+
             {
                 let app_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
@@ -142,6 +146,7 @@ pub fn run() {
                 });
             }
 
+            modules::provider_token_keeper::ensure_started(app.handle().clone());
             modules::wakeup_scheduler::restore_state_from_disk();
             modules::wakeup_scheduler::ensure_started(app.handle().clone());
             modules::codex_wakeup_scheduler::ensure_started(app.handle().clone());
@@ -303,6 +308,7 @@ pub fn run() {
             commands::system::save_tray_platform_layout,
             commands::system::set_app_path,
             commands::system::set_codex_launch_on_switch,
+            commands::system::set_codex_local_access_entry_visible,
             commands::system::detect_app_path,
             commands::system::set_wakeup_override,
             commands::system::handle_window_close,
@@ -407,6 +413,15 @@ pub fn run() {
             commands::codex::save_codex_account_groups,
             commands::codex::load_codex_model_providers,
             commands::codex::save_codex_model_providers,
+            commands::codex::codex_local_access_get_state,
+            commands::codex::codex_local_access_save_accounts,
+            commands::codex::codex_local_access_remove_account,
+            commands::codex::codex_local_access_rotate_api_key,
+            commands::codex::codex_local_access_clear_stats,
+            commands::codex::codex_local_access_update_port,
+            commands::codex::codex_local_access_update_routing_strategy,
+            commands::codex::codex_local_access_set_enabled,
+            commands::codex::codex_local_access_activate,
             // GitHub Copilot Commands
             commands::github_copilot::list_github_copilot_accounts,
             commands::github_copilot::delete_github_copilot_account,
@@ -705,6 +720,9 @@ pub fn run() {
             // Codex Instance Commands
             commands::codex_instance::codex_get_instance_defaults,
             commands::codex_instance::codex_list_instances,
+            commands::codex_instance::codex_get_instance_quick_config,
+            commands::codex_instance::codex_save_instance_quick_config,
+            commands::codex_instance::codex_open_instance_config_toml,
             commands::codex_instance::codex_sync_threads_across_instances,
             commands::codex_instance::codex_repair_session_visibility_across_instances,
             commands::codex_instance::codex_list_sessions_across_instances,
@@ -713,6 +731,7 @@ pub fn run() {
             commands::codex_instance::codex_update_session_title,
             commands::codex_instance::codex_favorite_session,
             commands::codex_instance::codex_unfavorite_session,
+            commands::codex_instance::codex_get_session_token_stats_across_instances,
             commands::codex_instance::codex_move_sessions_to_trash_across_instances,
             commands::codex_instance::codex_list_trashed_sessions_across_instances,
             commands::codex_instance::codex_restore_sessions_from_trash_across_instances,

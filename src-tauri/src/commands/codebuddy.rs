@@ -326,6 +326,10 @@ pub async fn inject_codebuddy_to_vscode(
     ) {
         logger::log_warn(&format!("更新 CodeBuddy 默认实例绑定账号失败: {}", err));
     }
+    crate::modules::provider_current_state::set_current_account_id(
+        "codebuddy",
+        Some(account_id.as_str()),
+    )?;
 
     let launch_warning = match crate::commands::codebuddy_instance::codebuddy_start_instance(
         "__default__".to_string(),

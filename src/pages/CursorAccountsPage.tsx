@@ -58,6 +58,13 @@ import {
   isEveryIdSelected,
   usePagination,
 } from '../hooks/usePagination';
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from '../utils/accountsOverviewFilterPersistence';
 
 import { useProviderAccountsPage } from '../hooks/useProviderAccountsPage';
 import { CursorOverviewTabsHeader, CursorTab } from '../components/CursorOverviewTabsHeader';
@@ -65,6 +72,8 @@ import { CursorInstancesContent } from './CursorInstancesPage';
 
 const CURSOR_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.cursor.flow_notice_collapsed';
 const CURSOR_CURRENT_ACCOUNT_ID_KEY = 'agtools.cursor.current_account_id';
+const CURSOR_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('Cursor');
+const FILTER_TYPES_FIELD = 'filter_types';
 const CURSOR_KNOWN_PLAN_FILTERS = [
   'FREE',
   'PRO',
@@ -99,7 +108,11 @@ function normalizeCursorPercent(raw: number | null | undefined): {
 
 export function CursorAccountsPage() {
   const [activeTab, setActiveTab] = useState<CursorTab>('overview');
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(CURSOR_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(CURSOR_FILTER_PERSISTENCE_SCOPE, FILTER_TYPES_FIELD)
+      : [],
+  );
   const untaggedKey = '__untagged__';
 
   const store = useCursorAccountStore();
@@ -149,6 +162,7 @@ export function CursorAccountsPage() {
   const {
     t, locale, privacyModeEnabled, togglePrivacyMode, maskAccountText,
     viewMode, setViewMode, searchQuery, setSearchQuery,
+    filterPersistenceEnabled, filterPersistenceScope,
     sortBy, setSortBy, sortDirection, setSortDirection,
     selected, toggleSelect, toggleSelectAll,
     tagFilter, groupByTag, setGroupByTag, showTagFilter, setShowTagFilter,
@@ -175,6 +189,14 @@ export function CursorAccountsPage() {
     currentAccountId,
     formatDate, normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {
@@ -524,8 +546,8 @@ export function CursorAccountsPage() {
     });
 
     return Array.from(groups.entries()).sort(([aKey], [bKey]) => {
-      if (aKey === untaggedKey) return 1;
-      if (bKey === untaggedKey) return -1;
+      if (aKey === untaggedKey) return -1;
+      if (bKey === untaggedKey) return 1;
       return aKey.localeCompare(bKey);
     });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter, untaggedKey]);

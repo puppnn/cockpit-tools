@@ -61,6 +61,13 @@ import {
   isEveryIdSelected,
   usePagination,
 } from "../hooks/usePagination";
+import {
+  normalizeAccountsOverviewScope,
+  readAccountsOverviewFilterPersistenceEnabled,
+  readAccountsOverviewFilterStringArray,
+  removeAccountsOverviewFilterField,
+  writeAccountsOverviewFilterField,
+} from "../utils/accountsOverviewFilterPersistence";
 
 import { useProviderAccountsPage } from "../hooks/useProviderAccountsPage";
 import {
@@ -72,6 +79,8 @@ import { useLaunchTerminalOptions } from "../hooks/useLaunchTerminalOptions";
 
 const CURSOR_FLOW_NOTICE_COLLAPSED_KEY = "agtools.gemini.flow_notice_collapsed";
 const CURSOR_CURRENT_ACCOUNT_ID_KEY = "agtools.gemini.current_account_id";
+const GEMINI_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope("Gemini");
+const FILTER_TYPES_FIELD = "filter_types";
 const CURSOR_KNOWN_PLAN_FILTERS = [
   "FREE",
   "PRO",
@@ -122,7 +131,11 @@ export function GeminiAccountsPage() {
   );
   const { terminalOptions, selectedTerminal, setSelectedTerminal } =
     useLaunchTerminalOptions();
-  const [filterTypes, setFilterTypes] = useState<string[]>([]);
+  const [filterTypes, setFilterTypes] = useState<string[]>(() =>
+    readAccountsOverviewFilterPersistenceEnabled(GEMINI_FILTER_PERSISTENCE_SCOPE)
+      ? readAccountsOverviewFilterStringArray(GEMINI_FILTER_PERSISTENCE_SCOPE, FILTER_TYPES_FIELD)
+      : [],
+  );
   const untaggedKey = "__untagged__";
 
   const store = useGeminiAccountStore();
@@ -208,6 +221,8 @@ export function GeminiAccountsPage() {
     setViewMode,
     searchQuery,
     setSearchQuery,
+    filterPersistenceEnabled,
+    filterPersistenceScope,
     sortBy,
     setSortBy,
     sortDirection,
@@ -307,6 +322,14 @@ export function GeminiAccountsPage() {
     currentAccountId,
     normalizeTag,
   } = page;
+
+  useEffect(() => {
+    if (!filterPersistenceEnabled) {
+      removeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD);
+      return;
+    }
+    writeAccountsOverviewFilterField(filterPersistenceScope, FILTER_TYPES_FIELD, filterTypes);
+  }, [filterPersistenceEnabled, filterPersistenceScope, filterTypes]);
 
   const toggleFilterTypeValue = useCallback((value: string) => {
     setFilterTypes((prev) => {
@@ -766,8 +789,8 @@ export function GeminiAccountsPage() {
     });
 
     return Array.from(groups.entries()).sort(([aKey], [bKey]) => {
-      if (aKey === untaggedKey) return 1;
-      if (bKey === untaggedKey) return -1;
+      if (aKey === untaggedKey) return -1;
+      if (bKey === untaggedKey) return 1;
       return aKey.localeCompare(bKey);
     });
   }, [filteredAccounts, groupByTag, normalizeTag, tagFilter, untaggedKey]);
