@@ -437,7 +437,34 @@
       "launchModeCli": "Mode CLI",
       "workingDir": "Direktori kerja",
       "workingDirPlaceholder": "Default ke path saat ini",
-      "workingDirDesc": "Saat startup, akan pindah ke direktori ini terlebih dulu"
+      "workingDirDesc": "Saat startup, akan pindah ke direktori ini terlebih dulu",
+      "codexQuickConfig": {
+        "title": "Konteks & Batasan Ringkas",
+        "presetLabel": "Konfigurasi Preset",
+        "presetHint": "Pilih preset (Default / 516K / 1M), atau alihkan ke Custom dan isi kedua kolom secara manual.",
+        "presetDefaultShort": "Bawaan",
+        "presetDefaultDesc": "Hapus kedua bidang dan gunakan default resmi",
+        "preset516kShort": "Prasetel 516K",
+        "preset516kDesc": "konteks=516000 / kompak=460000",
+        "preset1mShort": "Prasetel 1M",
+        "preset1mDesc": "konteks=1000000 / kompak=900000",
+        "presetCustomShort": "Kebiasaan",
+        "presetCustomDesc": "Tetapkan konteks dan nilai ringkas secara manual",
+        "contextWindow": "Jendela Konteks",
+        "contextWindowHint": "Menulis model_context_window. Hanya dapat diedit dalam mode Kustom.",
+        "autoCompactLimit": "Batas Kompak Otomatis",
+        "autoCompactLimitHint": "Menulis model_auto_compact_token_limit. Hanya dapat diedit dalam mode Kustom.",
+        "customDetected": "Nilai khusus terdeteksi di config.toml: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Menyimpan akan menimpanya dengan preset yang Anda pilih.",
+        "partialDetected": "Hanya satu bidang terkelola yang saat ini disetel: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Menyimpan akan menulis ulang kedua bidang menggunakan skema saat ini.",
+        "notSet": "Tidak disetel",
+        "loadFailed": "Gagal memuat konfigurasi Codex saat ini: {{error}}",
+        "openConfig": "Buka config.toml",
+        "openFailed": "Gagal membuka config.toml: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Jendela konteks harus berupa bilangan bulat yang lebih besar dari 0.",
+          "autoCompactInvalid": "Batas pemadatan otomatis harus berupa bilangan bulat yang lebih besar dari 0."
+        }
+      }
     },
     "quota": {
       "unbound": "Tidak ada akun tertaut",
@@ -776,7 +803,17 @@
       "upToDate": "Sudah versi terbaru",
       "newVersion": "v{{version}} tersedia",
       "download": "Unduh",
-      "checkFailed": "Gagal memeriksa pembaruan, silakan coba lagi"
+      "checkFailed": "Gagal memeriksa pembaruan, silakan coba lagi",
+      "viewReleaseHistory": "Catatan Rilis",
+      "releaseHistoryTitle": "Catatan Rilis",
+      "releaseHistoryLoading": "Memuat catatan rilis...",
+      "releaseHistoryEmpty": "Belum ada catatan rilis",
+      "releaseHistoryLoadFailed": "Gagal memuat: {{error}}",
+      "releaseHistorySectionAdded": "Ditambahkan",
+      "releaseHistorySectionChanged": "Berubah",
+      "releaseHistorySectionFixed": "Tetap",
+      "releaseHistorySectionRemoved": "DIHAPUS",
+      "downloadThisVersion": "Unduh"
     },
     "saveSettings": "Simpan Pengaturan",
     "transfer": {
@@ -1667,7 +1704,9 @@
         "empty": "Tidak ada akun OAuth yang tersedia",
         "selected": "Di layanan API",
         "available": "Tampilan biasa",
-        "save": "Simpan koleksi"
+        "save": "Simpan koleksi",
+        "freeNotice": "Akun gratis belum didukung. Akun gratis tidak dapat dipilih.",
+        "freeUnsupported": "Akun gratis belum didukung"
       },
       "entryAction": "Tambahkan ke Layanan API",
       "testAction": "Uji Layanan API",
@@ -2084,8 +2123,8 @@
         "expand": "Perluas",
         "collapse": "Ciutkan",
         "repairVisibility": "Perbaiki visibilitas",
-      "restoreSessions": "Pulihkan sesi",
-      "copySessionId": "Salin ID sesi"
+        "restoreSessions": "Pulihkan sesi",
+        "copySessionId": "Salin ID sesi"
       },
       "confirm": {
         "title": "Pindahkan ke Sampah",
@@ -2103,11 +2142,11 @@
         "pickRestoreOne": "Pilih setidaknya satu sesi untuk dipulihkan"
       },
       "groupCount": "{{count}} sesi",
-    "updatedAt": "Diperbarui",
-    "labels": {
-      "sessionId": "ID sesi",
-      "tokenUsage": "Penggunaan token"
-    },
+      "updatedAt": "Diperbarui",
+      "labels": {
+        "sessionId": "ID sesi",
+        "tokenUsage": "Penggunaan token"
+      },
       "locationRunning": " (berjalan)",
       "untitled": "Sesi tanpa judul",
       "restoreModal": {
@@ -2191,8 +2230,27 @@
         "customDetected": "Terdeteksi model_context_window = {{context}} kustom di config.toml. Menyimpan akan menulis ulang nilainya sesuai pengaturan cepat di bawah.",
         "compactMissingDetected": "Konteks 1M sudah aktif, tetapi batas auto-compact belum ada. Menyimpan akan menulis nilai default {{limit}}.",
         "validation": {
-          "autoCompactInvalid": "Batas auto-compact harus berupa bilangan bulat lebih besar dari 0."
-        }
+          "autoCompactInvalid": "Batas auto-compact harus berupa bilangan bulat lebih besar dari 0.",
+          "contextWindowInvalid": "Jendela konteks harus berupa bilangan bulat yang lebih besar dari 0."
+        },
+        "presetLabel": "Konfigurasi Preset",
+        "presetHint": "Pilih preset (Default / 516K / 1M), atau alihkan ke Custom dan isi kedua kolom secara manual.",
+        "presetDefaultShort": "Bawaan",
+        "presetDefaultDesc": "Hapus kedua bidang dan gunakan default resmi",
+        "preset516kShort": "Prasetel 516K",
+        "preset516kDesc": "konteks=516000 / kompak=460000",
+        "preset1mShort": "Prasetel 1M",
+        "preset1mDesc": "konteks=1000000 / kompak=900000",
+        "presetCustomShort": "Kebiasaan",
+        "presetCustomDesc": "Tetapkan konteks dan nilai ringkas secara manual",
+        "presetDefault": "Default (hapus model_context_window / model_auto_compact_token_limit)",
+        "preset516k": "Prasetel 516K (model_context_window = 516000, auto_compact = 460000)",
+        "preset1m": "1 juta (model_context_window = 1000000, auto_compact = 900000)",
+        "presetCustom": "Kebiasaan",
+        "contextWindow": "Jendela Konteks",
+        "contextWindowHint": "Menulis model_context_window. Hanya dapat diedit dalam mode Kustom.",
+        "partialDetected": "Hanya satu bidang terkelola yang saat ini disetel: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Menyimpan akan menulis ulang kedua bidang menggunakan skema saat ini.",
+        "notSet": "Tidak disetel"
       }
     },
     "quickSwitch": {
@@ -2437,7 +2495,34 @@
       "configToml": "File konfigurasi Codex",
       "openConfigToml": "Buka file",
       "openConfigHint": "Buka cepat file Codex config.toml yang sedang aktif.",
-      "localAccessEntryVisible": "Tampilkan entri Layanan API"
+      "localAccessEntryVisible": "Tampilkan entri Layanan API",
+      "quickConfig": {
+        "title": "Konteks & Batasan Ringkas",
+        "presetLabel": "Konfigurasi Preset",
+        "presetHint": "Pilih preset (Default / 516K / 1M), atau alihkan ke Custom dan isi kedua kolom secara manual.",
+        "presetDefaultShort": "Bawaan",
+        "presetDefaultDesc": "Hapus kedua bidang dan gunakan default resmi",
+        "preset516kShort": "Prasetel 516K",
+        "preset516kDesc": "konteks=516000 / kompak=460000",
+        "preset1mShort": "Prasetel 1M",
+        "preset1mDesc": "konteks=1000000 / kompak=900000",
+        "presetCustomShort": "Kebiasaan",
+        "presetCustomDesc": "Tetapkan konteks dan nilai ringkas secara manual",
+        "contextWindow": "Jendela Konteks",
+        "contextWindowHint": "Menulis model_context_window. Hanya dapat diedit dalam mode Kustom.",
+        "autoCompactLimit": "Batas Kompak Otomatis",
+        "autoCompactLimitHint": "Menulis model_auto_compact_token_limit. Hanya dapat diedit dalam mode Kustom.",
+        "customDetected": "Nilai khusus terdeteksi di config.toml: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Menyimpan akan menimpanya dengan preset yang Anda pilih.",
+        "partialDetected": "Hanya satu bidang terkelola yang saat ini disetel: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Menyimpan akan menulis ulang kedua bidang menggunakan skema saat ini.",
+        "notSet": "Tidak disetel",
+        "loadFailed": "Gagal memuat konfigurasi Codex saat ini: {{error}}",
+        "saveSuccess": "Konfigurasi Codex saat ini disimpan.",
+        "saveFailed": "Gagal menyimpan konfigurasi Codex saat ini: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Jendela konteks harus berupa bilangan bulat yang lebih besar dari 0.",
+          "autoCompactInvalid": "Batas pemadatan otomatis harus berupa bilangan bulat yang lebih besar dari 0."
+        }
+      }
     },
     "githubCopilot": {
       "title": "GitHub Copilot Settings",
@@ -3349,11 +3434,11 @@
       "status": "Status Check-in",
       "checkedIn": "Sudah Check-in",
       "notCheckedIn": "Belum Check-in",
-      "button": "Check In",
+      "button": {},
       "button.loading": "Melakukan check-in...",
       "done": "Selesai",
       "success": "Check-in berhasil! Streak {{days}} hari",
-      "failure": "Check-in gagal: {{message}}",
+      "failure": {},
       "failure.network": "Kesalahan jaringan, silakan coba lagi nanti",
       "lastCheckin": "Check-in terakhir: {{time}}",
       "streak": "Streak {{days}} hari",

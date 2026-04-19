@@ -379,7 +379,34 @@
       "launchModeCli": "Režim CLI",
       "workingDir": "Pracovní adresář",
       "workingDirPlaceholder": "Výchozí je aktuální cesta",
-      "workingDirDesc": "Při spuštění se nejdřív přepne do tohoto adresáře"
+      "workingDirDesc": "Při spuštění se nejdřív přepne do tohoto adresáře",
+      "codexQuickConfig": {
+        "title": "Kontext a kompaktní limity",
+        "presetLabel": "Předvolba konfigurace",
+        "presetHint": "Vyberte předvolbu (Výchozí / 516K / 1M), nebo přepněte na Vlastní a vyplňte obě pole ručně.",
+        "presetDefaultShort": "Výchozí",
+        "presetDefaultDesc": "Odeberte obě pole a použijte oficiální výchozí hodnoty",
+        "preset516kShort": "516 tis",
+        "preset516kDesc": "kontext=516000 / kompaktní=460000",
+        "preset1mShort": "1 mil",
+        "preset1mDesc": "kontext=1000000 / kompaktní=900000",
+        "presetCustomShort": "Zvyk",
+        "presetCustomDesc": "Ručně nastavit kontext a kompaktní hodnoty",
+        "contextWindow": "Kontextové okno",
+        "contextWindowHint": "Zapíše model_context_window. Upravitelné pouze v uživatelském režimu.",
+        "autoCompactLimit": "Limit Auto-Compact",
+        "autoCompactLimitHint": "Zapíše model_auto_compact_token_limit. Upravitelné pouze v uživatelském režimu.",
+        "customDetected": "V souboru config.toml byly zjištěny vlastní hodnoty: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Uložením je přepíšete vámi vybranou předvolbou.",
+        "partialDetected": "Aktuálně je nastaveno pouze jedno spravované pole: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Uložením se přepíší obě pole podle aktuálního schématu.",
+        "notSet": "Nenastaveno",
+        "loadFailed": "Nepodařilo se načíst aktuální konfiguraci Codexu: {{error}}",
+        "openConfig": "Otevřete soubor config.toml",
+        "openFailed": "Nepodařilo se otevřít soubor config.toml: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Kontextové okno musí být celé číslo větší než 0.",
+          "autoCompactInvalid": "Limit automatického zhutnění musí být celé číslo větší než 0."
+        }
+      }
     },
     "quota": {
       "unbound": "Účet není propojen",
@@ -730,7 +757,17 @@
       "upToDate": "Aktuální",
       "newVersion": "v{{version}} k dispozici",
       "download": "Stáhnout",
-      "checkFailed": "Kontrola aktualizací selhala"
+      "checkFailed": "Kontrola aktualizací selhala",
+      "viewReleaseHistory": "Poznámky k vydání",
+      "releaseHistoryTitle": "Poznámky k vydání",
+      "releaseHistoryLoading": "Načítání poznámek k vydání...",
+      "releaseHistoryEmpty": "Zatím žádné poznámky k vydání",
+      "releaseHistoryLoadFailed": "Nepodařilo se načíst: {{error}}",
+      "releaseHistorySectionAdded": "Přidáno",
+      "releaseHistorySectionChanged": "Změněno",
+      "releaseHistorySectionFixed": "Opraveno",
+      "releaseHistorySectionRemoved": "Odebráno",
+      "downloadThisVersion": "Stáhnout"
     },
     "saveSettings": "Uložit nastavení",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "Nejsou k dispozici žádné účty OAuth",
         "selected": "V API službě",
         "available": "Běžný přehled",
-        "save": "Uložit kolekci"
+        "save": "Uložit kolekci",
+        "freeNotice": "Bezplatné účty zatím nejsou podporovány. Nelze vybrat bezplatné účty.",
+        "freeUnsupported": "Bezplatné účty zatím nejsou podporovány"
       },
       "entryAction": "Přidat do API služby",
       "testAction": "Otestovat API službu",
@@ -1955,8 +1994,8 @@
         "expand": "Rozbalit",
         "collapse": "Sbalit",
         "repairVisibility": "Opravit viditelnost",
-      "restoreSessions": "Obnovit relace",
-      "copySessionId": "Kopírovat ID relace"
+        "restoreSessions": "Obnovit relace",
+        "copySessionId": "Kopírovat ID relace"
       },
       "confirm": {
         "title": "Přesunout do koše",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "Vyberte prosím alespoň jednu relaci k obnovení"
       },
       "groupCount": "{{count}} relací",
-    "updatedAt": "Aktualizováno",
-    "labels": {
-      "sessionId": "ID relace",
-      "tokenUsage": "Využití tokenů"
-    },
+      "updatedAt": "Aktualizováno",
+      "labels": {
+        "sessionId": "ID relace",
+        "tokenUsage": "Využití tokenů"
+      },
       "locationRunning": " (spuštěno)",
       "untitled": "Nepojmenovaná relace",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "V config.toml byl zjištěn vlastní model_context_window = {{context}}. Po uložení se přepíše podle rychlého nastavení níže.",
         "compactMissingDetected": "1M kontext je už zapnutý, ale chybí limit auto-compact. Po uložení se doplní výchozí hodnota {{limit}}.",
         "validation": {
-          "autoCompactInvalid": "Limit auto-compact musí být celé číslo větší než 0."
-        }
+          "autoCompactInvalid": "Limit auto-compact musí být celé číslo větší než 0.",
+          "contextWindowInvalid": "Kontextové okno musí být celé číslo větší než 0."
+        },
+        "presetLabel": "Předvolba konfigurace",
+        "presetHint": "Vyberte předvolbu (Výchozí / 516K / 1M), nebo přepněte na Vlastní a vyplňte obě pole ručně.",
+        "presetDefaultShort": "Výchozí",
+        "presetDefaultDesc": "Odeberte obě pole a použijte oficiální výchozí hodnoty",
+        "preset516kShort": "516 tis",
+        "preset516kDesc": "kontext=516000 / kompaktní=460000",
+        "preset1mShort": "1 mil",
+        "preset1mDesc": "kontext=1000000 / kompaktní=900000",
+        "presetCustomShort": "Zvyk",
+        "presetCustomDesc": "Ručně nastavit kontext a kompaktní hodnoty",
+        "presetDefault": "Výchozí (odstranit model_context_window / model_auto_compact_token_limit)",
+        "preset516k": "516 kB (model_context_window = 516000, auto_compact = 460000)",
+        "preset1m": "1 milion (model_context_window = 1000000, auto_compact = 900000)",
+        "presetCustom": "Zvyk",
+        "contextWindow": "Kontextové okno",
+        "contextWindowHint": "Zapíše model_context_window. Upravitelné pouze v uživatelském režimu.",
+        "partialDetected": "Aktuálně je nastaveno pouze jedno spravované pole: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Uložením se přepíší obě pole podle aktuálního schématu.",
+        "notSet": "Nenastaveno"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Konfigurační soubor Codex",
       "openConfigToml": "Otevřít soubor",
       "openConfigHint": "Rychle otevře aktivní soubor Codex config.toml.",
-      "localAccessEntryVisible": "Zobrazit položku služby API"
+      "localAccessEntryVisible": "Zobrazit položku služby API",
+      "quickConfig": {
+        "title": "Kontext a kompaktní limity",
+        "presetLabel": "Předvolba konfigurace",
+        "presetHint": "Vyberte předvolbu (Výchozí / 516K / 1M), nebo přepněte na Vlastní a vyplňte obě pole ručně.",
+        "presetDefaultShort": "Výchozí",
+        "presetDefaultDesc": "Odeberte obě pole a použijte oficiální výchozí hodnoty",
+        "preset516kShort": "516 tis",
+        "preset516kDesc": "kontext=516000 / kompaktní=460000",
+        "preset1mShort": "1 mil",
+        "preset1mDesc": "kontext=1000000 / kompaktní=900000",
+        "presetCustomShort": "Zvyk",
+        "presetCustomDesc": "Ručně nastavit kontext a kompaktní hodnoty",
+        "contextWindow": "Kontextové okno",
+        "contextWindowHint": "Zapíše model_context_window. Upravitelné pouze v uživatelském režimu.",
+        "autoCompactLimit": "Limit Auto-Compact",
+        "autoCompactLimitHint": "Zapíše model_auto_compact_token_limit. Upravitelné pouze v uživatelském režimu.",
+        "customDetected": "V souboru config.toml byly zjištěny vlastní hodnoty: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Uložením je přepíšete vámi vybranou předvolbou.",
+        "partialDetected": "Aktuálně je nastaveno pouze jedno spravované pole: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Uložením se přepíší obě pole podle aktuálního schématu.",
+        "notSet": "Nenastaveno",
+        "loadFailed": "Nepodařilo se načíst aktuální konfiguraci Codexu: {{error}}",
+        "saveSuccess": "Aktuální konfigurace Codexu uložena.",
+        "saveFailed": "Nepodařilo se uložit aktuální konfiguraci Codex: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Kontextové okno musí být celé číslo větší než 0.",
+          "autoCompactInvalid": "Limit automatického zhutnění musí být celé číslo větší než 0."
+        }
+      }
     },
     "githubCopilot": {
       "title": "Nastavení GitHub Copilot",
@@ -3231,11 +3316,11 @@
       "status": "Stav check-inu",
       "checkedIn": "Zaregistrováno",
       "notCheckedIn": "Nezaregistrováno",
-      "button": "Zaregistrovat",
+      "button": {},
       "button.loading": "Probíhá check-in...",
       "done": "Hotovo",
       "success": "Check-in úspěšný! Série {{days}} dní",
-      "failure": "Check-in selhal: {{message}}",
+      "failure": {},
       "failure.network": "Chyba sítě, zkuste to prosím později",
       "lastCheckin": "Poslední check-in: {{time}}",
       "streak": "{{days}}denní série",

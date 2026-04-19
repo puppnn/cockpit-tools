@@ -379,7 +379,34 @@
       "launchModeCli": "Chế độ CLI",
       "workingDir": "Thư mục làm việc",
       "workingDirPlaceholder": "Mặc định dùng đường dẫn hiện tại",
-      "workingDirDesc": "Khi khởi động sẽ chuyển vào thư mục này trước"
+      "workingDirDesc": "Khi khởi động sẽ chuyển vào thư mục này trước",
+      "codexQuickConfig": {
+        "title": "Giới hạn bối cảnh và nhỏ gọn",
+        "presetLabel": "Cấu hình đặt trước",
+        "presetHint": "Chọn giá trị đặt trước (Mặc định / 516K / 1M) hoặc chuyển sang Tùy chỉnh và điền thủ công cả hai trường.",
+        "presetDefaultShort": "Mặc định",
+        "presetDefaultDesc": "Xóa cả hai trường và sử dụng giá trị mặc định chính thức",
+        "preset516kShort": "Đặt trước 516K",
+        "preset516kDesc": "bối cảnh=516000 / nhỏ gọn=460000",
+        "preset1mShort": "1 triệu",
+        "preset1mDesc": "bối cảnh=1000000 / nhỏ gọn=900000",
+        "presetCustomShort": "Phong tục",
+        "presetCustomDesc": "Đặt thủ công bối cảnh và giá trị nhỏ gọn",
+        "contextWindow": "Cửa sổ ngữ cảnh",
+        "contextWindowHint": "Viết model_context_window. Chỉ có thể chỉnh sửa ở chế độ Tùy chỉnh.",
+        "autoCompactLimit": "Giới hạn tự động thu gọn",
+        "autoCompactLimitHint": "Viết model_auto_compact_token_limit. Chỉ có thể chỉnh sửa ở chế độ Tùy chỉnh.",
+        "customDetected": "Đã phát hiện các giá trị tùy chỉnh trong config.toml: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Việc lưu sẽ ghi đè chúng bằng giá trị đặt sẵn mà bạn đã chọn.",
+        "partialDetected": "Hiện chỉ có một trường được quản lý được đặt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Việc lưu sẽ ghi lại cả hai trường bằng cách sử dụng lược đồ hiện tại.",
+        "notSet": "Chưa đặt",
+        "loadFailed": "Không tải được cấu hình Codex hiện tại: {{error}}",
+        "openConfig": "Mở config.toml",
+        "openFailed": "Không mở được config.toml: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Cửa sổ ngữ cảnh phải là số nguyên lớn hơn 0.",
+          "autoCompactInvalid": "Giới hạn tự động thu gọn phải là số nguyên lớn hơn 0."
+        }
+      }
     },
     "quota": {
       "unbound": "Tài khoản chưa liên kết",
@@ -730,7 +757,17 @@
       "upToDate": "Đã là bản mới nhất",
       "newVersion": "Có v{{version}}",
       "download": "Tải về",
-      "checkFailed": "Kiểm tra cập nhật thất bại, vui lòng thử lại sau"
+      "checkFailed": "Kiểm tra cập nhật thất bại, vui lòng thử lại sau",
+      "viewReleaseHistory": "Ghi chú phát hành",
+      "releaseHistoryTitle": "Ghi chú phát hành",
+      "releaseHistoryLoading": "Đang tải ghi chú phát hành...",
+      "releaseHistoryEmpty": "Chưa có ghi chú phát hành",
+      "releaseHistoryLoadFailed": "Không tải được: {{error}}",
+      "releaseHistorySectionAdded": "Đã thêm",
+      "releaseHistorySectionChanged": "Đã thay đổi",
+      "releaseHistorySectionFixed": "Đã sửa",
+      "releaseHistorySectionRemoved": "LOẠI BỎ",
+      "downloadThisVersion": "Tải xuống"
     },
     "saveSettings": "Lưu cài đặt",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "Không có tài khoản OAuth khả dụng",
         "selected": "Trong dịch vụ API",
         "available": "Bảng thông thường",
-        "save": "Lưu bộ"
+        "save": "Lưu bộ",
+        "freeNotice": "Tài khoản miễn phí chưa được hỗ trợ. Tài khoản miễn phí không thể được chọn.",
+        "freeUnsupported": "Tài khoản miễn phí chưa được hỗ trợ"
       },
       "entryAction": "Thêm vào dịch vụ API",
       "testAction": "Kiểm tra dịch vụ API",
@@ -1955,8 +1994,8 @@
         "expand": "Mở rộng",
         "collapse": "Thu gọn",
         "repairVisibility": "Sửa hiển thị",
-      "restoreSessions": "Khôi phục phiên",
-      "copySessionId": "Sao chép ID phiên"
+        "restoreSessions": "Khôi phục phiên",
+        "copySessionId": "Sao chép ID phiên"
       },
       "confirm": {
         "title": "Chuyển vào thùng rác",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "Hãy chọn ít nhất một phiên để khôi phục"
       },
       "groupCount": "{{count}} phiên",
-    "updatedAt": "Đã cập nhật",
-    "labels": {
-      "sessionId": "ID phiên",
-      "tokenUsage": "Mức dùng token"
-    },
+      "updatedAt": "Đã cập nhật",
+      "labels": {
+        "sessionId": "ID phiên",
+        "tokenUsage": "Mức dùng token"
+      },
       "locationRunning": " (đang chạy)",
       "untitled": "Phiên chưa đặt tên",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "Đã phát hiện model_context_window = {{context}} tùy chỉnh trong config.toml. Khi lưu, nó sẽ được ghi lại theo thiết lập nhanh bên dưới.",
         "compactMissingDetected": "Ngữ cảnh 1M đã bật nhưng thiếu giới hạn auto-compact. Khi lưu sẽ ghi giá trị mặc định {{limit}}.",
         "validation": {
-          "autoCompactInvalid": "Giới hạn auto-compact phải là số nguyên lớn hơn 0."
-        }
+          "autoCompactInvalid": "Giới hạn auto-compact phải là số nguyên lớn hơn 0.",
+          "contextWindowInvalid": "Cửa sổ ngữ cảnh phải là số nguyên lớn hơn 0."
+        },
+        "presetLabel": "Cấu hình đặt trước",
+        "presetHint": "Chọn giá trị đặt trước (Mặc định / 516K / 1M) hoặc chuyển sang Tùy chỉnh và điền thủ công cả hai trường.",
+        "presetDefaultShort": "Mặc định",
+        "presetDefaultDesc": "Xóa cả hai trường và sử dụng giá trị mặc định chính thức",
+        "preset516kShort": "Đặt trước 516K",
+        "preset516kDesc": "bối cảnh=516000 / nhỏ gọn=460000",
+        "preset1mShort": "1 triệu",
+        "preset1mDesc": "bối cảnh=1000000 / nhỏ gọn=900000",
+        "presetCustomShort": "Phong tục",
+        "presetCustomDesc": "Đặt thủ công bối cảnh và giá trị nhỏ gọn",
+        "presetDefault": "Mặc định (xóa model_context_window / model_auto_compact_token_limit)",
+        "preset516k": "Đặt trước 516K (model_context_window = 516000, auto_compact = 460000)",
+        "preset1m": "Đặt trước 1M (model_context_window = 1000000, auto_compact = 900000)",
+        "presetCustom": "Phong tục",
+        "contextWindow": "Cửa sổ ngữ cảnh",
+        "contextWindowHint": "Viết model_context_window. Chỉ có thể chỉnh sửa ở chế độ Tùy chỉnh.",
+        "partialDetected": "Hiện chỉ có một trường được quản lý được đặt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Việc lưu sẽ ghi lại cả hai trường bằng cách sử dụng lược đồ hiện tại.",
+        "notSet": "Chưa đặt"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Tệp cấu hình Codex",
       "openConfigToml": "Mở tệp",
       "openConfigHint": "Mở nhanh tệp Codex config.toml đang hoạt động.",
-      "localAccessEntryVisible": "Hiển thị mục Dịch vụ API"
+      "localAccessEntryVisible": "Hiển thị mục Dịch vụ API",
+      "quickConfig": {
+        "title": "Giới hạn bối cảnh và nhỏ gọn",
+        "presetLabel": "Cấu hình đặt trước",
+        "presetHint": "Chọn giá trị đặt trước (Mặc định / 516K / 1M) hoặc chuyển sang Tùy chỉnh và điền thủ công cả hai trường.",
+        "presetDefaultShort": "Mặc định",
+        "presetDefaultDesc": "Xóa cả hai trường và sử dụng giá trị mặc định chính thức",
+        "preset516kShort": "Đặt trước 516K",
+        "preset516kDesc": "bối cảnh=516000 / nhỏ gọn=460000",
+        "preset1mShort": "1 triệu",
+        "preset1mDesc": "bối cảnh=1000000 / nhỏ gọn=900000",
+        "presetCustomShort": "Phong tục",
+        "presetCustomDesc": "Đặt thủ công bối cảnh và giá trị nhỏ gọn",
+        "contextWindow": "Cửa sổ ngữ cảnh",
+        "contextWindowHint": "Viết model_context_window. Chỉ có thể chỉnh sửa ở chế độ Tùy chỉnh.",
+        "autoCompactLimit": "Giới hạn tự động thu gọn",
+        "autoCompactLimitHint": "Viết model_auto_compact_token_limit. Chỉ có thể chỉnh sửa ở chế độ Tùy chỉnh.",
+        "customDetected": "Đã phát hiện các giá trị tùy chỉnh trong config.toml: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Việc lưu sẽ ghi đè chúng bằng giá trị đặt sẵn mà bạn đã chọn.",
+        "partialDetected": "Hiện chỉ có một trường được quản lý được đặt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Việc lưu sẽ ghi lại cả hai trường bằng cách sử dụng lược đồ hiện tại.",
+        "notSet": "Chưa đặt",
+        "loadFailed": "Không tải được cấu hình Codex hiện tại: {{error}}",
+        "saveSuccess": "Đã lưu cấu hình Codex hiện tại.",
+        "saveFailed": "Không lưu được cấu hình Codex hiện tại: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Cửa sổ ngữ cảnh phải là số nguyên lớn hơn 0.",
+          "autoCompactInvalid": "Giới hạn tự động thu gọn phải là số nguyên lớn hơn 0."
+        }
+      }
     },
     "githubCopilot": {
       "title": "Cài đặt GitHub Copilot",
@@ -3231,11 +3316,11 @@
       "status": "Trạng thái điểm danh",
       "checkedIn": "Đã điểm danh",
       "notCheckedIn": "Chưa điểm danh",
-      "button": "Điểm danh",
+      "button": {},
       "button.loading": "Đang điểm danh...",
       "done": "Hoàn tất",
       "success": "Điểm danh thành công! Chuỗi {{days}} ngày",
-      "failure": "Điểm danh thất bại: {{message}}",
+      "failure": {},
       "failure.network": "Lỗi mạng, vui lòng thử lại sau",
       "lastCheckin": "Lần điểm danh gần nhất: {{time}}",
       "streak": "Chuỗi {{days}} ngày",

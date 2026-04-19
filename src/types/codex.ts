@@ -491,6 +491,12 @@ function normalizeCodexPlanKey(planType?: string): string {
   return normalized;
 }
 
+export function isCodexExplicitFreePlanType(planType?: string): boolean {
+  const normalized = (planType || '').trim();
+  if (!normalized) return false;
+  return normalizeCodexPlanKey(planType) === 'free';
+}
+
 function normalizeCodexAuthFilePlanType(value?: string): 'prolite' | 'promax' | undefined {
   const normalized = (value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
   if (normalized === 'prolite' || normalized === 'pro-lite') return 'prolite';

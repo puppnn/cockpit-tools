@@ -379,7 +379,34 @@
       "launchModeCli": "命令列 CLI",
       "workingDir": "工作目錄",
       "workingDirPlaceholder": "預設為目前路徑",
-      "workingDirDesc": "啟動時會先切換到此目錄"
+      "workingDirDesc": "啟動時會先切換到此目錄",
+      "codexQuickConfig": {
+        "title": "上下文與壓縮閾值",
+        "presetLabel": "配置預設",
+        "presetHint": "可直接選擇預設（預設 / 516K / 1M），或切到自訂手動填寫兩個欄位。",
+        "presetDefaultShort": "預設",
+        "presetDefaultDesc": "移除兩個字段，回到官方默認",
+        "preset516kShort": "預設516K",
+        "preset516kDesc": "上下文=516000 / 緊湊=460000",
+        "preset1mShort": "預設1M",
+        "preset1mDesc": "上下文=1000000 / 緊湊=900000",
+        "presetCustomShort": "自訂",
+        "presetCustomDesc": "手動填寫上下文與壓縮閾值",
+        "contextWindow": "上下文視窗",
+        "contextWindowHint": "寫入 model_context_window。僅在「自訂」模式可編輯。",
+        "autoCompactLimit": "自動壓縮閾值",
+        "autoCompactLimitHint": "寫入 model_auto_compact_token_limit。僅在「自訂」模式可編輯。",
+        "customDetected": "偵測到目前 config.toml 為自訂值：model_context_window={{context}}，model_auto_compact_token_limit={{compact}}。儲存後會依你選擇的預設改寫。",
+        "partialDetected": "偵測到目前兩個欄位並不完整：model_context_window={{context}}，model_auto_compact_token_limit={{compact}}。儲存後會依照目前方案改寫。",
+        "notSet": "未設定",
+        "loadFailed": "載入目前 Codex 配置失敗：{{error}}",
+        "openConfig": "開啟 config.toml",
+        "openFailed": "開啟 config.toml 失敗：{{error}}",
+        "validation": {
+          "contextWindowInvalid": "上下文視窗必須是大於 0 的整數",
+          "autoCompactInvalid": "自動壓縮閾值必須是大於 0 的整數"
+        }
+      }
     },
     "quota": {
       "unbound": "未綁定帳號",
@@ -730,7 +757,17 @@
       "upToDate": "已是最新版本",
       "newVersion": "發現 v{{version}}",
       "download": "下載",
-      "checkFailed": "檢查更新失敗，請稍後重試"
+      "checkFailed": "檢查更新失敗，請稍後重試",
+      "viewReleaseHistory": "更新記錄",
+      "releaseHistoryTitle": "更新記錄",
+      "releaseHistoryLoading": "正在載入更新記錄...",
+      "releaseHistoryEmpty": "暫無更新紀錄",
+      "releaseHistoryLoadFailed": "載入失敗：{{error}}",
+      "releaseHistorySectionAdded": "新增",
+      "releaseHistorySectionChanged": "變更",
+      "releaseHistorySectionFixed": "修復",
+      "releaseHistorySectionRemoved": "移除",
+      "downloadThisVersion": "下載此版本"
     },
     "saveSettings": "儲存設定",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "目前沒有可加入的 OAuth 帳號",
         "selected": "已加入 API 服務",
         "available": "一般面板",
-        "save": "儲存集合"
+        "save": "儲存集合",
+        "freeNotice": "暫不支援 Free 帳號，Free 帳號不可勾選。",
+        "freeUnsupported": "暫不支援 Free 帳號"
       },
       "entryAction": "加入 API 服務",
       "testAction": "測試 API 服務",
@@ -2038,8 +2077,8 @@
         "expand": "展開",
         "collapse": "收起",
         "repairVisibility": "修復可見性",
-      "restoreSessions": "還原工作階段",
-      "copySessionId": "複製會話 ID"
+        "restoreSessions": "還原工作階段",
+        "copySessionId": "複製會話 ID"
       },
       "confirm": {
         "title": "移到垃圾桶",
@@ -2057,11 +2096,11 @@
         "pickRestoreOne": "請至少選擇一個要還原的工作階段"
       },
       "groupCount": "{{count}} 條會話",
-    "updatedAt": "最近更新",
-    "labels": {
-      "sessionId": "會話 ID",
-      "tokenUsage": "Token 使用"
-    },
+      "updatedAt": "最近更新",
+      "labels": {
+        "sessionId": "會話 ID",
+        "tokenUsage": "Token 使用"
+      },
       "locationRunning": "（執行中）",
       "untitled": "未命名會話",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "偵測到目前 config.toml 存在自訂 model_context_window = {{context}}。儲存後會依下方快捷項改寫。",
         "compactMissingDetected": "偵測到目前已啟用 1M 上下文，但缺少自動壓縮門檻。儲存後會補寫預設值 {{limit}}。",
         "validation": {
-          "autoCompactInvalid": "自動壓縮門檻必須是大於 0 的整數"
-        }
+          "autoCompactInvalid": "自動壓縮門檻必須是大於 0 的整數",
+          "contextWindowInvalid": "上下文視窗必須是大於 0 的整數"
+        },
+        "presetLabel": "配置預設",
+        "presetHint": "可直接選擇預設（預設 / 516K / 1M），或切到自訂手動填寫兩個欄位。",
+        "presetDefaultShort": "預設",
+        "presetDefaultDesc": "移除兩個字段，回到官方默認",
+        "preset516kShort": "預設516K",
+        "preset516kDesc": "上下文=516000 / 緊湊=460000",
+        "preset1mShort": "預設1M",
+        "preset1mDesc": "上下文=1000000 / 緊湊=900000",
+        "presetCustomShort": "自訂",
+        "presetCustomDesc": "手動填寫上下文與壓縮閾值",
+        "presetDefault": "預設（移除 model_context_window / model_auto_compact_token_limit）",
+        "preset516k": "516K（model_context_window = 516000，auto_compact = 460000）",
+        "preset1m": "1M（model_context_window = 1000000，auto_compact = 900000）",
+        "presetCustom": "自訂",
+        "contextWindow": "上下文視窗",
+        "contextWindowHint": "寫入 model_context_window。僅在「自訂」模式可編輯。",
+        "partialDetected": "偵測到目前兩個欄位並不完整：model_context_window={{context}}，model_auto_compact_token_limit={{compact}}。儲存後會依照目前方案改寫。",
+        "notSet": "未設定"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Codex 設定檔",
       "openConfigToml": "開啟檔案",
       "openConfigHint": "快速開啟目前使用的 Codex config.toml 檔案。",
-      "localAccessEntryVisible": "顯示 API 服務入口"
+      "localAccessEntryVisible": "顯示 API 服務入口",
+      "quickConfig": {
+        "title": "上下文與壓縮閾值",
+        "presetLabel": "配置預設",
+        "presetHint": "可直接選擇預設（預設 / 516K / 1M），或切到自訂手動填寫兩個欄位。",
+        "presetDefaultShort": "預設",
+        "presetDefaultDesc": "移除兩個字段，回到官方默認",
+        "preset516kShort": "預設516K",
+        "preset516kDesc": "上下文=516000 / 緊湊=460000",
+        "preset1mShort": "預設1M",
+        "preset1mDesc": "上下文=1000000 / 緊湊=900000",
+        "presetCustomShort": "自訂",
+        "presetCustomDesc": "手動填寫上下文與壓縮閾值",
+        "contextWindow": "上下文視窗",
+        "contextWindowHint": "寫入 model_context_window。僅在「自訂」模式可編輯。",
+        "autoCompactLimit": "自動壓縮閾值",
+        "autoCompactLimitHint": "寫入 model_auto_compact_token_limit。僅在「自訂」模式可編輯。",
+        "customDetected": "偵測到目前 config.toml 為自訂值：model_context_window={{context}}，model_auto_compact_token_limit={{compact}}。儲存後會依你選擇的預設改寫。",
+        "partialDetected": "偵測到目前兩個欄位並不完整：model_context_window={{context}}，model_auto_compact_token_limit={{compact}}。儲存後會依照目前方案改寫。",
+        "notSet": "未設定",
+        "loadFailed": "載入目前 Codex 配置失敗：{{error}}",
+        "saveSuccess": "目前 Codex 配置已儲存",
+        "saveFailed": "儲存目前 Codex 配置失敗：{{error}}",
+        "validation": {
+          "contextWindowInvalid": "上下文視窗必須是大於 0 的整數",
+          "autoCompactInvalid": "自動壓縮閾值必須是大於 0 的整數"
+        }
+      }
     },
     "githubCopilot": {
       "title": "GitHub Copilot 設定",
@@ -3231,11 +3316,11 @@
       "status": "簽到狀態",
       "checkedIn": "已簽到",
       "notCheckedIn": "未簽到",
-      "button": "簽到",
+      "button": {},
       "button.loading": "簽到中...",
       "done": "已完成",
       "success": "簽到成功！連續簽到 {{days}} 天",
-      "failure": "簽到失敗：{{message}}",
+      "failure": {},
       "failure.network": "網路異常，請稍後重試",
       "lastCheckin": "最後簽到：{{time}}",
       "streak": "連續簽到 {{days}} 天",

@@ -3203,9 +3203,8 @@ mod tests {
         let config_path = base_dir.join("config.toml");
         fs::write(&config_path, "model = \"gpt-5\"\n").expect("write config");
 
-        let result =
-            write_quick_config_to_config_toml(&base_dir, Some(1_000_000), Some(880000))
-                .expect("save quick config");
+        let result = write_quick_config_to_config_toml(&base_dir, Some(1_000_000), Some(880000))
+            .expect("save quick config");
 
         let content = fs::read_to_string(&config_path).expect("read config");
         assert!(content.contains("model_context_window = 1000000"));
@@ -3255,9 +3254,8 @@ mod tests {
         let config_path = base_dir.join("config.toml");
         fs::write(&config_path, "model = \"gpt-5\"\n").expect("write config");
 
-        let result =
-            write_quick_config_to_config_toml(&base_dir, Some(516_000), Some(460_000))
-                .expect("save quick config");
+        let result = write_quick_config_to_config_toml(&base_dir, Some(516_000), Some(460_000))
+            .expect("save quick config");
 
         let content = fs::read_to_string(&config_path).expect("read config");
         assert!(content.contains("model_context_window = 516000"));

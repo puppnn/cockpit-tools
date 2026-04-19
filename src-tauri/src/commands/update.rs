@@ -1,6 +1,6 @@
 use crate::modules::linux_updater::{self, UpdateRuntimeInfo};
 use crate::modules::logger;
-use crate::modules::update_checker::{self, UpdateSettings, VersionJumpInfo};
+use crate::modules::update_checker::{self, ReleaseHistoryItem, UpdateSettings, VersionJumpInfo};
 use std::time::Instant;
 
 /// Check if we should check for updates (based on interval settings)
@@ -90,6 +90,15 @@ pub fn check_version_jump() -> Result<Option<VersionJumpInfo>, String> {
         )),
     }
     result
+}
+
+/// Read release history from changelog files
+#[tauri::command]
+pub fn get_release_history(
+    locale: Option<String>,
+    limit: Option<usize>,
+) -> Result<Vec<ReleaseHistoryItem>, String> {
+    update_checker::get_release_history(locale.as_deref(), limit)
 }
 
 /// Write updater lifecycle logs from frontend into app.log

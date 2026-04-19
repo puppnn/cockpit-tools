@@ -27,6 +27,7 @@ import {
   buildAccountTierCounts,
   buildAccountTierFilterOptions,
 } from '../utils/accountFilters';
+import { resolveUpdaterDownloadUrl } from '../utils/updaterReleaseNotes';
 import { getSubscriptionTier } from '../utils/account';
 import type { Account } from '../types/account';
 import type { CodexAccount } from '../types/codex';
@@ -49,7 +50,7 @@ import { SettingsAccountTransferSection } from '../components/SettingsAccountTra
 import './settings/Settings.css';
 import { 
   Github, User, Rocket, Save, FolderOpen,
-  AlertCircle, RefreshCw, Heart, MessageSquare
+  AlertCircle, RefreshCw, Heart, MessageSquare, FileText, Download, X
 } from 'lucide-react';
 
 
@@ -199,6 +200,17 @@ type UpdateCheckFinishedDetail = {
   latestVersion?: string;
   error?: string;
 };
+
+type ReleaseHistorySectionKey = 'added' | 'changed' | 'fixed' | 'removed';
+
+interface ReleaseHistoryItem {
+  version: string;
+  date: string;
+  added: string[];
+  changed: string[];
+  fixed: string[];
+  removed: string[];
+}
 
 const generateReportToken = () => {
   const bytes = new Uint8Array(12);
@@ -447,6 +459,10 @@ export function SettingsPage() {
     text: string;
     tone?: 'error' | 'success';
   } | null>(null);
+  const [releaseHistoryOpen, setReleaseHistoryOpen] = useState(false);
+  const [releaseHistoryLoading, setReleaseHistoryLoading] = useState(false);
+  const [releaseHistoryError, setReleaseHistoryError] = useState('');
+  const [releaseHistoryItems, setReleaseHistoryItems] = useState<ReleaseHistoryItem[]>([]);
   const [autoInstall, setAutoInstall] = useState(false);
   const [autoInstallLoaded, setAutoInstallLoaded] = useState(false);
   const autoInstallTouchedRef = useRef(false);
@@ -1638,6 +1654,72 @@ export function SettingsPage() {
       new CustomEvent('update-check-requested', {
         detail: { source: 'manual' as UpdateCheckSource },
       }),
+    );
+  };
+
+  const releaseHistorySections = useMemo<
+    Array<{ key: ReleaseHistorySectionKey; label: string }>
+  >(
+    () => [
+      { key: 'added', label: t('settings.about.releaseHistorySectionAdded', '新增') },
+      { key: 'changed', label: t('settings.about.releaseHistorySectionChanged', '变更') },
+      { key: 'fixed', label: t('settings.about.releaseHistorySectionFixed', '修复') },
+      { key: 'removed', label: t('settings.about.releaseHistorySectionRemoved', '移除') },
+    ],
+    [t],
+  );
+
+  const loadReleaseHistory = async () => {
+    setReleaseHistoryLoading(true);
+    setReleaseHistoryError('');
+    try {
+      const items = await invoke<ReleaseHistoryItem[]>('get_release_history', {
+        locale: language,
+        limit: 30,
+      });
+      setReleaseHistoryItems(Array.isArray(items) ? items : []);
+    } catch (error) {
+      console.error('加载更新记录失败:', error);
+      setReleaseHistoryItems([]);
+      setReleaseHistoryError(
+        error instanceof Error ? error.message : String(error || ''),
+      );
+    } finally {
+      setReleaseHistoryLoading(false);
+    }
+  };
+
+  const handleOpenReleaseHistory = () => {
+    setReleaseHistoryOpen(true);
+    void loadReleaseHistory();
+  };
+
+  const handleCloseReleaseHistory = () => {
+    setReleaseHistoryOpen(false);
+  };
+
+  const handleDownloadReleaseVersion = async (version: string) => {
+    const targetVersion = String(version || '').trim();
+    if (!targetVersion) {
+      return;
+    }
+
+    const releaseUrl = resolveUpdaterDownloadUrl(targetVersion);
+    try {
+      await openUrl(releaseUrl);
+    } catch {
+      window.open(releaseUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const renderReleaseHistoryLine = (line: string) => {
+    const parts = line.split(/\*\*(.*?)\*\*/g);
+    return parts.map((part, index) =>
+      index % 2 === 1 ? (
+        <strong key={index}>{part}</strong>
+      ) : (
+        <span key={index}>{part}</span>
+      ),
     );
   };
 
@@ -5090,6 +5172,21 @@ export function SettingsPage() {
                       {updateChecking ? t('settings.about.checking') : t('settings.about.checkUpdate')}
                     </>
                   </button>
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    onClick={handleOpenReleaseHistory}
+                    disabled={releaseHistoryLoading}
+                    style={{
+                      fontSize: '12px',
+                      padding: '4px 10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <FileText size={14} />
+                    {t('settings.about.viewReleaseHistory', '更新记录')}
+                  </button>
                 </div>
                 {updateCheckMessage && (
                   <div
@@ -5135,6 +5232,94 @@ export function SettingsPage() {
         )}
         </div>
       </div>
+      {releaseHistoryOpen && (
+        <div className="modal-overlay" onClick={handleCloseReleaseHistory}>
+          <div className="modal settings-release-history-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('settings.about.releaseHistoryTitle', '更新记录')}</h2>
+              <button
+                className="modal-close"
+                onClick={handleCloseReleaseHistory}
+                aria-label={t('common.close', '关闭')}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="modal-body settings-release-history-body">
+              {releaseHistoryLoading && (
+                <div className="settings-release-history-state">
+                  <RefreshCw size={14} className="spin" />
+                  <span>{t('settings.about.releaseHistoryLoading', '加载中...')}</span>
+                </div>
+              )}
+              {!releaseHistoryLoading && releaseHistoryError && (
+                <div className="settings-release-history-state settings-release-history-state-error">
+                  {t('settings.about.releaseHistoryLoadFailed', '加载失败：{{error}}', {
+                    error: releaseHistoryError,
+                  })}
+                </div>
+              )}
+              {!releaseHistoryLoading && !releaseHistoryError && releaseHistoryItems.length === 0 && (
+                <div className="settings-release-history-state">
+                  {t('settings.about.releaseHistoryEmpty', '暂无更新记录')}
+                </div>
+              )}
+              {!releaseHistoryLoading &&
+                !releaseHistoryError &&
+                releaseHistoryItems.map((item) => (
+                  <article
+                    key={`${item.version}-${item.date || 'unknown'}`}
+                    className="settings-release-history-item"
+                  >
+                    <div className="settings-release-history-item-head">
+                      <span className="settings-release-history-version">v{item.version}</span>
+                      <div className="settings-release-history-item-meta">
+                        {item.date ? (
+                          <span className="settings-release-history-date">{item.date}</span>
+                        ) : null}
+                        <button
+                          className="settings-release-history-download-btn"
+                          onClick={() => {
+                            void handleDownloadReleaseVersion(item.version);
+                          }}
+                          type="button"
+                        >
+                          <Download size={12} />
+                          {t('settings.about.downloadThisVersion', '下载此版本')}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="settings-release-history-sections">
+                      {releaseHistorySections.map((section) => {
+                        const lines = item[section.key];
+                        if (!Array.isArray(lines) || lines.length === 0) {
+                          return null;
+                        }
+                        return (
+                          <section key={`${item.version}-${section.key}`} className="settings-release-history-section">
+                            <h3>{section.label}</h3>
+                            <ul>
+                              {lines.map((line, index) => (
+                                <li key={`${item.version}-${section.key}-${index}`}>
+                                  {renderReleaseHistoryLine(line)}
+                                </li>
+                              ))}
+                            </ul>
+                          </section>
+                        );
+                      })}
+                    </div>
+                  </article>
+                ))}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={handleCloseReleaseHistory}>
+                {t('common.close', '关闭')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showUnlockFireworks && (
         <UnlockFireworksOverlay />
       )}

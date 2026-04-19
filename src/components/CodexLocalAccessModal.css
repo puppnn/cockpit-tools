@@ -322,7 +322,8 @@
 }
 
 .codex-local-access-inline-error,
-.codex-local-access-inline-success {
+.codex-local-access-inline-success,
+.codex-local-access-inline-info {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -333,13 +334,15 @@
 }
 
 .codex-local-access-inline-error svg,
-.codex-local-access-inline-success svg {
+.codex-local-access-inline-success svg,
+.codex-local-access-inline-info svg {
   flex-shrink: 0;
   margin-top: 1px;
 }
 
 .codex-local-access-inline-error span,
-.codex-local-access-inline-success span {
+.codex-local-access-inline-success span,
+.codex-local-access-inline-info span {
   min-width: 0;
   line-height: 1.55;
 }
@@ -354,6 +357,12 @@
   color: #166534;
   background: linear-gradient(135deg, rgba(240, 253, 244, 0.95), rgba(220, 252, 231, 0.72));
   border-color: rgba(34, 197, 94, 0.16);
+}
+
+.codex-local-access-inline-info {
+  color: #1e3a8a;
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.72));
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .codex-local-access-section {
@@ -861,6 +870,16 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.62);
 }
 
+.codex-local-access-member-section .group-account-item.is-disabled {
+  opacity: 0.72;
+}
+
+.codex-local-access-member-section .group-account-item.is-disabled:hover {
+  transform: none;
+  border-color: rgba(148, 163, 184, 0.14);
+  box-shadow: 0 14px 28px -24px rgba(15, 23, 42, 0.38);
+}
+
 .codex-local-access-member-section .group-account-item.group-account-item-header {
   min-height: 46px;
   padding: 10px 14px;
@@ -918,6 +937,20 @@
 .codex-local-access-member-mainline .tier-badge {
   flex-wrap: nowrap;
   flex-shrink: 0;
+}
+
+.codex-local-access-member-unsupported {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 130, 246, 0.24);
+  background: rgba(219, 234, 254, 0.7);
+  color: #1e3a8a;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .codex-local-access-member-mainline .tier-badge,
@@ -1298,6 +1331,18 @@
   color: #86efac;
   background: linear-gradient(135deg, rgba(5, 46, 22, 0.78), rgba(20, 83, 45, 0.54));
   border-color: rgba(74, 222, 128, 0.2);
+}
+
+[data-theme="dark"] .codex-local-access-inline-info {
+  color: #93c5fd;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.72), rgba(37, 99, 235, 0.5));
+  border-color: rgba(96, 165, 250, 0.24);
+}
+
+[data-theme="dark"] .codex-local-access-member-unsupported {
+  border-color: rgba(96, 165, 250, 0.28);
+  background: rgba(30, 58, 138, 0.4);
+  color: #bfdbfe;
 }
 
 [data-theme="dark"] .codex-local-access-member-section .group-account-empty,

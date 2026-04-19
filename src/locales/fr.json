@@ -379,7 +379,34 @@
       "launchModeCli": "Mode CLI",
       "workingDir": "Répertoire de travail",
       "workingDirPlaceholder": "Utilise le chemin actuel par défaut",
-      "workingDirDesc": "Basculera d'abord vers ce répertoire au démarrage"
+      "workingDirDesc": "Basculera d'abord vers ce répertoire au démarrage",
+      "codexQuickConfig": {
+        "title": "Contexte et limites du compact",
+        "presetLabel": "Préréglage de configuration",
+        "presetHint": "Choisissez un préréglage (Par défaut / 516K / 1M) ou passez à Personnalisé et remplissez les deux champs manuellement.",
+        "presetDefaultShort": "Défaut",
+        "presetDefaultDesc": "Supprimez les deux champs et utilisez les valeurs par défaut officielles",
+        "preset516kShort": "516 Ko",
+        "preset516kDesc": "contexte=516000 / compact=460000",
+        "preset1mShort": "Préréglage 1M",
+        "preset1mDesc": "contexte=1000000 / compact=900000",
+        "presetCustomShort": "Coutume",
+        "presetCustomDesc": "Définir manuellement le contexte et les valeurs compactes",
+        "contextWindow": "Fenêtre contextuelle",
+        "contextWindowHint": "Écrit model_context_window. Modifiable uniquement en mode personnalisé.",
+        "autoCompactLimit": "Limite de compactage automatique",
+        "autoCompactLimitHint": "Écrit model_auto_compact_token_limit. Modifiable uniquement en mode personnalisé.",
+        "customDetected": "Des valeurs personnalisées ont été détectées dans config.toml : model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. L’enregistrement les écrasera avec votre préréglage sélectionné.",
+        "partialDetected": "Un seul champ géré est actuellement défini : model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. La sauvegarde réécrira les deux champs en utilisant le schéma actuel.",
+        "notSet": "Non défini",
+        "loadFailed": "Échec du chargement de la configuration actuelle du Codex : {{error}}",
+        "openConfig": "Ouvrez config.toml",
+        "openFailed": "Échec de l'ouverture de config.toml : {{error}}",
+        "validation": {
+          "contextWindowInvalid": "La fenêtre contextuelle doit être un entier supérieur à 0.",
+          "autoCompactInvalid": "La limite de compactage automatique doit être un entier supérieur à 0."
+        }
+      }
     },
     "quota": {
       "unbound": "Compte non lié",
@@ -730,7 +757,17 @@
       "upToDate": "À jour",
       "newVersion": "v{{version}} disponible",
       "download": "Télécharger",
-      "checkFailed": "Échec de la vérification"
+      "checkFailed": "Échec de la vérification",
+      "viewReleaseHistory": "Notes de version",
+      "releaseHistoryTitle": "Notes de version",
+      "releaseHistoryLoading": "Chargement des notes de version...",
+      "releaseHistoryEmpty": "Pas encore de notes de version",
+      "releaseHistoryLoadFailed": "Échec du chargement : {{error}}",
+      "releaseHistorySectionAdded": "Ajouté",
+      "releaseHistorySectionChanged": "Modifié",
+      "releaseHistorySectionFixed": "Fixé",
+      "releaseHistorySectionRemoved": "Supprimé",
+      "downloadThisVersion": "Télécharger"
     },
     "saveSettings": "Enregistrer les paramètres",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "Aucun compte OAuth disponible",
         "selected": "Dans le service API",
         "available": "Vue normale",
-        "save": "Enregistrer la collection"
+        "save": "Enregistrer la collection",
+        "freeNotice": "Les comptes gratuits ne sont pas encore pris en charge. Les comptes gratuits ne peuvent pas être sélectionnés.",
+        "freeUnsupported": "Les comptes gratuits ne sont pas encore pris en charge"
       },
       "entryAction": "Ajouter au service API",
       "testAction": "Tester le service API",
@@ -1955,8 +1994,8 @@
         "expand": "Développer",
         "collapse": "Réduire",
         "repairVisibility": "Réparer la visibilité",
-      "restoreSessions": "Restaurer les sessions",
-      "copySessionId": "Copier l'ID de session"
+        "restoreSessions": "Restaurer les sessions",
+        "copySessionId": "Copier l'ID de session"
       },
       "confirm": {
         "title": "Déplacer vers la corbeille",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "Veuillez sélectionner au moins une session à restaurer"
       },
       "groupCount": "{{count}} sessions",
-    "updatedAt": "Mis à jour",
-    "labels": {
-      "sessionId": "ID de session",
-      "tokenUsage": "Utilisation des tokens"
-    },
+      "updatedAt": "Mis à jour",
+      "labels": {
+        "sessionId": "ID de session",
+        "tokenUsage": "Utilisation des tokens"
+      },
       "locationRunning": " (en cours d’exécution)",
       "untitled": "Session sans titre",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "Un model_context_window = {{context}} personnalisé a été détecté dans config.toml. L'enregistrement le réécrira avec le réglage rapide ci-dessous.",
         "compactMissingDetected": "Le contexte 1M est déjà activé, mais la limite d'auto-compactage est absente. L'enregistrement écrira la valeur par défaut {{limit}}.",
         "validation": {
-          "autoCompactInvalid": "La limite d'auto-compactage doit être un entier supérieur à 0."
-        }
+          "autoCompactInvalid": "La limite d'auto-compactage doit être un entier supérieur à 0.",
+          "contextWindowInvalid": "La fenêtre contextuelle doit être un entier supérieur à 0."
+        },
+        "presetLabel": "Préréglage de configuration",
+        "presetHint": "Choisissez un préréglage (Par défaut / 516K / 1M) ou passez à Personnalisé et remplissez les deux champs manuellement.",
+        "presetDefaultShort": "Défaut",
+        "presetDefaultDesc": "Supprimez les deux champs et utilisez les valeurs par défaut officielles",
+        "preset516kShort": "516 Ko",
+        "preset516kDesc": "contexte=516000 / compact=460000",
+        "preset1mShort": "Préréglage 1M",
+        "preset1mDesc": "contexte=1000000 / compact=900000",
+        "presetCustomShort": "Coutume",
+        "presetCustomDesc": "Définir manuellement le contexte et les valeurs compactes",
+        "presetDefault": "Par défaut (supprimer model_context_window / model_auto_compact_token_limit)",
+        "preset516k": "516 Ko (model_context_window = 516 000, auto_compact = 460 000)",
+        "preset1m": "1M (model_context_window = 1 000 000, auto_compact = 900 000)",
+        "presetCustom": "Coutume",
+        "contextWindow": "Fenêtre contextuelle",
+        "contextWindowHint": "Écrit model_context_window. Modifiable uniquement en mode personnalisé.",
+        "partialDetected": "Un seul champ géré est actuellement défini : model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. La sauvegarde réécrira les deux champs en utilisant le schéma actuel.",
+        "notSet": "Non défini"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Fichier de configuration Codex",
       "openConfigToml": "Ouvrir le fichier",
       "openConfigHint": "Ouvrez rapidement le fichier config.toml actif de Codex.",
-      "localAccessEntryVisible": "Afficher l'entrée du service API"
+      "localAccessEntryVisible": "Afficher l'entrée du service API",
+      "quickConfig": {
+        "title": "Contexte et limites du compact",
+        "presetLabel": "Préréglage de configuration",
+        "presetHint": "Choisissez un préréglage (Par défaut / 516K / 1M) ou passez à Personnalisé et remplissez les deux champs manuellement.",
+        "presetDefaultShort": "Défaut",
+        "presetDefaultDesc": "Supprimez les deux champs et utilisez les valeurs par défaut officielles",
+        "preset516kShort": "516 Ko",
+        "preset516kDesc": "contexte=516000 / compact=460000",
+        "preset1mShort": "Préréglage 1M",
+        "preset1mDesc": "contexte=1000000 / compact=900000",
+        "presetCustomShort": "Coutume",
+        "presetCustomDesc": "Définir manuellement le contexte et les valeurs compactes",
+        "contextWindow": "Fenêtre contextuelle",
+        "contextWindowHint": "Écrit model_context_window. Modifiable uniquement en mode personnalisé.",
+        "autoCompactLimit": "Limite de compactage automatique",
+        "autoCompactLimitHint": "Écrit model_auto_compact_token_limit. Modifiable uniquement en mode personnalisé.",
+        "customDetected": "Des valeurs personnalisées ont été détectées dans config.toml : model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. L’enregistrement les écrasera avec votre préréglage sélectionné.",
+        "partialDetected": "Un seul champ géré est actuellement défini : model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. La sauvegarde réécrira les deux champs en utilisant le schéma actuel.",
+        "notSet": "Non défini",
+        "loadFailed": "Échec du chargement de la configuration actuelle du Codex : {{error}}",
+        "saveSuccess": "Configuration actuelle du Codex enregistrée.",
+        "saveFailed": "Échec de l'enregistrement de la configuration actuelle du Codex : {{error}}",
+        "validation": {
+          "contextWindowInvalid": "La fenêtre contextuelle doit être un entier supérieur à 0.",
+          "autoCompactInvalid": "La limite de compactage automatique doit être un entier supérieur à 0."
+        }
+      }
     },
     "githubCopilot": {
       "title": "Paramètres GitHub Copilot",
@@ -3231,11 +3316,11 @@
       "status": "Statut du check-in",
       "checkedIn": "Check-in effectué",
       "notCheckedIn": "Pas encore check-in",
-      "button": "Faire le check-in",
+      "button": {},
       "button.loading": "Check-in en cours...",
       "done": "Terminé",
       "success": "Check-in réussi ! Série de {{days}} jours",
-      "failure": "Échec du check-in : {{message}}",
+      "failure": {},
       "failure.network": "Erreur réseau, veuillez réessayer plus tard",
       "lastCheckin": "Dernier check-in : {{time}}",
       "streak": "Série de {{days}} jours",

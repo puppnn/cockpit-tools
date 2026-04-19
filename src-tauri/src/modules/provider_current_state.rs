@@ -66,8 +66,8 @@ fn load_state() -> Result<ProviderCurrentState, String> {
 
 fn save_state(state: &ProviderCurrentState) -> Result<(), String> {
     let path = get_state_path()?;
-    let content =
-        serde_json::to_string_pretty(state).map_err(|e| format!("序列化当前账号映射失败: {}", e))?;
+    let content = serde_json::to_string_pretty(state)
+        .map_err(|e| format!("序列化当前账号映射失败: {}", e))?;
     crate::modules::atomic_write::write_string_atomic(&path, &content)
         .map_err(|e| format!("保存当前账号映射失败: path={}, error={}", path.display(), e))
 }
@@ -82,10 +82,7 @@ pub fn get_current_account_id(platform: &str) -> Result<Option<String>, String> 
         .filter(|value| !value.is_empty()))
 }
 
-pub fn resolve_existing_current_account_id<'a, I>(
-    platform: &str,
-    existing_ids: I,
-) -> Option<String>
+pub fn resolve_existing_current_account_id<'a, I>(platform: &str, existing_ids: I) -> Option<String>
 where
     I: IntoIterator<Item = &'a str>,
 {

@@ -221,7 +221,8 @@ fn read_token_stats_from_rollout_uncached(
         let mut chunk = vec![0u8; chunk_len];
         file.read_exact(&mut chunk).ok()?;
 
-        let starts_on_line_boundary = offset == 0 || byte_before_is_newline(&mut file, offset).ok()?;
+        let starts_on_line_boundary =
+            offset == 0 || byte_before_is_newline(&mut file, offset).ok()?;
         chunk.extend_from_slice(&pending_prefix);
 
         let parse_from_index = if starts_on_line_boundary {

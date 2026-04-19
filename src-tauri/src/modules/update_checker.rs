@@ -7,6 +7,8 @@ const DEFAULT_CHECK_INTERVAL_HOURS: u64 = 1;
 const LEGACY_DEFAULT_CHECK_INTERVAL_HOURS: u64 = 24;
 const LEGACY_PREVIOUS_DEFAULT_CHECK_INTERVAL_HOURS: u64 = 6;
 const PENDING_UPDATE_NOTES_FILE: &str = "pending_update_notes.json";
+const CHANGELOG_MARKDOWN_EN: &str = include_str!("../../../CHANGELOG.md");
+const CHANGELOG_MARKDOWN_ZH: &str = include_str!("../../../CHANGELOG.zh-CN.md");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateSettings {
@@ -53,6 +55,26 @@ pub struct VersionJumpInfo {
     pub current_version: String,
     pub release_notes: String,
     pub release_notes_zh: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReleaseHistoryItem {
+    pub version: String,
+    pub date: String,
+    pub added: Vec<String>,
+    pub changed: Vec<String>,
+    pub fixed: Vec<String>,
+    pub removed: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ReleaseHistorySection {
+    Added,
+    Changed,
+    Fixed,
+    Removed,
+    Unknown,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,6 +146,120 @@ fn ensure_data_dir() -> Result<std::path::PathBuf, String> {
 
 fn pending_update_notes_path() -> Result<std::path::PathBuf, String> {
     Ok(get_data_dir()?.join(PENDING_UPDATE_NOTES_FILE))
+}
+
+fn parse_release_header(line: &str) -> Option<(String, String)> {
+    if !line.starts_with("## [") {
+        return None;
+    }
+    let body = line.strip_prefix("## [")?;
+    let end_bracket = body.find(']')?;
+    let version = body[..end_bracket].trim();
+    if version.is_empty() {
+        return None;
+    }
+
+    let tail = body[(end_bracket + 1)..].trim();
+    let date = tail
+        .strip_prefix('-')
+        .map(|value| value.trim().to_string())
+        .unwrap_or_default();
+
+    Some((version.to_string(), date))
+}
+
+fn parse_release_section(line: &str) -> Option<ReleaseHistorySection> {
+    let heading = line.strip_prefix("### ")?.trim().to_lowercase();
+    match heading.as_str() {
+        "added" | "新增" => Some(ReleaseHistorySection::Added),
+        "changed" | "变更" => Some(ReleaseHistorySection::Changed),
+        "fixed" | "修复" => Some(ReleaseHistorySection::Fixed),
+        "removed" | "移除" => Some(ReleaseHistorySection::Removed),
+        _ => Some(ReleaseHistorySection::Unknown),
+    }
+}
+
+fn parse_release_history_markdown(markdown: &str, limit: usize) -> Vec<ReleaseHistoryItem> {
+    let mut releases: Vec<ReleaseHistoryItem> = Vec::new();
+    let mut current_release: Option<ReleaseHistoryItem> = None;
+    let mut current_section = ReleaseHistorySection::Unknown;
+    let normalized = markdown.replace("\r\n", "\n");
+
+    for raw_line in normalized.lines() {
+        let line = raw_line.trim();
+        if line.is_empty() {
+            continue;
+        }
+
+        if let Some((version, date)) = parse_release_header(line) {
+            if let Some(release) = current_release.take() {
+                releases.push(release);
+            }
+            current_release = Some(ReleaseHistoryItem {
+                version,
+                date,
+                added: Vec::new(),
+                changed: Vec::new(),
+                fixed: Vec::new(),
+                removed: Vec::new(),
+            });
+            current_section = ReleaseHistorySection::Unknown;
+            continue;
+        }
+
+        if let Some(section) = parse_release_section(line) {
+            current_section = section;
+            continue;
+        }
+
+        if !line.starts_with("- ") {
+            continue;
+        }
+
+        let Some(release) = current_release.as_mut() else {
+            continue;
+        };
+        let content = line.trim_start_matches("- ").trim();
+        if content.is_empty() {
+            continue;
+        }
+
+        match current_section {
+            ReleaseHistorySection::Added => release.added.push(content.to_string()),
+            ReleaseHistorySection::Changed => release.changed.push(content.to_string()),
+            ReleaseHistorySection::Fixed => release.fixed.push(content.to_string()),
+            ReleaseHistorySection::Removed => release.removed.push(content.to_string()),
+            ReleaseHistorySection::Unknown => {}
+        }
+    }
+
+    if let Some(release) = current_release.take() {
+        releases.push(release);
+    }
+
+    if releases.len() > limit {
+        releases.truncate(limit);
+    }
+
+    releases
+}
+
+fn release_history_markdown_for_locale(locale: &str) -> &'static str {
+    if locale.trim().to_lowercase().starts_with("zh") {
+        CHANGELOG_MARKDOWN_ZH
+    } else {
+        CHANGELOG_MARKDOWN_EN
+    }
+}
+
+pub fn get_release_history(
+    locale: Option<&str>,
+    limit: Option<usize>,
+) -> Result<Vec<ReleaseHistoryItem>, String> {
+    let resolved_locale = locale.unwrap_or("en");
+    let content = release_history_markdown_for_locale(resolved_locale);
+    let safe_limit = limit.unwrap_or(30).max(1).min(100);
+    Ok(parse_release_history_markdown(content, safe_limit))
 }
 
 fn load_pending_update_notes() -> Result<Option<PendingUpdateNotes>, String> {
@@ -330,5 +466,72 @@ mod tests {
     fn test_compare_versions_handles_longer_version_segments() {
         assert!(compare_versions("1.0.0.1", "1.0.0"));
         assert!(!compare_versions("1.0.0", "1.0.0.1"));
+    }
+
+    #[test]
+    fn test_parse_release_history_markdown_with_english_sections() {
+        let input = r#"
+## [0.2.0] - 2026-04-19
+
+### Added
+- Added feature A
+
+### Changed
+- Changed behavior B
+
+### Fixed
+- Fixed bug C
+
+### Removed
+- Removed old D
+"#;
+
+        let result = parse_release_history_markdown(input, 30);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].version, "0.2.0");
+        assert_eq!(result[0].date, "2026-04-19");
+        assert_eq!(result[0].added, vec!["Added feature A".to_string()]);
+        assert_eq!(result[0].changed, vec!["Changed behavior B".to_string()]);
+        assert_eq!(result[0].fixed, vec!["Fixed bug C".to_string()]);
+        assert_eq!(result[0].removed, vec!["Removed old D".to_string()]);
+    }
+
+    #[test]
+    fn test_parse_release_history_markdown_with_chinese_sections() {
+        let input = r#"
+## [0.1.0] - 2026-04-18
+
+### 新增
+- 新能力 A
+
+### 变更
+- 调整 B
+
+### 修复
+- 修复 C
+"#;
+
+        let result = parse_release_history_markdown(input, 30);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].version, "0.1.0");
+        assert_eq!(result[0].added, vec!["新能力 A".to_string()]);
+        assert_eq!(result[0].changed, vec!["调整 B".to_string()]);
+        assert_eq!(result[0].fixed, vec!["修复 C".to_string()]);
+        assert!(result[0].removed.is_empty());
+    }
+
+    #[test]
+    fn test_parse_release_history_markdown_respects_limit() {
+        let input = r#"
+## [0.3.0] - 2026-04-20
+### Added
+- A
+## [0.2.0] - 2026-04-19
+### Added
+- B
+"#;
+        let result = parse_release_history_markdown(input, 1);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].version, "0.3.0");
     }
 }

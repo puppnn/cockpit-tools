@@ -70,6 +70,7 @@ import {
   getCodexAuthMetadata,
   hasCodexAccountName,
   isCodexApiKeyAccount,
+  isCodexExplicitFreePlanType,
   isCodexTeamLikePlan,
   type CodexApiProviderMode,
   type CodexQuotaErrorInfo,
@@ -186,6 +187,9 @@ const CODEX_USAGE_URL = 'https://platform.openai.com/usage';
 const CODEX_OVERVIEW_LAYOUT_MODE_KEY = 'agtools.codex.accounts.overview_layout_mode';
 const CODEX_LOCAL_ACCESS_EXPANDED_KEY = 'agtools.codex.local_access_entry_expanded.v1';
 const DEFAULT_CODEX_API_PROVIDER_ID = CODEX_API_PROVIDER_CUSTOM_ID;
+const CODEX_LOCAL_ACCESS_FALLBACK_PORT = 54140;
+const CODEX_LOCAL_ACCESS_FALLBACK_BASE_URL = `http://127.0.0.1:${CODEX_LOCAL_ACCESS_FALLBACK_PORT}/v1`;
+const CODEX_LOCAL_ACCESS_FALLBACK_API_KEY_MASK = 'agt_codex_••••••••••••';
 const CODEX_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('Codex');
 const FILTER_TYPES_FIELD = 'filter_types';
 const GROUP_FILTER_FIELD = 'group_filter';
@@ -2104,7 +2108,7 @@ export function CodexAccountsPage() {
     localAccessSaving || localAccessTesting || localAccessStarting || localAccessRefreshing;
 
   const resolveLocalAccessBaseUrl = useCallback(() => {
-    if (!localAccessCollection) return '';
+    if (!localAccessCollection) return localAccessState?.baseUrl || CODEX_LOCAL_ACCESS_FALLBACK_BASE_URL;
     return localAccessState?.baseUrl || `http://127.0.0.1:${localAccessCollection.port}/v1`;
   }, [localAccessCollection, localAccessState?.baseUrl]);
 
@@ -2177,7 +2181,14 @@ export function CodexAccountsPage() {
   const handleSaveLocalAccessAccounts = useCallback(async (accountIds: string[]) => {
     setLocalAccessSaving(true);
     try {
-      const nextState = await codexLocalAccessService.saveCodexLocalAccessAccounts(accountIds);
+      const accountById = new Map(accounts.map((account) => [account.id, account]));
+      const filteredAccountIds = accountIds.filter((accountId) => {
+        const account = accountById.get(accountId);
+        if (!account) return false;
+        if (isCodexApiKeyAccount(account)) return false;
+        return !isCodexExplicitFreePlanType(account.plan_type);
+      });
+      const nextState = await codexLocalAccessService.saveCodexLocalAccessAccounts(filteredAccountIds);
       setLocalAccessState(nextState);
       setMessage({
         text: t('codex.localAccess.saveSuccess', 'API 服务集合已更新'),
@@ -2189,7 +2200,7 @@ export function CodexAccountsPage() {
     } finally {
       setLocalAccessSaving(false);
     }
-  }, [setMessage, t]);
+  }, [accounts, setMessage, t]);
 
   const handleRemoveLocalAccessAccount = useCallback(async (accountId: string) => {
     if (!localAccessCollection) return;
@@ -3050,39 +3061,32 @@ export function CodexAccountsPage() {
     const showLocalAccessDetails = isGridLocalAccessCard ? true : localAccessDetailsExpanded;
     const baseUrl = resolveLocalAccessBaseUrl();
     const apiKeyDisplay = !localAccessCollection
-      ? '-'
+      ? CODEX_LOCAL_ACCESS_FALLBACK_API_KEY_MASK
       : localAccessKeyVisible
         ? localAccessCollection.apiKey
         : `${localAccessCollection.apiKey.slice(0, 10)}••••••••••••`;
     const previewAccounts = localAccessAccounts.slice(0, 3);
     const hiddenCount = Math.max(0, localAccessAccounts.length - previewAccounts.length);
-    const showLocalAccessEmptyState = !localAccessCollection || previewAccounts.length === 0;
+    const showLocalAccessEmptyState = previewAccounts.length === 0;
     const localAccessStatusTone = !localAccessCollection
-      ? 'unconfigured'
+      ? 'disabled'
       : localAccessState?.running
         ? 'running'
         : localAccessCollection.enabled
           ? 'stopped'
           : 'disabled';
     const localAccessStatusText = !localAccessCollection
-      ? t('codex.localAccess.statusUnconfigured', '未配置')
+      ? t('codex.localAccess.statusDisabled', '已停用')
       : localAccessState?.running
         ? t('codex.localAccess.statusRunning', '运行中')
         : localAccessCollection.enabled
           ? t('codex.localAccess.statusStopped', '未运行')
           : t('codex.localAccess.statusDisabled', '已停用');
-    const localAccessSummaryMeta = localAccessCollection
-      ? t('codex.localAccess.summaryMeta', {
-          count: localAccessState?.memberCount ?? 0,
-          defaultValue: '{{count}} 个账号 · 仅本地访问',
-        })
-      : t('codex.localAccess.summaryMetaUnconfigured', '未配置 · 仅本地访问');
-    const localAccessEmptyMessage = !localAccessCollection
-      ? t(
-        'codex.localAccess.configEmpty',
-        '先把账号保存到 API 服务集合，随后会自动生成地址、密钥和端口。',
-      )
-      : t('codex.localAccess.emptyMembers', '当前集合暂无账号');
+    const localAccessSummaryMeta = t('codex.localAccess.summaryMeta', {
+      count: localAccessState?.memberCount ?? 0,
+      defaultValue: '{{count}} 个账号 · 仅本地访问',
+    });
+    const localAccessEmptyMessage = t('codex.localAccess.emptyMembers', '当前集合暂无账号');
 
     return (
       <div

@@ -7,6 +7,17 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.22.4] - 2026-04-19
+
+### Added
+- **Settings now include an in-app Release Notes viewer with per-version download actions**: the About section adds a `Release Notes` button, opens changelog history in a modal, and provides direct download actions for each listed version.
+
+### Changed
+- **Updater backend now exposes structured release history parsed from bundled changelog files**: the desktop command `get_release_history` reads `CHANGELOG.md` / `CHANGELOG.zh-CN.md`, parses `Added/Changed/Fixed/Removed` sections, and returns locale-aware results with list limits for frontend rendering.
+- **Codex Local API Service member eligibility now excludes Free-plan and API Key accounts end-to-end**: backend collection sanitization/request routing and frontend selection/save flows now enforce the same rule, while unsupported accounts are visibly marked and non-selectable.
+- **Codex Local API Service default/empty state is now stabilized for first-run and missing-collection scenarios**: runtime auto-seeds a disabled collection when absent, the overview card keeps deterministic base-url/API-key placeholders, and empty-state guidance is rewritten to the new start flow.
+
+---
 ## [0.22.3] - 2026-04-19
 
 ### Added

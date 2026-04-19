@@ -379,7 +379,34 @@
       "launchModeCli": "Режим CLI",
       "workingDir": "Рабочая папка",
       "workingDirPlaceholder": "По умолчанию текущий путь",
-      "workingDirDesc": "При запуске сначала переключится в эту папку"
+      "workingDirDesc": "При запуске сначала переключится в эту папку",
+      "codexQuickConfig": {
+        "title": "Контекст и компактные ограничения",
+        "presetLabel": "Предустановка конфигурации",
+        "presetHint": "Выберите предустановку (По умолчанию/516К/1М) или переключитесь на Пользовательский и заполните оба поля вручную.",
+        "presetDefaultShort": "По умолчанию",
+        "presetDefaultDesc": "Удалите оба поля и используйте официальные значения по умолчанию.",
+        "preset516kShort": "516К",
+        "preset516kDesc": "контекст=516000/компакт=460000",
+        "preset1mShort": "1М",
+        "preset1mDesc": "контекст=1000000/компакт=900000",
+        "presetCustomShort": "Обычай",
+        "presetCustomDesc": "Вручную задайте контекст и компактные значения.",
+        "contextWindow": "Контекстное окно",
+        "contextWindowHint": "Записывает model_context_window. Редактируется только в пользовательском режиме.",
+        "autoCompactLimit": "Авто-компактный предел",
+        "autoCompactLimitHint": "Записывает model_auto_compact_token_limit. Редактируется только в пользовательском режиме.",
+        "customDetected": "В config.toml обнаружены пользовательские значения: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. При сохранении они будут перезаписаны выбранной вами предустановкой.",
+        "partialDetected": "В настоящее время установлено только одно управляемое поле: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. При сохранении оба поля перезапишутся по текущей схеме.",
+        "notSet": "Не установлено",
+        "loadFailed": "Не удалось загрузить текущую конфигурацию Кодекса: {{error}}.",
+        "openConfig": "Открыть конфигурационный файл Toml",
+        "openFailed": "Не удалось открыть config.toml: {{error}}.",
+        "validation": {
+          "contextWindowInvalid": "Контекстное окно должно быть целым числом больше 0.",
+          "autoCompactInvalid": "Предел автокомпактности должен быть целым числом больше 0."
+        }
+      }
     },
     "quota": {
       "unbound": "Аккаунт не привязан",
@@ -730,7 +757,17 @@
       "upToDate": "Обновлено",
       "newVersion": "Доступна v{{version}}",
       "download": "Скачать",
-      "checkFailed": "Ошибка проверки обновлений"
+      "checkFailed": "Ошибка проверки обновлений",
+      "viewReleaseHistory": "Примечания к выпуску",
+      "releaseHistoryTitle": "Примечания к выпуску",
+      "releaseHistoryLoading": "Загрузка примечаний к выпуску...",
+      "releaseHistoryEmpty": "Примечаний к выпуску пока нет",
+      "releaseHistoryLoadFailed": "Не удалось загрузить: {{error}}",
+      "releaseHistorySectionAdded": "Добавлен",
+      "releaseHistorySectionChanged": "Измененный",
+      "releaseHistorySectionFixed": "Зафиксированный",
+      "releaseHistorySectionRemoved": "Удаленный",
+      "downloadThisVersion": "Скачать"
     },
     "saveSettings": "Сохранить настройки",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "Нет доступных OAuth-аккаунтов",
         "selected": "В API-сервисе",
         "available": "Обычный обзор",
-        "save": "Сохранить коллекцию"
+        "save": "Сохранить коллекцию",
+        "freeNotice": "Бесплатные аккаунты пока не поддерживаются. Бесплатные аккаунты выбрать нельзя.",
+        "freeUnsupported": "Бесплатные аккаунты пока не поддерживаются."
       },
       "entryAction": "Добавить в API-сервис",
       "testAction": "Проверить API-сервис",
@@ -1955,8 +1994,8 @@
         "expand": "Развернуть",
         "collapse": "Свернуть",
         "repairVisibility": "Исправить видимость",
-      "restoreSessions": "Восстановить сессии",
-      "copySessionId": "Копировать ID сессии"
+        "restoreSessions": "Восстановить сессии",
+        "copySessionId": "Копировать ID сессии"
       },
       "confirm": {
         "title": "Переместить в корзину",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "Выберите хотя бы одну сессию для восстановления"
       },
       "groupCount": "{{count}} сессий",
-    "updatedAt": "Обновлено",
-    "labels": {
-      "sessionId": "ID сессии",
-      "tokenUsage": "Использование токенов"
-    },
+      "updatedAt": "Обновлено",
+      "labels": {
+        "sessionId": "ID сессии",
+        "tokenUsage": "Использование токенов"
+      },
       "locationRunning": " (запущено)",
       "untitled": "Сессия без названия",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "В config.toml обнаружено пользовательское значение model_context_window = {{context}}. При сохранении оно будет переписано быстрым параметром ниже.",
         "compactMissingDetected": "Контекст 1M уже включён, но лимит автоуплотнения отсутствует. При сохранении будет записано значение по умолчанию {{limit}}.",
         "validation": {
-          "autoCompactInvalid": "Лимит автоуплотнения должен быть целым числом больше 0."
-        }
+          "autoCompactInvalid": "Лимит автоуплотнения должен быть целым числом больше 0.",
+          "contextWindowInvalid": "Контекстное окно должно быть целым числом больше 0."
+        },
+        "presetLabel": "Предустановка конфигурации",
+        "presetHint": "Выберите предустановку (По умолчанию/516К/1М) или переключитесь на Пользовательский и заполните оба поля вручную.",
+        "presetDefaultShort": "По умолчанию",
+        "presetDefaultDesc": "Удалите оба поля и используйте официальные значения по умолчанию.",
+        "preset516kShort": "516К",
+        "preset516kDesc": "контекст=516000/компакт=460000",
+        "preset1mShort": "1М",
+        "preset1mDesc": "контекст=1000000/компакт=900000",
+        "presetCustomShort": "Обычай",
+        "presetCustomDesc": "Вручную задайте контекст и компактные значения.",
+        "presetDefault": "По умолчанию (удалить model_context_window/model_auto_compact_token_limit)",
+        "preset516k": "516 КБ (model_context_window = 516000, auto_compact = 460000)",
+        "preset1m": "Предустановлено 1M (model_context_window = 1000000, auto_compact = 900000)",
+        "presetCustom": "Обычай",
+        "contextWindow": "Контекстное окно",
+        "contextWindowHint": "Записывает model_context_window. Редактируется только в пользовательском режиме.",
+        "partialDetected": "В настоящее время установлено только одно управляемое поле: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. При сохранении оба поля перезапишутся по текущей схеме.",
+        "notSet": "Не установлено"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Файл конфигурации Codex",
       "openConfigToml": "Открыть файл",
       "openConfigHint": "Быстро открыть активный файл Codex config.toml.",
-      "localAccessEntryVisible": "Показывать пункт API-сервиса"
+      "localAccessEntryVisible": "Показывать пункт API-сервиса",
+      "quickConfig": {
+        "title": "Контекст и компактные ограничения",
+        "presetLabel": "Предустановка конфигурации",
+        "presetHint": "Выберите предустановку (По умолчанию/516К/1М) или переключитесь на Пользовательский и заполните оба поля вручную.",
+        "presetDefaultShort": "По умолчанию",
+        "presetDefaultDesc": "Удалите оба поля и используйте официальные значения по умолчанию.",
+        "preset516kShort": "516К",
+        "preset516kDesc": "контекст=516000/компакт=460000",
+        "preset1mShort": "1М",
+        "preset1mDesc": "контекст=1000000/компакт=900000",
+        "presetCustomShort": "Обычай",
+        "presetCustomDesc": "Вручную задайте контекст и компактные значения.",
+        "contextWindow": "Контекстное окно",
+        "contextWindowHint": "Записывает model_context_window. Редактируется только в пользовательском режиме.",
+        "autoCompactLimit": "Авто-компактный предел",
+        "autoCompactLimitHint": "Записывает model_auto_compact_token_limit. Редактируется только в пользовательском режиме.",
+        "customDetected": "В config.toml обнаружены пользовательские значения: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. При сохранении они будут перезаписаны выбранной вами предустановкой.",
+        "partialDetected": "В настоящее время установлено только одно управляемое поле: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. При сохранении оба поля перезапишутся по текущей схеме.",
+        "notSet": "Не установлено",
+        "loadFailed": "Не удалось загрузить текущую конфигурацию Кодекса: {{error}}.",
+        "saveSuccess": "Текущая конфигурация Кодекса сохранена.",
+        "saveFailed": "Не удалось сохранить текущую конфигурацию Кодекса: {{error}}.",
+        "validation": {
+          "contextWindowInvalid": "Контекстное окно должно быть целым числом больше 0.",
+          "autoCompactInvalid": "Предел автокомпактности должен быть целым числом больше 0."
+        }
+      }
     },
     "githubCopilot": {
       "title": "Настройки GitHub Copilot",
@@ -3231,11 +3316,11 @@
       "status": "Статус check-in",
       "checkedIn": "Отмечено",
       "notCheckedIn": "Не отмечено",
-      "button": "Отметиться",
+      "button": {},
       "button.loading": "Выполняется check-in...",
       "done": "Готово",
       "success": "Check-in выполнен! Серия {{days}} дней",
-      "failure": "Ошибка check-in: {{message}}",
+      "failure": {},
       "failure.network": "Ошибка сети, попробуйте позже",
       "lastCheckin": "Последний check-in: {{time}}",
       "streak": "Серия {{days}} дней",

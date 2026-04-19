@@ -379,7 +379,34 @@
       "launchModeCli": "CLI モード",
       "workingDir": "作業ディレクトリ",
       "workingDirPlaceholder": "既定は現在のパス",
-      "workingDirDesc": "起動時に最初にこのディレクトリへ移動します"
+      "workingDirDesc": "起動時に最初にこのディレクトリへ移動します",
+      "codexQuickConfig": {
+        "title": "コンテキストとコンパクトの制限",
+        "presetLabel": "設定プリセット",
+        "presetHint": "プリセット (デフォルト / 516K / 1M) を選択するか、カスタムに切り替えて両方のフィールドに手動で入力します。",
+        "presetDefaultShort": "デフォルト",
+        "presetDefaultDesc": "両方のフィールドを削除し、公式のデフォルトを使用します",
+        "preset516kShort": "プリセット 516K",
+        "preset516kDesc": "コンテキスト=516000 / コンパクト=460000",
+        "preset1mShort": "プリセット1M",
+        "preset1mDesc": "コンテキスト=1000000 / コンパクト=900000",
+        "presetCustomShort": "カスタム",
+        "presetCustomDesc": "コンテキストとコンパクトな値を手動で設定する",
+        "contextWindow": "コンテキストウィンドウ",
+        "contextWindowHint": "model_context_window を書き込みます。カスタムモードでのみ編集可能です。",
+        "autoCompactLimit": "自動コンパクト制限",
+        "autoCompactLimitHint": "model_auto_compact_token_limit を書き込みます。カスタムモードでのみ編集可能です。",
+        "customDetected": "config.toml でカスタム値が検出されました:model_context_window={{context}}、model_auto_compact_token_limit={{compact}}。保存すると、選択したプリセットで上書きされます。",
+        "partialDetected": "現在設定されている管理フィールドは、model_context_window={{context}}、model_auto_compact_token_limit={{compact}} の 1 つだけです。保存すると、現在のスキームを使用して両方のフィールドが書き換えられます。",
+        "notSet": "未設定",
+        "loadFailed": "現在の Codex 構成のロードに失敗しました: {{error}}",
+        "openConfig": "config.tomlを開く",
+        "openFailed": "config.tomlを開けませんでした: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "コンテキスト ウィンドウは 0 より大きい整数でなければなりません。",
+          "autoCompactInvalid": "自動圧縮制限は 0 より大きい整数である必要があります。"
+        }
+      }
     },
     "quota": {
       "unbound": "紐付けアカウントなし",
@@ -730,7 +757,17 @@
       "upToDate": "最新の状態です",
       "newVersion": "v{{version}} が利用可能",
       "download": "ダウンロード",
-      "checkFailed": "アップデートの確認に失敗しました。後でもう一度お試しください"
+      "checkFailed": "アップデートの確認に失敗しました。後でもう一度お試しください",
+      "viewReleaseHistory": "リリースノート",
+      "releaseHistoryTitle": "リリースノート",
+      "releaseHistoryLoading": "リリースノートを読み込んでいます...",
+      "releaseHistoryEmpty": "リリースノートはまだありません",
+      "releaseHistoryLoadFailed": "ロードに失敗しました: {{error}}",
+      "releaseHistorySectionAdded": "追加した",
+      "releaseHistorySectionChanged": "変更されました",
+      "releaseHistorySectionFixed": "修理済み",
+      "releaseHistorySectionRemoved": "削除されました",
+      "downloadThisVersion": "ダウンロード"
     },
     "saveSettings": "設定を保存",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "利用可能な OAuth アカウントがありません",
         "selected": "API サービスに追加済み",
         "available": "通常一覧",
-        "save": "コレクションを保存"
+        "save": "コレクションを保存",
+        "freeNotice": "無料アカウントはまだサポートされていません。無料アカウントは選択できません。",
+        "freeUnsupported": "無料アカウントはまだサポートされていません"
       },
       "entryAction": "API サービスに追加",
       "testAction": "API サービスをテスト",
@@ -1955,8 +1994,8 @@
         "expand": "展開",
         "collapse": "折りたたむ",
         "repairVisibility": "表示情報を修復",
-      "restoreSessions": "セッションを復元",
-      "copySessionId": "セッション ID をコピー"
+        "restoreSessions": "セッションを復元",
+        "copySessionId": "セッション ID をコピー"
       },
       "confirm": {
         "title": "ゴミ箱へ移動",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "復元するセッションを 1 つ以上選択してください"
       },
       "groupCount": "{{count}} 件のセッション",
-    "updatedAt": "更新済み",
-    "labels": {
-      "sessionId": "セッション ID",
-      "tokenUsage": "Token 使用量"
-    },
+      "updatedAt": "更新済み",
+      "labels": {
+        "sessionId": "セッション ID",
+        "tokenUsage": "Token 使用量"
+      },
       "locationRunning": "（実行中）",
       "untitled": "無題のセッション",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "config.toml にカスタムの model_context_window = {{context}} が見つかりました。保存すると、下のクイック設定で上書きされます。",
         "compactMissingDetected": "1M コンテキストはすでに有効ですが、自動圧縮上限がありません。保存すると既定値 {{limit}} を書き込みます。",
         "validation": {
-          "autoCompactInvalid": "自動圧縮上限は 0 より大きい整数である必要があります。"
-        }
+          "autoCompactInvalid": "自動圧縮上限は 0 より大きい整数である必要があります。",
+          "contextWindowInvalid": "コンテキスト ウィンドウは 0 より大きい整数でなければなりません。"
+        },
+        "presetLabel": "設定プリセット",
+        "presetHint": "プリセット (デフォルト / 516K / 1M) を選択するか、カスタムに切り替えて両方のフィールドに手動で入力します。",
+        "presetDefaultShort": "デフォルト",
+        "presetDefaultDesc": "両方のフィールドを削除し、公式のデフォルトを使用します",
+        "preset516kShort": "プリセット 516K",
+        "preset516kDesc": "コンテキスト=516000 / コンパクト=460000",
+        "preset1mShort": "プリセット1M",
+        "preset1mDesc": "コンテキスト=1000000 / コンパクト=900000",
+        "presetCustomShort": "カスタム",
+        "presetCustomDesc": "コンテキストとコンパクトな値を手動で設定する",
+        "presetDefault": "デフォルト (model_context_window / model_auto_compact_token_limit を削除)",
+        "preset516k": "516K (model_context_window = 516000、auto_compact = 460000)",
+        "preset1m": "1M (model_context_window = 1000000、auto_compact = 900000)",
+        "presetCustom": "カスタム",
+        "contextWindow": "コンテキストウィンドウ",
+        "contextWindowHint": "model_context_window を書き込みます。カスタムモードでのみ編集可能です。",
+        "partialDetected": "現在設定されている管理フィールドは、model_context_window={{context}}、model_auto_compact_token_limit={{compact}} の 1 つだけです。保存すると、現在のスキームを使用して両方のフィールドが書き換えられます。",
+        "notSet": "未設定"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Codex 設定ファイル",
       "openConfigToml": "ファイルを開く",
       "openConfigHint": "現在有効な Codex の config.toml をすばやく開きます。",
-      "localAccessEntryVisible": "APIサービス入口を表示"
+      "localAccessEntryVisible": "APIサービス入口を表示",
+      "quickConfig": {
+        "title": "コンテキストとコンパクトの制限",
+        "presetLabel": "設定プリセット",
+        "presetHint": "プリセット (デフォルト / 516K / 1M) を選択するか、カスタムに切り替えて両方のフィールドに手動で入力します。",
+        "presetDefaultShort": "デフォルト",
+        "presetDefaultDesc": "両方のフィールドを削除し、公式のデフォルトを使用します",
+        "preset516kShort": "プリセット 516K",
+        "preset516kDesc": "コンテキスト=516000 / コンパクト=460000",
+        "preset1mShort": "プリセット1M",
+        "preset1mDesc": "コンテキスト=1000000 / コンパクト=900000",
+        "presetCustomShort": "カスタム",
+        "presetCustomDesc": "コンテキストとコンパクトな値を手動で設定する",
+        "contextWindow": "コンテキストウィンドウ",
+        "contextWindowHint": "model_context_window を書き込みます。カスタムモードでのみ編集可能です。",
+        "autoCompactLimit": "自動コンパクト制限",
+        "autoCompactLimitHint": "model_auto_compact_token_limit を書き込みます。カスタムモードでのみ編集可能です。",
+        "customDetected": "config.toml でカスタム値が検出されました:model_context_window={{context}}、model_auto_compact_token_limit={{compact}}。保存すると、選択したプリセットで上書きされます。",
+        "partialDetected": "現在設定されている管理フィールドは、model_context_window={{context}}、model_auto_compact_token_limit={{compact}} の 1 つだけです。保存すると、現在のスキームを使用して両方のフィールドが書き換えられます。",
+        "notSet": "未設定",
+        "loadFailed": "現在の Codex 構成のロードに失敗しました: {{error}}",
+        "saveSuccess": "現在の Codex 構成が保存されました。",
+        "saveFailed": "現在の Codex 構成を保存できませんでした: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "コンテキスト ウィンドウは 0 より大きい整数でなければなりません。",
+          "autoCompactInvalid": "自動圧縮制限は 0 より大きい整数である必要があります。"
+        }
+      }
     },
     "githubCopilot": {
       "title": "GitHub Copilot 設定",
@@ -3231,11 +3316,11 @@
       "status": "チェックイン状態",
       "checkedIn": "チェックイン済み",
       "notCheckedIn": "未チェックイン",
-      "button": "チェックイン",
+      "button": {},
       "button.loading": "チェックイン中...",
       "done": "完了",
       "success": "チェックイン成功！{{days}}日連続",
-      "failure": "チェックインに失敗しました: {{message}}",
+      "failure": {},
       "failure.network": "ネットワークエラーです。しばらくしてから再試行してください",
       "lastCheckin": "最終チェックイン: {{time}}",
       "streak": "{{days}}日連続",

@@ -379,7 +379,34 @@
       "launchModeCli": "CLI-Modus",
       "workingDir": "Arbeitsverzeichnis",
       "workingDirPlaceholder": "Standardmäßig aktueller Pfad",
-      "workingDirDesc": "Beim Start wird zuerst in dieses Verzeichnis gewechselt"
+      "workingDirDesc": "Beim Start wird zuerst in dieses Verzeichnis gewechselt",
+      "codexQuickConfig": {
+        "title": "Kontext- und Kompaktgrenzen",
+        "presetLabel": "Konfigurationsvoreinstellung",
+        "presetHint": "Wählen Sie eine Voreinstellung (Standard / 516K / 1M) oder wechseln Sie zu „Benutzerdefiniert“ und füllen Sie beide Felder manuell aus.",
+        "presetDefaultShort": "Standard",
+        "presetDefaultDesc": "Entfernen Sie beide Felder und verwenden Sie die offiziellen Standardwerte",
+        "preset516kShort": "Voreingestellt 516K",
+        "preset516kDesc": "context=516000 / kompakt=460000",
+        "preset1mShort": "Voreingestellt 1M",
+        "preset1mDesc": "Kontext=1000000 / kompakt=900000",
+        "presetCustomShort": "Brauch",
+        "presetCustomDesc": "Legen Sie Kontext- und Kompaktwerte manuell fest",
+        "contextWindow": "Kontextfenster",
+        "contextWindowHint": "Schreibt model_context_window. Nur im benutzerdefinierten Modus bearbeitbar.",
+        "autoCompactLimit": "Grenzwert für automatische Komprimierung",
+        "autoCompactLimitHint": "Schreibt model_auto_compact_token_limit. Nur im benutzerdefinierten Modus bearbeitbar.",
+        "customDetected": "Benutzerdefinierte Werte wurden in config.toml erkannt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Durch das Speichern werden sie mit der von Ihnen ausgewählten Voreinstellung überschrieben.",
+        "partialDetected": "Derzeit ist nur ein verwaltetes Feld festgelegt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Beim Speichern werden beide Felder mit dem aktuellen Schema neu geschrieben.",
+        "notSet": "Nicht festgelegt",
+        "loadFailed": "Die aktuelle Codex-Konfiguration konnte nicht geladen werden: {{error}}",
+        "openConfig": "Öffnen Sie config.toml",
+        "openFailed": "config.toml konnte nicht geöffnet werden: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Das Kontextfenster muss eine Ganzzahl größer als 0 sein.",
+          "autoCompactInvalid": "Der Grenzwert für die automatische Komprimierung muss eine Ganzzahl größer als 0 sein."
+        }
+      }
     },
     "quota": {
       "unbound": "Nicht gekoppelt",
@@ -730,7 +757,17 @@
       "upToDate": "Aktuell",
       "newVersion": "v{{version}} verfügbar",
       "download": "Herunterladen",
-      "checkFailed": "Fehler bei der Update-Suche"
+      "checkFailed": "Fehler bei der Update-Suche",
+      "viewReleaseHistory": "Versionshinweise",
+      "releaseHistoryTitle": "Versionshinweise",
+      "releaseHistoryLoading": "Versionshinweise werden geladen...",
+      "releaseHistoryEmpty": "Noch keine Versionshinweise",
+      "releaseHistoryLoadFailed": "Fehler beim Laden: {{error}}",
+      "releaseHistorySectionAdded": "Hinzugefügt",
+      "releaseHistorySectionChanged": "Geändert",
+      "releaseHistorySectionFixed": "Behoben",
+      "releaseHistorySectionRemoved": "ENTFERNT",
+      "downloadThisVersion": "Herunterladen"
     },
     "saveSettings": "Einstellungen speichern",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "Keine OAuth-Konten verfügbar",
         "selected": "Im API-Dienst",
         "available": "Normale Übersicht",
-        "save": "Sammlung speichern"
+        "save": "Sammlung speichern",
+        "freeNotice": "Kostenlose Konten werden noch nicht unterstützt. Kostenlose Konten können nicht ausgewählt werden.",
+        "freeUnsupported": "Kostenlose Konten werden noch nicht unterstützt"
       },
       "entryAction": "Zum API-Dienst hinzufügen",
       "testAction": "API-Dienst testen",
@@ -1955,8 +1994,8 @@
         "expand": "Erweitern",
         "collapse": "Einklappen",
         "repairVisibility": "Sichtbarkeit reparieren",
-      "restoreSessions": "Sitzungen wiederherstellen",
-      "copySessionId": "Sitzungs-ID kopieren"
+        "restoreSessions": "Sitzungen wiederherstellen",
+        "copySessionId": "Sitzungs-ID kopieren"
       },
       "confirm": {
         "title": "In den Papierkorb verschieben",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "Bitte wählen Sie mindestens eine Sitzung zur Wiederherstellung aus"
       },
       "groupCount": "{{count}} Sitzungen",
-    "updatedAt": "Aktualisiert",
-    "labels": {
-      "sessionId": "Sitzungs-ID",
-      "tokenUsage": "Token-Nutzung"
-    },
+      "updatedAt": "Aktualisiert",
+      "labels": {
+        "sessionId": "Sitzungs-ID",
+        "tokenUsage": "Token-Nutzung"
+      },
       "locationRunning": " (wird ausgeführt)",
       "untitled": "Unbenannte Sitzung",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "In config.toml wurde ein benutzerdefiniertes model_context_window = {{context}} erkannt. Beim Speichern wird es durch die folgende Schnelleinstellung überschrieben.",
         "compactMissingDetected": "1M-Kontext ist bereits aktiviert, aber das Auto-Compact-Limit fehlt. Beim Speichern wird der Standardwert {{limit}} geschrieben.",
         "validation": {
-          "autoCompactInvalid": "Das Auto-Compact-Limit muss eine ganze Zahl größer als 0 sein."
-        }
+          "autoCompactInvalid": "Das Auto-Compact-Limit muss eine ganze Zahl größer als 0 sein.",
+          "contextWindowInvalid": "Das Kontextfenster muss eine Ganzzahl größer als 0 sein."
+        },
+        "presetLabel": "Konfigurationsvoreinstellung",
+        "presetHint": "Wählen Sie eine Voreinstellung (Standard / 516K / 1M) oder wechseln Sie zu „Benutzerdefiniert“ und füllen Sie beide Felder manuell aus.",
+        "presetDefaultShort": "Standard",
+        "presetDefaultDesc": "Entfernen Sie beide Felder und verwenden Sie die offiziellen Standardwerte",
+        "preset516kShort": "Voreingestellt 516K",
+        "preset516kDesc": "context=516000 / kompakt=460000",
+        "preset1mShort": "Voreingestellt 1M",
+        "preset1mDesc": "Kontext=1000000 / kompakt=900000",
+        "presetCustomShort": "Brauch",
+        "presetCustomDesc": "Legen Sie Kontext- und Kompaktwerte manuell fest",
+        "presetDefault": "Standard (model_context_window / model_auto_compact_token_limit entfernen)",
+        "preset516k": "Voreinstellung 516K (model_context_window = 516000, auto_compact = 460000)",
+        "preset1m": "Voreinstellung 1M (model_context_window = 1000000, auto_compact = 900000)",
+        "presetCustom": "Brauch",
+        "contextWindow": "Kontextfenster",
+        "contextWindowHint": "Schreibt model_context_window. Nur im benutzerdefinierten Modus bearbeitbar.",
+        "partialDetected": "Derzeit ist nur ein verwaltetes Feld festgelegt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Beim Speichern werden beide Felder mit dem aktuellen Schema neu geschrieben.",
+        "notSet": "Nicht festgelegt"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Codex-Konfigurationsdatei",
       "openConfigToml": "Datei öffnen",
       "openConfigHint": "Öffnet schnell die aktive Codex-config.toml.",
-      "localAccessEntryVisible": "API-Service-Eintrag anzeigen"
+      "localAccessEntryVisible": "API-Service-Eintrag anzeigen",
+      "quickConfig": {
+        "title": "Kontext- und Kompaktgrenzen",
+        "presetLabel": "Konfigurationsvoreinstellung",
+        "presetHint": "Wählen Sie eine Voreinstellung (Standard / 516K / 1M) oder wechseln Sie zu „Benutzerdefiniert“ und füllen Sie beide Felder manuell aus.",
+        "presetDefaultShort": "Standard",
+        "presetDefaultDesc": "Entfernen Sie beide Felder und verwenden Sie die offiziellen Standardwerte",
+        "preset516kShort": "Voreingestellt 516K",
+        "preset516kDesc": "context=516000 / kompakt=460000",
+        "preset1mShort": "Voreingestellt 1M",
+        "preset1mDesc": "Kontext=1000000 / kompakt=900000",
+        "presetCustomShort": "Brauch",
+        "presetCustomDesc": "Legen Sie Kontext- und Kompaktwerte manuell fest",
+        "contextWindow": "Kontextfenster",
+        "contextWindowHint": "Schreibt model_context_window. Nur im benutzerdefinierten Modus bearbeitbar.",
+        "autoCompactLimit": "Grenzwert für automatische Komprimierung",
+        "autoCompactLimitHint": "Schreibt model_auto_compact_token_limit. Nur im benutzerdefinierten Modus bearbeitbar.",
+        "customDetected": "Benutzerdefinierte Werte wurden in config.toml erkannt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Durch das Speichern werden sie mit der von Ihnen ausgewählten Voreinstellung überschrieben.",
+        "partialDetected": "Derzeit ist nur ein verwaltetes Feld festgelegt: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Beim Speichern werden beide Felder mit dem aktuellen Schema neu geschrieben.",
+        "notSet": "Nicht festgelegt",
+        "loadFailed": "Die aktuelle Codex-Konfiguration konnte nicht geladen werden: {{error}}",
+        "saveSuccess": "Aktuelle Codex-Konfiguration gespeichert.",
+        "saveFailed": "Die aktuelle Codex-Konfiguration konnte nicht gespeichert werden: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Das Kontextfenster muss eine Ganzzahl größer als 0 sein.",
+          "autoCompactInvalid": "Der Grenzwert für die automatische Komprimierung muss eine Ganzzahl größer als 0 sein."
+        }
+      }
     },
     "githubCopilot": {
       "title": "GitHub Copilot-Einstellungen",
@@ -3231,11 +3316,11 @@
       "status": "Check-in-Status",
       "checkedIn": "Eingecheckt",
       "notCheckedIn": "Nicht eingecheckt",
-      "button": "Einchecken",
+      "button": {},
       "button.loading": "Check-in läuft...",
       "done": "Fertig",
       "success": "Check-in erfolgreich! {{days}} Tage Serie",
-      "failure": "Check-in fehlgeschlagen: {{message}}",
+      "failure": {},
       "failure.network": "Netzwerkfehler, bitte später erneut versuchen",
       "lastCheckin": "Letzter Check-in: {{time}}",
       "streak": "{{days}}-Tage-Serie",

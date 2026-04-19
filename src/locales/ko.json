@@ -379,7 +379,34 @@
       "launchModeCli": "CLI 모드",
       "workingDir": "작업 디렉터리",
       "workingDirPlaceholder": "기본값은 현재 경로",
-      "workingDirDesc": "시작 시 먼저 이 디렉터리로 이동합니다"
+      "workingDirDesc": "시작 시 먼저 이 디렉터리로 이동합니다",
+      "codexQuickConfig": {
+        "title": "컨텍스트 및 압축 제한",
+        "presetLabel": "구성 사전 설정",
+        "presetHint": "사전 설정(기본값/516K/1M)을 선택하거나 사용자 정의로 전환하고 두 필드를 수동으로 입력합니다.",
+        "presetDefaultShort": "기본",
+        "presetDefaultDesc": "두 필드를 모두 제거하고 공식 기본값을 사용하십시오.",
+        "preset516kShort": "사전 설정 516K",
+        "preset516kDesc": "컨텍스트=516000 / 컴팩트=460000",
+        "preset1mShort": "100만",
+        "preset1mDesc": "컨텍스트=1000000 / 컴팩트=900000",
+        "presetCustomShort": "관습",
+        "presetCustomDesc": "컨텍스트 및 압축 값을 수동으로 설정",
+        "contextWindow": "컨텍스트 창",
+        "contextWindowHint": "model_context_window를 작성합니다. 사용자 정의 모드에서만 편집할 수 있습니다.",
+        "autoCompactLimit": "자동 압축 제한",
+        "autoCompactLimitHint": "model_auto_compact_token_limit를 씁니다. 사용자 정의 모드에서만 편집할 수 있습니다.",
+        "customDetected": "config.toml에서 사용자 정의 값이 감지되었습니다: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. 저장하면 선택한 사전 설정으로 덮어쓰게 됩니다.",
+        "partialDetected": "현재 하나의 관리 필드(model_context_window={{context}}, model_auto_compact_token_limit={{compact}})만 설정되어 있습니다. 저장하면 현재 구성표를 사용하여 두 필드가 모두 다시 작성됩니다.",
+        "notSet": "설정되지 않음",
+        "loadFailed": "현재 Codex 구성을 로드하지 못했습니다: {{error}}",
+        "openConfig": "config.toml 열기",
+        "openFailed": "config.toml을 열지 못했습니다: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "컨텍스트 창은 0보다 큰 정수여야 합니다.",
+          "autoCompactInvalid": "자동 압축 한도는 0보다 큰 정수여야 합니다."
+        }
+      }
     },
     "quota": {
       "unbound": "연결된 계정 없음",
@@ -730,7 +757,17 @@
       "upToDate": "최신 버전입니다",
       "newVersion": "v{{version}} 사용 가능",
       "download": "다운로드",
-      "checkFailed": "업데이트 확인에 실패했습니다. 나중에 다시 시도해 주세요."
+      "checkFailed": "업데이트 확인에 실패했습니다. 나중에 다시 시도해 주세요.",
+      "viewReleaseHistory": "릴리스 노트",
+      "releaseHistoryTitle": "릴리스 노트",
+      "releaseHistoryLoading": "출시 노트 로드 중...",
+      "releaseHistoryEmpty": "아직 출시 노트가 없습니다.",
+      "releaseHistoryLoadFailed": "로드 실패: {{error}}",
+      "releaseHistorySectionAdded": "추가됨",
+      "releaseHistorySectionChanged": "변경됨",
+      "releaseHistorySectionFixed": "결정된",
+      "releaseHistorySectionRemoved": "제거됨",
+      "downloadThisVersion": "다운로드"
     },
     "saveSettings": "설정 저장",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "사용 가능한 OAuth 계정이 없습니다",
         "selected": "API 서비스에 포함됨",
         "available": "일반 개요",
-        "save": "모음 저장"
+        "save": "모음 저장",
+        "freeNotice": "무료 계정은 아직 지원되지 않습니다. 무료 계정은 선택할 수 없습니다.",
+        "freeUnsupported": "무료 계정은 아직 지원되지 않습니다"
       },
       "entryAction": "API 서비스에 추가",
       "testAction": "API 서비스 테스트",
@@ -1955,8 +1994,8 @@
         "expand": "펼치기",
         "collapse": "접기",
         "repairVisibility": "표시 정보 복구",
-      "restoreSessions": "세션 복원",
-      "copySessionId": "세션 ID 복사"
+        "restoreSessions": "세션 복원",
+        "copySessionId": "세션 ID 복사"
       },
       "confirm": {
         "title": "휴지통으로 이동",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "복원할 세션을 하나 이상 선택하세요"
       },
       "groupCount": "{{count}}개 세션",
-    "updatedAt": "업데이트됨",
-    "labels": {
-      "sessionId": "세션 ID",
-      "tokenUsage": "토큰 사용량"
-    },
+      "updatedAt": "업데이트됨",
+      "labels": {
+        "sessionId": "세션 ID",
+        "tokenUsage": "토큰 사용량"
+      },
       "locationRunning": " (실행 중)",
       "untitled": "제목 없는 세션",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "config.toml에서 사용자 지정 model_context_window = {{context}}가 감지되었습니다. 저장하면 아래 빠른 설정 값으로 다시 기록됩니다.",
         "compactMissingDetected": "1M 컨텍스트는 이미 활성화되어 있지만 자동 압축 한도가 없습니다. 저장하면 기본값 {{limit}}를 기록합니다.",
         "validation": {
-          "autoCompactInvalid": "자동 압축 한도는 0보다 큰 정수여야 합니다."
-        }
+          "autoCompactInvalid": "자동 압축 한도는 0보다 큰 정수여야 합니다.",
+          "contextWindowInvalid": "컨텍스트 창은 0보다 큰 정수여야 합니다."
+        },
+        "presetLabel": "구성 사전 설정",
+        "presetHint": "사전 설정(기본값/516K/1M)을 선택하거나 사용자 정의로 전환하고 두 필드를 수동으로 입력합니다.",
+        "presetDefaultShort": "기본",
+        "presetDefaultDesc": "두 필드를 모두 제거하고 공식 기본값을 사용하십시오.",
+        "preset516kShort": "사전 설정 516K",
+        "preset516kDesc": "컨텍스트=516000 / 컴팩트=460000",
+        "preset1mShort": "100만",
+        "preset1mDesc": "컨텍스트=1000000 / 컴팩트=900000",
+        "presetCustomShort": "관습",
+        "presetCustomDesc": "컨텍스트 및 압축 값을 수동으로 설정",
+        "presetDefault": "기본값(model_context_window / model_auto_compact_token_limit 제거)",
+        "preset516k": "516K(model_context_window = 516000, auto_compact = 460000)",
+        "preset1m": "1M(model_context_window = 1000000, auto_compact = 900000)",
+        "presetCustom": "관습",
+        "contextWindow": "컨텍스트 창",
+        "contextWindowHint": "model_context_window를 작성합니다. 사용자 정의 모드에서만 편집할 수 있습니다.",
+        "partialDetected": "현재 하나의 관리 필드(model_context_window={{context}}, model_auto_compact_token_limit={{compact}})만 설정되어 있습니다. 저장하면 현재 구성표를 사용하여 두 필드가 모두 다시 작성됩니다.",
+        "notSet": "설정되지 않음"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Codex 구성 파일",
       "openConfigToml": "파일 열기",
       "openConfigHint": "현재 활성화된 Codex config.toml 파일을 빠르게 엽니다.",
-      "localAccessEntryVisible": "API 서비스 항목 표시"
+      "localAccessEntryVisible": "API 서비스 항목 표시",
+      "quickConfig": {
+        "title": "컨텍스트 및 압축 제한",
+        "presetLabel": "구성 사전 설정",
+        "presetHint": "사전 설정(기본값/516K/1M)을 선택하거나 사용자 정의로 전환하고 두 필드를 수동으로 입력합니다.",
+        "presetDefaultShort": "기본",
+        "presetDefaultDesc": "두 필드를 모두 제거하고 공식 기본값을 사용하십시오.",
+        "preset516kShort": "사전 설정 516K",
+        "preset516kDesc": "컨텍스트=516000 / 컴팩트=460000",
+        "preset1mShort": "100만",
+        "preset1mDesc": "컨텍스트=1000000 / 컴팩트=900000",
+        "presetCustomShort": "관습",
+        "presetCustomDesc": "컨텍스트 및 압축 값을 수동으로 설정",
+        "contextWindow": "컨텍스트 창",
+        "contextWindowHint": "model_context_window를 작성합니다. 사용자 정의 모드에서만 편집할 수 있습니다.",
+        "autoCompactLimit": "자동 압축 제한",
+        "autoCompactLimitHint": "model_auto_compact_token_limit를 씁니다. 사용자 정의 모드에서만 편집할 수 있습니다.",
+        "customDetected": "config.toml에서 사용자 정의 값이 감지되었습니다: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. 저장하면 선택한 사전 설정으로 덮어쓰게 됩니다.",
+        "partialDetected": "현재 하나의 관리 필드(model_context_window={{context}}, model_auto_compact_token_limit={{compact}})만 설정되어 있습니다. 저장하면 현재 구성표를 사용하여 두 필드가 모두 다시 작성됩니다.",
+        "notSet": "설정되지 않음",
+        "loadFailed": "현재 Codex 구성을 로드하지 못했습니다: {{error}}",
+        "saveSuccess": "현재 Codex 구성이 저장되었습니다.",
+        "saveFailed": "현재 Codex 구성을 저장하지 못했습니다: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "컨텍스트 창은 0보다 큰 정수여야 합니다.",
+          "autoCompactInvalid": "자동 압축 한도는 0보다 큰 정수여야 합니다."
+        }
+      }
     },
     "githubCopilot": {
       "title": "GitHub Copilot 설정",
@@ -3231,11 +3316,11 @@
       "status": "체크인 상태",
       "checkedIn": "체크인 완료",
       "notCheckedIn": "미체크인",
-      "button": "체크인",
+      "button": {},
       "button.loading": "체크인 중...",
       "done": "완료",
       "success": "체크인 성공! {{days}}일 연속",
-      "failure": "체크인 실패: {{message}}",
+      "failure": {},
       "failure.network": "네트워크 오류입니다. 잠시 후 다시 시도해 주세요",
       "lastCheckin": "마지막 체크인: {{time}}",
       "streak": "{{days}}일 연속",

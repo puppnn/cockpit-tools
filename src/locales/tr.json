@@ -379,7 +379,34 @@
       "launchModeCli": "CLI modu",
       "workingDir": "Çalışma dizini",
       "workingDirPlaceholder": "Varsayılan olarak mevcut yol",
-      "workingDirDesc": "Başlangıçta önce bu dizine geçer"
+      "workingDirDesc": "Başlangıçta önce bu dizine geçer",
+      "codexQuickConfig": {
+        "title": "Bağlam ve Kompakt Sınırlar",
+        "presetLabel": "Yapılandırma Ön Ayarı",
+        "presetHint": "Bir ön ayar seçin (Varsayılan / 516K / 1M) veya Özel'e geçin ve her iki alanı da manuel olarak doldurun.",
+        "presetDefaultShort": "Varsayılan",
+        "presetDefaultDesc": "Her iki alanı da kaldırın ve resmi varsayılanları kullanın",
+        "preset516kShort": "Ön ayarlı 516K",
+        "preset516kDesc": "bağlam=516000 / kompakt=460000",
+        "preset1mShort": "1 milyon",
+        "preset1mDesc": "bağlam=1000000 / kompakt=900000",
+        "presetCustomShort": "Gelenek",
+        "presetCustomDesc": "Bağlam ve kompakt değerleri manuel olarak ayarlayın",
+        "contextWindow": "Bağlam Penceresi",
+        "contextWindowHint": "model_context_window yazar. Yalnızca Özel modda düzenlenebilir.",
+        "autoCompactLimit": "Otomatik Sıkıştırma Limiti",
+        "autoCompactLimitHint": "model_auto_compact_token_limit yazar. Yalnızca Özel modda düzenlenebilir.",
+        "customDetected": "Config.toml'de özel değerler algılandı: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Kaydettiğinizde seçtiğiniz ön ayar bunların üzerine yazılacaktır.",
+        "partialDetected": "Şu anda yalnızca bir yönetilen alan ayarlanmıştır: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Kaydetme, mevcut şemayı kullanarak her iki alanı da yeniden yazacaktır.",
+        "notSet": "Ayarlanmadı",
+        "loadFailed": "Geçerli Codex yapılandırması yüklenemedi: {{error}}",
+        "openConfig": "Config.toml'u açın",
+        "openFailed": "config.toml açılamadı: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Bağlam penceresi 0'dan büyük bir tamsayı olmalıdır.",
+          "autoCompactInvalid": "Otomatik sıkıştırma sınırı 0'dan büyük bir tam sayı olmalıdır."
+        }
+      }
     },
     "quota": {
       "unbound": "Hesap bağlı değil",
@@ -730,7 +757,17 @@
       "upToDate": "Güncel",
       "newVersion": "v{{version}} mevcut",
       "download": "İndir",
-      "checkFailed": "Güncelleme kontrolü başarısız oldu"
+      "checkFailed": "Güncelleme kontrolü başarısız oldu",
+      "viewReleaseHistory": "Sürüm Notları",
+      "releaseHistoryTitle": "Sürüm Notları",
+      "releaseHistoryLoading": "Sürüm notları yükleniyor...",
+      "releaseHistoryEmpty": "Henüz sürüm notu yok",
+      "releaseHistoryLoadFailed": "Yüklenemedi: {{error}}",
+      "releaseHistorySectionAdded": "Eklendi",
+      "releaseHistorySectionChanged": "Değiştirildi",
+      "releaseHistorySectionFixed": "Sabit",
+      "releaseHistorySectionRemoved": "Kaldırıldı",
+      "downloadThisVersion": "İndirmek"
     },
     "saveSettings": "Ayarları Kaydet",
     "transfer": {
@@ -1618,7 +1655,9 @@
         "empty": "Kullanılabilir OAuth hesabı yok",
         "selected": "API hizmetinde",
         "available": "Normal görünüm",
-        "save": "Koleksiyonu kaydet"
+        "save": "Koleksiyonu kaydet",
+        "freeNotice": "Ücretsiz hesaplar henüz desteklenmemektedir. Free accounts cannot be selected.",
+        "freeUnsupported": "Ücretsiz hesaplar henüz desteklenmiyor"
       },
       "entryAction": "API hizmetine ekle",
       "testAction": "API hizmetini test et",
@@ -1955,8 +1994,8 @@
         "expand": "Genişlet",
         "collapse": "Daralt",
         "repairVisibility": "Görünürlüğü düzelt",
-      "restoreSessions": "Oturumları geri yükle",
-      "copySessionId": "Oturum kimliğini kopyala"
+        "restoreSessions": "Oturumları geri yükle",
+        "copySessionId": "Oturum kimliğini kopyala"
       },
       "confirm": {
         "title": "Çöp kutusuna taşı",
@@ -1974,11 +2013,11 @@
         "pickRestoreOne": "Lütfen geri yüklenecek en az bir oturum seçin"
       },
       "groupCount": "{{count}} oturum",
-    "updatedAt": "Güncellendi",
-    "labels": {
-      "sessionId": "Oturum kimliği",
-      "tokenUsage": "Token kullanımı"
-    },
+      "updatedAt": "Güncellendi",
+      "labels": {
+        "sessionId": "Oturum kimliği",
+        "tokenUsage": "Token kullanımı"
+      },
       "locationRunning": " (çalışıyor)",
       "untitled": "Adsız oturum",
       "restoreModal": {
@@ -2145,8 +2184,27 @@
         "customDetected": "config.toml içinde özel bir model_context_window = {{context}} algılandı. Kaydetme işlemi bunu aşağıdaki hızlı ayarla yeniden yazar.",
         "compactMissingDetected": "1M bağlam zaten açık, ancak auto-compact sınırı eksik. Kaydedildiğinde varsayılan {{limit}} değeri yazılacak.",
         "validation": {
-          "autoCompactInvalid": "Auto-compact sınırı 0'dan büyük bir tam sayı olmalıdır."
-        }
+          "autoCompactInvalid": "Auto-compact sınırı 0'dan büyük bir tam sayı olmalıdır.",
+          "contextWindowInvalid": "Bağlam penceresi 0'dan büyük bir tamsayı olmalıdır."
+        },
+        "presetLabel": "Yapılandırma Ön Ayarı",
+        "presetHint": "Bir ön ayar seçin (Varsayılan / 516K / 1M) veya Özel'e geçin ve her iki alanı da manuel olarak doldurun.",
+        "presetDefaultShort": "Varsayılan",
+        "presetDefaultDesc": "Her iki alanı da kaldırın ve resmi varsayılanları kullanın",
+        "preset516kShort": "Ön ayarlı 516K",
+        "preset516kDesc": "bağlam=516000 / kompakt=460000",
+        "preset1mShort": "1 milyon",
+        "preset1mDesc": "bağlam=1000000 / kompakt=900000",
+        "presetCustomShort": "Gelenek",
+        "presetCustomDesc": "Bağlam ve kompakt değerleri manuel olarak ayarlayın",
+        "presetDefault": "Varsayılan (model_context_window / model_auto_compact_token_limit'i kaldır)",
+        "preset516k": "Ön ayar 516K (model_context_window = 516000, auto_compact = 460000)",
+        "preset1m": "1 milyon (model_context_window = 1000000, auto_compact = 900000)",
+        "presetCustom": "Gelenek",
+        "contextWindow": "Bağlam Penceresi",
+        "contextWindowHint": "model_context_window yazar. Yalnızca Özel modda düzenlenebilir.",
+        "partialDetected": "Şu anda yalnızca bir yönetilen alan ayarlanmıştır: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Kaydetme, mevcut şemayı kullanarak her iki alanı da yeniden yazacaktır.",
+        "notSet": "Ayarlanmadı"
       }
     },
     "quickSwitch": {
@@ -2291,7 +2349,34 @@
       "configToml": "Codex yapılandırma dosyası",
       "openConfigToml": "Dosyayı aç",
       "openConfigHint": "Etkin Codex config.toml dosyasını hızla açın.",
-      "localAccessEntryVisible": "API Hizmeti girişini göster"
+      "localAccessEntryVisible": "API Hizmeti girişini göster",
+      "quickConfig": {
+        "title": "Bağlam ve Kompakt Sınırlar",
+        "presetLabel": "Yapılandırma Ön Ayarı",
+        "presetHint": "Bir ön ayar seçin (Varsayılan / 516K / 1M) veya Özel'e geçin ve her iki alanı da manuel olarak doldurun.",
+        "presetDefaultShort": "Varsayılan",
+        "presetDefaultDesc": "Her iki alanı da kaldırın ve resmi varsayılanları kullanın",
+        "preset516kShort": "Ön ayarlı 516K",
+        "preset516kDesc": "bağlam=516000 / kompakt=460000",
+        "preset1mShort": "1 milyon",
+        "preset1mDesc": "bağlam=1000000 / kompakt=900000",
+        "presetCustomShort": "Gelenek",
+        "presetCustomDesc": "Bağlam ve kompakt değerleri manuel olarak ayarlayın",
+        "contextWindow": "Bağlam Penceresi",
+        "contextWindowHint": "model_context_window yazar. Yalnızca Özel modda düzenlenebilir.",
+        "autoCompactLimit": "Otomatik Sıkıştırma Limiti",
+        "autoCompactLimitHint": "model_auto_compact_token_limit yazar. Yalnızca Özel modda düzenlenebilir.",
+        "customDetected": "Config.toml'de özel değerler algılandı: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Kaydettiğinizde seçtiğiniz ön ayar bunların üzerine yazılacaktır.",
+        "partialDetected": "Şu anda yalnızca bir yönetilen alan ayarlanmıştır: model_context_window={{context}}, model_auto_compact_token_limit={{compact}}. Kaydetme, mevcut şemayı kullanarak her iki alanı da yeniden yazacaktır.",
+        "notSet": "Ayarlanmadı",
+        "loadFailed": "Geçerli Codex yapılandırması yüklenemedi: {{error}}",
+        "saveSuccess": "Mevcut Codex yapılandırması kaydedildi.",
+        "saveFailed": "Geçerli Codex yapılandırması kaydedilemedi: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "Bağlam penceresi 0'dan büyük bir tamsayı olmalıdır.",
+          "autoCompactInvalid": "Otomatik sıkıştırma sınırı 0'dan büyük bir tam sayı olmalıdır."
+        }
+      }
     },
     "githubCopilot": {
       "title": "GitHub Copilot Ayarları",
@@ -3231,11 +3316,11 @@
       "status": "Check-in durumu",
       "checkedIn": "Check-in yapıldı",
       "notCheckedIn": "Check-in yapılmadı",
-      "button": "Check-in yap",
+      "button": {},
       "button.loading": "Check-in yapılıyor...",
       "done": "Tamam",
       "success": "Check-in başarılı! {{days}} günlük seri",
-      "failure": "Check-in başarısız: {{message}}",
+      "failure": {},
       "failure.network": "Ağ hatası, lütfen daha sonra tekrar deneyin",
       "lastCheckin": "Son check-in: {{time}}",
       "streak": "{{days}} günlük seri",

@@ -26,7 +26,7 @@ import type {
   CodexLocalAccessState,
   CodexLocalAccessStatsWindow,
 } from '../types/codexLocalAccess';
-import { isCodexApiKeyAccount } from '../types/codex';
+import { isCodexApiKeyAccount, isCodexExplicitFreePlanType } from '../types/codex';
 import {
   buildCodexAccountPresentation,
   buildQuotaPreviewLines,
@@ -198,10 +198,29 @@ export function CodexLocalAccessModal({
     [avgLatencyMs, selectedTotals, successRate, t],
   );
 
+  const oauthAccounts = useMemo(
+    () => accounts.filter((account) => !isCodexApiKeyAccount(account)),
+    [accounts],
+  );
+  const oauthAccountIdSet = useMemo(
+    () => new Set(oauthAccounts.map((account) => account.id)),
+    [oauthAccounts],
+  );
+  const normalizedInitialSelectedIds = useMemo(
+    () =>
+      initialSelectedIds.filter((accountId) => {
+        if (!oauthAccountIdSet.has(accountId)) return false;
+        const account = oauthAccounts.find((item) => item.id === accountId);
+        if (!account) return false;
+        return !isCodexExplicitFreePlanType(account.plan_type);
+      }),
+    [initialSelectedIds, oauthAccountIdSet, oauthAccounts],
+  );
+
   useEffect(() => {
     if (!isOpen) return;
     setQuery('');
-    setSelected(new Set(initialSelectedIds));
+    setSelected(new Set(normalizedInitialSelectedIds));
     setFilterTypes([]);
     setTagFilter([]);
     setGroupFilter([]);
@@ -216,12 +235,7 @@ export function CodexLocalAccessModal({
         searchInputRef.current?.focus();
       }, 0);
     }
-  }, [collection?.port, initialSelectedIds, isOpen, mode]);
-
-  const oauthAccounts = useMemo(
-    () => accounts.filter((account) => !isCodexApiKeyAccount(account)),
-    [accounts],
-  );
+  }, [collection?.port, isOpen, mode, normalizedInitialSelectedIds]);
 
   const normalizeTag = (value: string) => value.trim().toLowerCase();
 
@@ -353,17 +367,26 @@ export function CodexLocalAccessModal({
     });
   }, [filterTypes, groupFilter, groupIdsByAccountId, groupNameByAccountId, oauthAccounts, query, t, tagFilter]);
 
+  const visibleSelectableAccounts = useMemo(
+    () =>
+      visibleAccounts.filter(
+        (account) => !isCodexExplicitFreePlanType(account.plan_type),
+      ),
+    [visibleAccounts],
+  );
+
   const selectedVisibleCount = useMemo(
     () =>
-      visibleAccounts.reduce(
+      visibleSelectableAccounts.reduce(
         (count, account) => count + (selected.has(account.id) ? 1 : 0),
         0,
       ),
-    [selected, visibleAccounts],
+    [selected, visibleSelectableAccounts],
   );
 
   const allVisibleSelected =
-    visibleAccounts.length > 0 && selectedVisibleCount === visibleAccounts.length;
+    visibleSelectableAccounts.length > 0 &&
+    selectedVisibleCount === visibleSelectableAccounts.length;
 
   useEffect(() => {
     if (!selectAllCheckboxRef.current) return;
@@ -372,8 +395,8 @@ export function CodexLocalAccessModal({
   }, [allVisibleSelected, selectedVisibleCount]);
 
   const selectionDirty = useMemo(
-    () => !areSetsEqual(selected, new Set(initialSelectedIds)),
-    [initialSelectedIds, selected],
+    () => !areSetsEqual(selected, new Set(normalizedInitialSelectedIds)),
+    [normalizedInitialSelectedIds, selected],
   );
 
   const allStatsByAccountId = useMemo(() => {
@@ -461,6 +484,11 @@ export function CodexLocalAccessModal({
     );
   };
 
+  const oauthAccountById = useMemo(
+    () => new Map(oauthAccounts.map((account) => [account.id, account])),
+    [oauthAccounts],
+  );
+
   const handleCopy = async (field: 'baseUrl' | 'apiKey', value: string) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -487,15 +515,15 @@ export function CodexLocalAccessModal({
   };
 
   const toggleSelectAllVisible = () => {
-    if (actionBusy || visibleAccounts.length === 0) return;
+    if (actionBusy || visibleSelectableAccounts.length === 0) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (allVisibleSelected) {
-        for (const account of visibleAccounts) {
+        for (const account of visibleSelectableAccounts) {
           next.delete(account.id);
         }
       } else {
-        for (const account of visibleAccounts) {
+        for (const account of visibleSelectableAccounts) {
           next.add(account.id);
         }
       }
@@ -505,6 +533,9 @@ export function CodexLocalAccessModal({
 
   const toggleSelect = (accountId: string) => {
     if (actionBusy) return;
+    const account = oauthAccountById.get(accountId);
+    if (!account) return;
+    if (isCodexExplicitFreePlanType(account.plan_type)) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(accountId)) {
@@ -520,7 +551,12 @@ export function CodexLocalAccessModal({
     setError('');
     setNotice('');
     try {
-      await onSaveAccounts({ accountIds: Array.from(selected) });
+      const filtered = Array.from(selected).filter((accountId) => {
+        const account = oauthAccountById.get(accountId);
+        if (!account) return false;
+        return !isCodexExplicitFreePlanType(account.plan_type);
+      });
+      await onSaveAccounts({ accountIds: filtered });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -1010,6 +1046,15 @@ export function CodexLocalAccessModal({
                   <span>{t('codex.localAccess.memberTitle', '集合成员')}</span>
                 </div>
               </div>
+              <div className="codex-local-access-inline-info">
+                <CircleAlert size={14} />
+                <span>
+                  {t(
+                    'codex.localAccess.modal.freeNotice',
+                    '暂不支持 Free 账号，Free 账号不可勾选。',
+                  )}
+                </span>
+              </div>
 
               <div className="group-account-toolbar">
                 <div className="group-account-search">
@@ -1078,7 +1123,7 @@ export function CodexLocalAccessModal({
                   type="checkbox"
                   checked={allVisibleSelected}
                   onChange={toggleSelectAllVisible}
-                  disabled={actionBusy || visibleAccounts.length === 0}
+                  disabled={actionBusy || visibleSelectableAccounts.length === 0}
                 />
                 <div className="group-account-main" />
               </div>
@@ -1096,17 +1141,20 @@ export function CodexLocalAccessModal({
                   visibleAccounts.map((account) => {
                     const presentation = buildCodexAccountPresentation(account, t);
                     const isChecked = selected.has(account.id);
+                    const isFreeAccount = isCodexExplicitFreePlanType(account.plan_type);
                     const accountStats = allStatsByAccountId.get(account.id)?.usage;
 
                     return (
                       <label
                         key={account.id}
-                        className={`group-account-item${isChecked ? ' is-current' : ''}`}
+                        className={`group-account-item${isChecked ? ' is-current' : ''}${
+                          isFreeAccount ? ' is-disabled' : ''
+                        }`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          disabled={actionBusy}
+                          disabled={actionBusy || isFreeAccount}
                           onChange={() => toggleSelect(account.id)}
                         />
                         <div className="group-account-main">
@@ -1126,6 +1174,14 @@ export function CodexLocalAccessModal({
                               defaultValue: '{{count}} 次请求',
                             })}
                           </span>
+                          {isFreeAccount && (
+                            <span className="codex-local-access-member-unsupported">
+                              {t(
+                                'codex.localAccess.modal.freeUnsupported',
+                                '暂不支持 Free 账号',
+                              )}
+                            </span>
+                          )}
                           {renderQuotaPreview(presentation, 2)}
                         </div>
                         </div>

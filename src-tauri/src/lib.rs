@@ -350,6 +350,7 @@ pub fn run() {
             commands::update::save_update_settings,
             commands::update::save_pending_update_notes,
             commands::update::check_version_jump,
+            commands::update::get_release_history,
             commands::update::update_log,
             commands::update::get_update_runtime_info,
             commands::update::install_linux_update,

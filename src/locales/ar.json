@@ -425,7 +425,34 @@
       "launchModeCli": "وضع CLI",
       "workingDir": "دليل العمل",
       "workingDirPlaceholder": "افتراضيًا المسار الحالي",
-      "workingDirDesc": "سيتم التبديل إلى هذا الدليل أولًا عند التشغيل"
+      "workingDirDesc": "سيتم التبديل إلى هذا الدليل أولًا عند التشغيل",
+      "codexQuickConfig": {
+        "title": "السياق والحدود المدمجة",
+        "presetLabel": "التكوين المسبق",
+        "presetHint": "اختر إعدادًا مسبقًا (افتراضي / 516 كيلو بايت / 1 ميجا)، أو قم بالتبديل إلى مخصص واملأ كلا الحقلين يدويًا.",
+        "presetDefaultShort": "تقصير",
+        "presetDefaultDesc": "قم بإزالة كلا الحقلين واستخدم الإعدادات الافتراضية الرسمية",
+        "preset516kShort": "516 ك",
+        "preset516kDesc": "السياق = 516000 / المضغوط = 460000",
+        "preset1mShort": "1 م",
+        "preset1mDesc": "السياق = 1000000 / المضغوط = 900000",
+        "presetCustomShort": "مخصص",
+        "presetCustomDesc": "قم بتعيين السياق والقيم المضغوطة يدويًا",
+        "contextWindow": "نافذة السياق",
+        "contextWindowHint": "يكتب model_context_window. قابل للتحرير فقط في الوضع المخصص.",
+        "autoCompactLimit": "حد الضغط التلقائي",
+        "autoCompactLimitHint": "يكتب model_auto_compact_token_limit. قابل للتحرير فقط في الوضع المخصص.",
+        "customDetected": "تم اكتشاف القيم المخصصة في config.toml: model_context_window={{context}}، model_auto_compact_token_limit={{compact}}. سيؤدي الحفظ إلى استبدالها بالإعداد المسبق الذي حددته.",
+        "partialDetected": "تم حاليًا تعيين حقل مُدار واحد فقط: model_context_window={{context}}، model_auto_compact_token_limit={{compact}}. سيؤدي الحفظ إلى إعادة كتابة كلا الحقلين باستخدام المخطط الحالي.",
+        "notSet": "لم يتم ضبطه",
+        "loadFailed": "فشل تحميل تكوين Codex الحالي: {{error}}",
+        "openConfig": "افتح الملف config.toml",
+        "openFailed": "فشل في فتح ملف config.toml: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "يجب أن تكون نافذة السياق عددًا صحيحًا أكبر من 0.",
+          "autoCompactInvalid": "يجب أن يكون حد الضغط التلقائي عددًا صحيحًا أكبر من 0."
+        }
+      }
     },
     "quota": {
       "unbound": "حساب غير مرتبط",
@@ -776,7 +803,17 @@
       "upToDate": "محدث",
       "newVersion": "v{{version}} متاح",
       "download": "تنزيل",
-      "checkFailed": "فشل التحقق من التحديثات"
+      "checkFailed": "فشل التحقق من التحديثات",
+      "viewReleaseHistory": "ملاحظات الإصدار",
+      "releaseHistoryTitle": "ملاحظات الإصدار",
+      "releaseHistoryLoading": "جارٍ تحميل ملاحظات الإصدار...",
+      "releaseHistoryEmpty": "لا توجد ملاحظات الإصدار حتى الآن",
+      "releaseHistoryLoadFailed": "فشل التحميل: {{error}}",
+      "releaseHistorySectionAdded": "تمت الإضافة",
+      "releaseHistorySectionChanged": "تغيرت",
+      "releaseHistorySectionFixed": "مُثَبَّت",
+      "releaseHistorySectionRemoved": "تمت الإزالة",
+      "downloadThisVersion": "تحميل"
     },
     "saveSettings": "حفظ الإعدادات",
     "transfer": {
@@ -1664,7 +1701,9 @@
         "empty": "لا توجد حسابات OAuth متاحة",
         "selected": "ضمن خدمة API",
         "available": "اللوحة العادية",
-        "save": "حفظ المجموعة"
+        "save": "حفظ المجموعة",
+        "freeNotice": "الحسابات المجانية غير مدعومة بعد. لا يمكن تحديد الحسابات المجانية.",
+        "freeUnsupported": "الحسابات المجانية غير مدعومة بعد"
       },
       "entryAction": "إضافة إلى خدمة API",
       "testAction": "اختبار خدمة API",
@@ -2001,8 +2040,8 @@
         "expand": "توسيع",
         "collapse": "طي",
         "repairVisibility": "إصلاح الظهور",
-      "restoreSessions": "استعادة الجلسات",
-      "copySessionId": "نسخ معرّف الجلسة"
+        "restoreSessions": "استعادة الجلسات",
+        "copySessionId": "نسخ معرّف الجلسة"
       },
       "confirm": {
         "title": "نقل إلى المهملات",
@@ -2020,11 +2059,11 @@
         "pickRestoreOne": "يرجى تحديد جلسة واحدة على الأقل لاستعادتها"
       },
       "groupCount": "{{count}} جلسة",
-    "updatedAt": "تم التحديث",
-    "labels": {
-      "sessionId": "معرّف الجلسة",
-      "tokenUsage": "استخدام الرموز"
-    },
+      "updatedAt": "تم التحديث",
+      "labels": {
+        "sessionId": "معرّف الجلسة",
+        "tokenUsage": "استخدام الرموز"
+      },
       "locationRunning": " (قيد التشغيل)",
       "untitled": "جلسة بدون عنوان",
       "restoreModal": {
@@ -2191,8 +2230,27 @@
         "customDetected": "تم اكتشاف model_context_window = {{context}} مخصص في config.toml. سيؤدي الحفظ إلى إعادة كتابته باستخدام الإعداد السريع أدناه.",
         "compactMissingDetected": "تم تفعيل سياق 1M بالفعل، لكن حد الضغط التلقائي مفقود. سيكتب الحفظ القيمة الافتراضية {{limit}}.",
         "validation": {
-          "autoCompactInvalid": "يجب أن يكون حد الضغط التلقائي عددًا صحيحًا أكبر من 0."
-        }
+          "autoCompactInvalid": "يجب أن يكون حد الضغط التلقائي عددًا صحيحًا أكبر من 0.",
+          "contextWindowInvalid": "يجب أن تكون نافذة السياق عددًا صحيحًا أكبر من 0."
+        },
+        "presetLabel": "التكوين المسبق",
+        "presetHint": "اختر إعدادًا مسبقًا (افتراضي / 516 كيلو بايت / 1 ميجا)، أو قم بالتبديل إلى مخصص واملأ كلا الحقلين يدويًا.",
+        "presetDefaultShort": "تقصير",
+        "presetDefaultDesc": "قم بإزالة كلا الحقلين واستخدم الإعدادات الافتراضية الرسمية",
+        "preset516kShort": "516 ك",
+        "preset516kDesc": "السياق = 516000 / المضغوط = 460000",
+        "preset1mShort": "1 م",
+        "preset1mDesc": "السياق = 1000000 / المضغوط = 900000",
+        "presetCustomShort": "مخصص",
+        "presetCustomDesc": "قم بتعيين السياق والقيم المضغوطة يدويًا",
+        "presetDefault": "الافتراضي (إزالة model_context_window / model_auto_compact_token_limit)",
+        "preset516k": "516 كيلو بايت (model_context_window = 516000، ضغط تلقائي = 460000)",
+        "preset1m": "1M (model_context_window = 1000000، الضغط التلقائي = 900000)",
+        "presetCustom": "مخصص",
+        "contextWindow": "نافذة السياق",
+        "contextWindowHint": "يكتب model_context_window. قابل للتحرير فقط في الوضع المخصص.",
+        "partialDetected": "تم حاليًا تعيين حقل مُدار واحد فقط: model_context_window={{context}}، model_auto_compact_token_limit={{compact}}. سيؤدي الحفظ إلى إعادة كتابة كلا الحقلين باستخدام المخطط الحالي.",
+        "notSet": "لم يتم ضبطه"
       }
     },
     "quickSwitch": {
@@ -2337,7 +2395,34 @@
       "configToml": "ملف إعدادات Codex",
       "openConfigToml": "فتح الملف",
       "openConfigHint": "افتح بسرعة ملف config.toml النشط الخاص بـ Codex.",
-      "localAccessEntryVisible": "إظهار مدخل خدمة API"
+      "localAccessEntryVisible": "إظهار مدخل خدمة API",
+      "quickConfig": {
+        "title": "السياق والحدود المدمجة",
+        "presetLabel": "التكوين المسبق",
+        "presetHint": "اختر إعدادًا مسبقًا (افتراضي / 516 كيلو بايت / 1 ميجا)، أو قم بالتبديل إلى مخصص واملأ كلا الحقلين يدويًا.",
+        "presetDefaultShort": "تقصير",
+        "presetDefaultDesc": "قم بإزالة كلا الحقلين واستخدم الإعدادات الافتراضية الرسمية",
+        "preset516kShort": "516 ك",
+        "preset516kDesc": "السياق = 516000 / المضغوط = 460000",
+        "preset1mShort": "1 م",
+        "preset1mDesc": "السياق = 1000000 / المضغوط = 900000",
+        "presetCustomShort": "مخصص",
+        "presetCustomDesc": "قم بتعيين السياق والقيم المضغوطة يدويًا",
+        "contextWindow": "نافذة السياق",
+        "contextWindowHint": "يكتب model_context_window. قابل للتحرير فقط في الوضع المخصص.",
+        "autoCompactLimit": "حد الضغط التلقائي",
+        "autoCompactLimitHint": "يكتب model_auto_compact_token_limit. قابل للتحرير فقط في الوضع المخصص.",
+        "customDetected": "تم اكتشاف القيم المخصصة في config.toml: model_context_window={{context}}، model_auto_compact_token_limit={{compact}}. سيؤدي الحفظ إلى استبدالها بالإعداد المسبق الذي حددته.",
+        "partialDetected": "تم حاليًا تعيين حقل مُدار واحد فقط: model_context_window={{context}}، model_auto_compact_token_limit={{compact}}. سيؤدي الحفظ إلى إعادة كتابة كلا الحقلين باستخدام المخطط الحالي.",
+        "notSet": "لم يتم ضبطه",
+        "loadFailed": "فشل تحميل تكوين Codex الحالي: {{error}}",
+        "saveSuccess": "تم حفظ تكوين Codex الحالي.",
+        "saveFailed": "فشل حفظ تكوين Codex الحالي: {{error}}",
+        "validation": {
+          "contextWindowInvalid": "يجب أن تكون نافذة السياق عددًا صحيحًا أكبر من 0.",
+          "autoCompactInvalid": "يجب أن يكون حد الضغط التلقائي عددًا صحيحًا أكبر من 0."
+        }
+      }
     },
     "githubCopilot": {
       "title": "إعدادات GitHub Copilot",
@@ -3277,11 +3362,11 @@
       "status": "حالة التسجيل",
       "checkedIn": "تم التسجيل",
       "notCheckedIn": "لم يتم التسجيل",
-      "button": "تسجيل",
+      "button": {},
       "button.loading": "جاري التسجيل...",
       "done": "تم",
       "success": "تم التسجيل بنجاح! {{days}} يوم متتالي",
-      "failure": "فشل التسجيل: {{message}}",
+      "failure": {},
       "failure.network": "خطأ في الشبكة، يرجى المحاولة لاحقًا",
       "lastCheckin": "آخر تسجيل: {{time}}",
       "streak": "{{days}} يوم متتالي",
