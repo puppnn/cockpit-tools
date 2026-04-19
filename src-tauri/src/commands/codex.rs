@@ -307,7 +307,14 @@ pub async fn refresh_current_codex_quota(app: AppHandle) -> Result<(), String> {
     let Some(account) = codex_account::get_current_account() else {
         return Err("未找到当前 Codex 账号".to_string());
     };
-    if account.is_api_key_auth() {
+    if account.is_api_key_auth()
+        && account
+            .api_base_url
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .is_none()
+    {
         return Ok(());
     }
 
@@ -473,13 +480,16 @@ pub fn update_codex_account_name(account_id: String, name: String) -> Result<Cod
 }
 
 #[tauri::command]
-pub fn update_codex_api_key_credentials(
+pub async fn update_codex_api_key_credentials(
     account_id: String,
     api_key: String,
     api_base_url: Option<String>,
     api_provider_mode: Option<CodexApiProviderMode>,
     api_provider_id: Option<String>,
     api_provider_name: Option<String>,
+    api_console_token: Option<String>,
+    api_console_username: Option<String>,
+    api_console_password: Option<String>,
 ) -> Result<CodexAccount, String> {
     codex_account::update_api_key_credentials(
         &account_id,
@@ -488,7 +498,11 @@ pub fn update_codex_api_key_credentials(
         api_provider_mode,
         api_provider_id,
         api_provider_name,
+        api_console_token,
+        api_console_username,
+        api_console_password,
     )
+    .await
 }
 
 #[tauri::command]

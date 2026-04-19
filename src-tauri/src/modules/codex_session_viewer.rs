@@ -164,6 +164,12 @@ struct SessionMatch {
     snapshot: SessionSnapshot,
 }
 
+enum RolloutTitleUpdateOutcome {
+    Updated,
+    MissingFile,
+    SessionMetaNotFound,
+}
+
 pub fn list_sessions_across_instances() -> Result<Vec<CodexSessionViewerRecord>, String> {
     let matches = collect_session_matches(None)?;
     let mut session_map = HashMap::<String, CodexSessionViewerRecord>::new();
@@ -256,10 +262,18 @@ pub fn update_session_title(
     let mut sqlite_updated_count = 0usize;
 
     for item in &matches {
-        match upsert_rollout_title(item.snapshot.rollout_path.as_deref(), &item.snapshot.id, next_title) {
-            Ok(true) => rollout_file_updated_count += 1,
-            Ok(false) => warnings.push(format!(
+        match upsert_rollout_title(
+            item.snapshot.rollout_path.as_deref(),
+            &item.snapshot.id,
+            next_title,
+        ) {
+            Ok(RolloutTitleUpdateOutcome::Updated) => rollout_file_updated_count += 1,
+            Ok(RolloutTitleUpdateOutcome::MissingFile) => warnings.push(format!(
                 "{}: session file update skipped because rollout file is missing.",
+                item.instance.name
+            )),
+            Ok(RolloutTitleUpdateOutcome::SessionMetaNotFound) => warnings.push(format!(
+                "{}: session file was found, but no matching session_meta record could be updated.",
                 item.instance.name
             )),
             Err(error) => warnings.push(format!(
@@ -327,7 +341,12 @@ pub fn favorite_session(session_id: String) -> Result<CodexSessionFavoriteResult
     for item in &matches {
         let index_path = item.instance.data_dir.join(SESSION_INDEX_FILE);
         let sqlite_path = item.instance.data_dir.join(STATE_DB_FILE);
-        let mut file_paths = vec![index_path, sqlite_path.clone(), wal_path(&sqlite_path), shm_path(&sqlite_path)];
+        let mut file_paths = vec![
+            index_path,
+            sqlite_path.clone(),
+            wal_path(&sqlite_path),
+            shm_path(&sqlite_path),
+        ];
         if let Some(rollout_path) = item.snapshot.rollout_path.as_ref() {
             file_paths.push(rollout_path.clone());
         } else {
@@ -524,7 +543,12 @@ fn merge_snapshot_into_record(
         right
             .running
             .cmp(&left.running)
-            .then_with(|| right.updated_at.unwrap_or_default().cmp(&left.updated_at.unwrap_or_default()))
+            .then_with(|| {
+                right
+                    .updated_at
+                    .unwrap_or_default()
+                    .cmp(&left.updated_at.unwrap_or_default())
+            })
             .then_with(|| left.instance_name.cmp(&right.instance_name))
     });
 
@@ -557,7 +581,9 @@ fn merge_snapshot_into_record(
     }
     match (record.created_at, snapshot.created_at) {
         (None, value) => record.created_at = value,
-        (Some(current), Some(candidate)) if candidate < current => record.created_at = Some(candidate),
+        (Some(current), Some(candidate)) if candidate < current => {
+            record.created_at = Some(candidate)
+        }
         _ => {}
     }
 }
@@ -596,7 +622,12 @@ fn choose_session_match<'a>(
         left_has_file
             .cmp(&right_has_file)
             .then_with(|| left.running.cmp(&right.running))
-            .then_with(|| left.snapshot.updated_at.unwrap_or_default().cmp(&right.snapshot.updated_at.unwrap_or_default()))
+            .then_with(|| {
+                left.snapshot
+                    .updated_at
+                    .unwrap_or_default()
+                    .cmp(&right.snapshot.updated_at.unwrap_or_default())
+            })
     })
 }
 
@@ -640,21 +671,23 @@ fn load_instance_sessions(instance: &CodexSyncInstance) -> Result<Vec<SessionSna
     }
 
     for (key, index_entry) in &index_map {
-        let record = records.entry(key.clone()).or_insert_with(|| SessionSnapshot {
-            id: index_entry.id.clone(),
-            title: if index_entry.title.trim().is_empty() {
-                index_entry.id.clone()
-            } else {
-                index_entry.title.clone()
-            },
-            cwd: String::new(),
-            updated_at: index_entry.updated_at,
-            created_at: index_entry.updated_at,
-            model_provider: String::new(),
-            rollout_path: None,
-            row_data: None,
-            session_index_entry: Some(index_entry.raw.clone()),
-        });
+        let record = records
+            .entry(key.clone())
+            .or_insert_with(|| SessionSnapshot {
+                id: index_entry.id.clone(),
+                title: if index_entry.title.trim().is_empty() {
+                    index_entry.id.clone()
+                } else {
+                    index_entry.title.clone()
+                },
+                cwd: String::new(),
+                updated_at: index_entry.updated_at,
+                created_at: index_entry.updated_at,
+                model_provider: String::new(),
+                rollout_path: None,
+                row_data: None,
+                session_index_entry: Some(index_entry.raw.clone()),
+            });
         record.session_index_entry = Some(index_entry.raw.clone());
         if record.title.trim().is_empty() && !index_entry.title.trim().is_empty() {
             record.title = index_entry.title.clone();
@@ -668,21 +701,23 @@ fn load_instance_sessions(instance: &CodexSyncInstance) -> Result<Vec<SessionSna
     }
 
     for (key, thread_row) in &thread_rows {
-        let record = records.entry(key.clone()).or_insert_with(|| SessionSnapshot {
-            id: thread_row.id.clone(),
-            title: if thread_row.title.trim().is_empty() {
-                thread_row.id.clone()
-            } else {
-                thread_row.title.clone()
-            },
-            cwd: thread_row.cwd.clone(),
-            updated_at: thread_row.updated_at,
-            created_at: thread_row.created_at,
-            model_provider: thread_row.model_provider.clone(),
-            rollout_path: thread_row.rollout_path.clone(),
-            row_data: Some(thread_row.row_data.clone()),
-            session_index_entry: index_map.get(key).map(|item| item.raw.clone()),
-        });
+        let record = records
+            .entry(key.clone())
+            .or_insert_with(|| SessionSnapshot {
+                id: thread_row.id.clone(),
+                title: if thread_row.title.trim().is_empty() {
+                    thread_row.id.clone()
+                } else {
+                    thread_row.title.clone()
+                },
+                cwd: thread_row.cwd.clone(),
+                updated_at: thread_row.updated_at,
+                created_at: thread_row.created_at,
+                model_provider: thread_row.model_provider.clone(),
+                rollout_path: thread_row.rollout_path.clone(),
+                row_data: Some(thread_row.row_data.clone()),
+                session_index_entry: index_map.get(key).map(|item| item.raw.clone()),
+            });
         apply_thread_row_to_snapshot(record, thread_row);
     }
 
@@ -765,16 +800,18 @@ fn read_thread_rows(root_dir: &Path) -> Result<HashMap<String, ThreadDbRecord>, 
         .map_err(|error| format!("Failed to iterate {}: {}", db_path.display(), error))?;
 
     let mut result = HashMap::new();
-    while let Some(row) = rows
-        .next()
-        .map_err(|error| format!("Failed to read thread row in {}: {}", db_path.display(), error))?
-    {
+    while let Some(row) = rows.next().map_err(|error| {
+        format!(
+            "Failed to read thread row in {}: {}",
+            db_path.display(),
+            error
+        )
+    })? {
         let mut values = Vec::with_capacity(columns.len());
         for index in 0..columns.len() {
-            values.push(
-                row.get::<usize, Value>(index)
-                    .map_err(|error| format!("Failed to parse row in {}: {}", db_path.display(), error))?,
-            );
+            values.push(row.get::<usize, Value>(index).map_err(|error| {
+                format!("Failed to parse row in {}: {}", db_path.display(), error)
+            })?);
         }
 
         let row_data = ThreadRowData {
@@ -827,8 +864,13 @@ fn enumerate_session_files(root: &Path) -> Result<Vec<PathBuf>, String> {
     let mut files = Vec::new();
     let mut stack = vec![root.to_path_buf()];
     while let Some(current) = stack.pop() {
-        let entries = fs::read_dir(&current)
-            .map_err(|error| format!("Failed to read sessions directory {}: {}", current.display(), error))?;
+        let entries = fs::read_dir(&current).map_err(|error| {
+            format!(
+                "Failed to read sessions directory {}: {}",
+                current.display(),
+                error
+            )
+        })?;
         for entry in entries {
             let entry = entry
                 .map_err(|error| format!("Failed to iterate {}: {}", current.display(), error))?;
@@ -1053,7 +1095,10 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
         .and_then(|value| value.get("type"))
         .and_then(JsonValue::as_str)
         .unwrap_or_default();
-    let top_level_type = row.get("type").and_then(JsonValue::as_str).unwrap_or_default();
+    let top_level_type = row
+        .get("type")
+        .and_then(JsonValue::as_str)
+        .unwrap_or_default();
 
     let mut event = CodexTimelineEvent {
         id: format!("line-{}", index),
@@ -1078,7 +1123,10 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
 
     match payload_type {
         "session_meta" => {
-            let cwd = payload.get("cwd").and_then(JsonValue::as_str).unwrap_or_default();
+            let cwd = payload
+                .get("cwd")
+                .and_then(JsonValue::as_str)
+                .unwrap_or_default();
             let provider = payload
                 .get("model_provider")
                 .and_then(JsonValue::as_str)
@@ -1105,7 +1153,10 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
             event.body = stringify_map(payload);
         }
         "message" => {
-            let role = payload.get("role").and_then(JsonValue::as_str).unwrap_or_default();
+            let role = payload
+                .get("role")
+                .and_then(JsonValue::as_str)
+                .unwrap_or_default();
             let body = extract_message_content(payload);
             event.role = role.to_string();
             event.kind = match role {
@@ -1122,7 +1173,11 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
                 _ => "Message".to_string(),
             };
             event.summary = summarize_text(&body, 180);
-            event.body = if body.is_empty() { stringify_map(payload) } else { body };
+            event.body = if body.is_empty() {
+                stringify_map(payload)
+            } else {
+                body
+            };
         }
         "user_message" => {
             let body = payload
@@ -1237,8 +1292,14 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
                 });
         }
         "patch_apply_end" => {
-            let stdout = payload.get("stdout").and_then(JsonValue::as_str).unwrap_or_default();
-            let stderr = payload.get("stderr").and_then(JsonValue::as_str).unwrap_or_default();
+            let stdout = payload
+                .get("stdout")
+                .and_then(JsonValue::as_str)
+                .unwrap_or_default();
+            let stderr = payload
+                .get("stderr")
+                .and_then(JsonValue::as_str)
+                .unwrap_or_default();
             let changes = payload
                 .get("changes")
                 .map(stringify_json_or_string)
@@ -1270,7 +1331,10 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
                 });
         }
         "web_search_call" | "web_search_end" => {
-            let query = payload.get("query").and_then(JsonValue::as_str).unwrap_or_default();
+            let query = payload
+                .get("query")
+                .and_then(JsonValue::as_str)
+                .unwrap_or_default();
             let action = payload
                 .get("action")
                 .map(stringify_json_or_string)
@@ -1279,7 +1343,11 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
             event.role = "tool".to_string();
             event.title = "Web Search".to_string();
             event.summary = summarize_text(if !query.is_empty() { query } else { &action }, 180);
-            event.body = if action.is_empty() { stringify_map(payload) } else { action };
+            event.body = if action.is_empty() {
+                stringify_map(payload)
+            } else {
+                action
+            };
             event.call_id = payload
                 .get("call_id")
                 .and_then(JsonValue::as_str)
@@ -1292,7 +1360,10 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
                 .to_string();
         }
         "custom_tool_call" => {
-            let body = payload.get("input").map(stringify_json_or_string).unwrap_or_default();
+            let body = payload
+                .get("input")
+                .map(stringify_json_or_string)
+                .unwrap_or_default();
             event.kind = "custom_tool".to_string();
             event.role = "tool".to_string();
             event.title = payload
@@ -1330,7 +1401,10 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
                 .to_string();
         }
         "view_image_tool_call" => {
-            let body = payload.get("path").and_then(JsonValue::as_str).unwrap_or_default();
+            let body = payload
+                .get("path")
+                .and_then(JsonValue::as_str)
+                .unwrap_or_default();
             event.kind = "image".to_string();
             event.role = "tool".to_string();
             event.title = "View Image".to_string();
@@ -1343,15 +1417,18 @@ fn to_timeline_event(index: usize, row: &JsonValue) -> CodexTimelineEvent {
                 .to_string();
         }
         "token_count" => {
-            let summary = payload.get("info").map(stringify_json_or_string).unwrap_or_default();
+            let summary = payload
+                .get("info")
+                .map(stringify_json_or_string)
+                .unwrap_or_default();
             event.kind = "token_count".to_string();
             event.role = "system".to_string();
             event.title = "Token Count".to_string();
             event.summary = summarize_text(&summary, 180);
             event.body = stringify_map(payload);
         }
-        "task_started" | "task_complete" | "item_completed" | "turn_aborted" | "thread_rolled_back"
-        | "context_compacted" | "compacted" => {
+        "task_started" | "task_complete" | "item_completed" | "turn_aborted"
+        | "thread_rolled_back" | "context_compacted" | "compacted" => {
             event.kind = "task".to_string();
             event.role = "system".to_string();
             event.title = payload_type.to_string();
@@ -1403,8 +1480,13 @@ fn copy_files_to_dir(
     file_paths: &[PathBuf],
     manifest: Option<JsonValue>,
 ) -> Result<Vec<String>, String> {
-    fs::create_dir_all(target_dir)
-        .map_err(|error| format!("Failed to create backup dir {}: {}", target_dir.display(), error))?;
+    fs::create_dir_all(target_dir).map_err(|error| {
+        format!(
+            "Failed to create backup dir {}: {}",
+            target_dir.display(),
+            error
+        )
+    })?;
 
     let mut copied = Vec::new();
     for file_path in file_paths {
@@ -1428,8 +1510,13 @@ fn copy_files_to_dir(
 
     if let Some(manifest_value) = manifest {
         let manifest_path = target_dir.join("manifest.json");
-        let content = serde_json::to_string_pretty(&manifest_value)
-            .map_err(|error| format!("Failed to serialize manifest for {}: {}", target_dir.display(), error))?;
+        let content = serde_json::to_string_pretty(&manifest_value).map_err(|error| {
+            format!(
+                "Failed to serialize manifest for {}: {}",
+                target_dir.display(),
+                error
+            )
+        })?;
         fs::write(&manifest_path, content)
             .map_err(|error| format!("Failed to write {}: {}", manifest_path.display(), error))?;
         copied.push(manifest_path.to_string_lossy().to_string());
@@ -1438,7 +1525,10 @@ fn copy_files_to_dir(
     Ok(copied)
 }
 
-fn build_favorite_manifest(item: &SessionMatch, file_paths: &[PathBuf]) -> Result<JsonValue, String> {
+fn build_favorite_manifest(
+    item: &SessionMatch,
+    file_paths: &[PathBuf],
+) -> Result<JsonValue, String> {
     Ok(json!({
         "session_id": item.snapshot.id,
         "instance_id": item.instance.id,
@@ -1462,12 +1552,12 @@ fn upsert_rollout_title(
     rollout_path: Option<&Path>,
     session_id: &str,
     title: &str,
-) -> Result<bool, String> {
+) -> Result<RolloutTitleUpdateOutcome, String> {
     let Some(path) = rollout_path else {
-        return Ok(false);
+        return Ok(RolloutTitleUpdateOutcome::MissingFile);
     };
     if !path.exists() {
-        return Ok(false);
+        return Ok(RolloutTitleUpdateOutcome::MissingFile);
     }
 
     let content = fs::read_to_string(path)
@@ -1486,10 +1576,9 @@ fn upsert_rollout_title(
             match serde_json::from_str::<JsonValue>(trimmed) {
                 Ok(mut parsed) => {
                     if update_session_meta_title(&mut parsed, session_id, title)? {
-                        next_lines.push(
-                            serde_json::to_string(&parsed)
-                                .map_err(|error| format!("Failed to serialize session meta line: {}", error))?,
-                        );
+                        next_lines.push(serde_json::to_string(&parsed).map_err(|error| {
+                            format!("Failed to serialize session meta line: {}", error)
+                        })?);
                         updated = true;
                         continue;
                     }
@@ -1503,7 +1592,7 @@ fn upsert_rollout_title(
     }
 
     if !updated {
-        return Ok(false);
+        return Ok(RolloutTitleUpdateOutcome::SessionMetaNotFound);
     }
 
     let next_content = if next_lines.is_empty() {
@@ -1513,7 +1602,7 @@ fn upsert_rollout_title(
     };
     fs::write(path, next_content)
         .map_err(|error| format!("Failed to write {}: {}", path.display(), error))?;
-    Ok(true)
+    Ok(RolloutTitleUpdateOutcome::Updated)
 }
 
 fn update_session_meta_title(
@@ -1521,6 +1610,11 @@ fn update_session_meta_title(
     session_id: &str,
     title: &str,
 ) -> Result<bool, String> {
+    let line_type = line
+        .get("type")
+        .and_then(JsonValue::as_str)
+        .unwrap_or_default()
+        .to_string();
     let Some(payload) = line.get_mut("payload").and_then(JsonValue::as_object_mut) else {
         return Ok(false);
     };
@@ -1528,7 +1622,7 @@ fn update_session_meta_title(
         .get("type")
         .and_then(JsonValue::as_str)
         .unwrap_or_default();
-    if payload_type != "session_meta" {
+    if line_type != "session_meta" && payload_type != "session_meta" {
         return Ok(false);
     }
 
@@ -1573,10 +1667,9 @@ fn upsert_session_index(
                     .unwrap_or(false)
                 {
                     update_session_index_entry(&mut parsed, session_id, title, updated_at);
-                    next_lines.push(
-                        serde_json::to_string(&parsed)
-                            .map_err(|error| format!("Failed to serialize session index entry: {}", error))?,
-                    );
+                    next_lines.push(serde_json::to_string(&parsed).map_err(|error| {
+                        format!("Failed to serialize session index entry: {}", error)
+                    })?);
                     updated = true;
                 } else {
                     next_lines.push(trimmed.to_string());
@@ -1590,8 +1683,9 @@ fn upsert_session_index(
         let mut entry = existing_entry.cloned().unwrap_or_else(|| json!({}));
         update_session_index_entry(&mut entry, session_id, title, updated_at);
         next_lines.push(
-            serde_json::to_string(&entry)
-                .map_err(|error| format!("Failed to serialize new session index entry: {}", error))?,
+            serde_json::to_string(&entry).map_err(|error| {
+                format!("Failed to serialize new session index entry: {}", error)
+            })?,
         );
     }
 
@@ -1605,7 +1699,12 @@ fn upsert_session_index(
     Ok(true)
 }
 
-fn update_session_index_entry(entry: &mut JsonValue, session_id: &str, title: &str, updated_at: &str) {
+fn update_session_index_entry(
+    entry: &mut JsonValue,
+    session_id: &str,
+    title: &str,
+    updated_at: &str,
+) {
     if !entry.is_object() {
         *entry = json!({});
     }
@@ -1632,7 +1731,13 @@ fn upsert_thread_title(
         .map_err(|error| format!("Failed to open {}: {}", db_path.display(), error))?;
     connection
         .busy_timeout(Duration::from_secs(3))
-        .map_err(|error| format!("Failed to set busy timeout for {}: {}", db_path.display(), error))?;
+        .map_err(|error| {
+            format!(
+                "Failed to set busy timeout for {}: {}",
+                db_path.display(),
+                error
+            )
+        })?;
     ensure_threads_table(&connection)?;
 
     let existing_created_at = connection
@@ -1703,7 +1808,14 @@ fn upsert_thread_title(
                 &title,
             ],
         )
-        .map_err(|error| format!("Failed to update {} in {}: {}", snapshot.id, db_path.display(), error))?;
+        .map_err(|error| {
+            format!(
+                "Failed to update {} in {}: {}",
+                snapshot.id,
+                db_path.display(),
+                error
+            )
+        })?;
 
     Ok(true)
 }

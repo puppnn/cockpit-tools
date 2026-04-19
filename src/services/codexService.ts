@@ -161,6 +161,9 @@ export async function updateCodexApiKeyCredentials(
   apiProviderMode?: CodexApiProviderMode,
   apiProviderId?: string,
   apiProviderName?: string,
+  apiConsoleToken?: string,
+  apiConsoleUsername?: string,
+  apiConsolePassword?: string,
 ): Promise<CodexAccount> {
   return await invoke('update_codex_api_key_credentials', {
     accountId,
@@ -169,6 +172,9 @@ export async function updateCodexApiKeyCredentials(
     apiProviderMode: apiProviderMode ?? null,
     apiProviderId: apiProviderId ?? null,
     apiProviderName: apiProviderName ?? null,
+    apiConsoleToken: apiConsoleToken ?? null,
+    apiConsoleUsername: apiConsoleUsername ?? null,
+    apiConsolePassword: apiConsolePassword ?? null,
   });
 }
 

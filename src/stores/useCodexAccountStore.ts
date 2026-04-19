@@ -86,6 +86,9 @@ interface CodexAccountState {
     apiProviderMode?: CodexApiProviderMode,
     apiProviderId?: string,
     apiProviderName?: string,
+    apiConsoleToken?: string,
+    apiConsoleUsername?: string,
+    apiConsolePassword?: string,
   ) => Promise<CodexAccount>;
   updateAccountTags: (accountId: string, tags: string[]) => Promise<CodexAccount>;
 }
@@ -258,6 +261,9 @@ export const useCodexAccountStore = create<CodexAccountState>((set, get) => ({
     apiProviderMode?: CodexApiProviderMode,
     apiProviderId?: string,
     apiProviderName?: string,
+    apiConsoleToken?: string,
+    apiConsoleUsername?: string,
+    apiConsolePassword?: string,
   ) => {
     const account = await codexService.updateCodexApiKeyCredentials(
       accountId,
@@ -266,6 +272,9 @@ export const useCodexAccountStore = create<CodexAccountState>((set, get) => ({
       apiProviderMode,
       apiProviderId,
       apiProviderName,
+      apiConsoleToken,
+      apiConsoleUsername,
+      apiConsolePassword,
     );
     await get().fetchAccounts();
     await get().fetchCurrentAccount();

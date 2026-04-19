@@ -174,7 +174,8 @@ pub fn run() {
                 .unwrap_or(false);
 
             if force_main_window {
-                let _ = modules::floating_card_window::hide_floating_card_window(&app.handle(), false);
+                let _ =
+                    modules::floating_card_window::hide_floating_card_window(&app.handle(), false);
                 if let Err(err) = modules::floating_card_window::show_main_window(&app.handle()) {
                     logger::log_warn(&format!(
                         "[Window] Forced main window startup failed: {}",

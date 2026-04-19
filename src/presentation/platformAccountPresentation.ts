@@ -36,6 +36,7 @@ import {
 } from '../types/codebuddy';
 import {
   formatCodexResetTime,
+  getCodexApiKeyBillingSummary,
   getCodexCodeReviewQuotaMetric,
   getCodexPlanDisplayName,
   getCodexQuotaClass,
@@ -504,26 +505,83 @@ export function buildCodexAccountPresentation(
   const apiKeyDisplayName = account.account_name?.trim();
   const displayName =
     isCodexApiKeyAccount(account) && apiKeyDisplayName ? apiKeyDisplayName : account.email;
-  const quotaItems: UnifiedQuotaMetric[] = getCodexQuotaWindows(account.quota).map((window) => ({
-    key: window.id,
-    label: window.label,
-    percentage: window.percentage,
-    quotaClass: getCodexQuotaClass(window.percentage),
-    valueText: `${window.percentage}%`,
-    resetText: window.resetTime ? formatCodexResetTime(window.resetTime, t) : '',
-    resetAt: window.resetTime,
-  }));
-  const codeReviewMetric = getCodexCodeReviewQuotaMetric(account.quota);
-  if (codeReviewMetric) {
-    quotaItems.push({
-      key: 'code_review',
-      label: 'Code Review',
-      percentage: codeReviewMetric.percentage,
-      quotaClass: getCodexQuotaClass(codeReviewMetric.percentage),
-      valueText: `${codeReviewMetric.percentage}%`,
-      resetText: codeReviewMetric.resetTime ? formatCodexResetTime(codeReviewMetric.resetTime, t) : '',
-      resetAt: codeReviewMetric.resetTime,
-    });
+  const quotaItems: UnifiedQuotaMetric[] = [];
+  const apiKeyBilling = isCodexApiKeyAccount(account)
+    ? getCodexApiKeyBillingSummary(account.quota)
+    : null;
+
+  if (apiKeyBilling) {
+    const formatApiKeyBillingAmount = (value: number) => {
+      const amount = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(
+        Math.max(0, value),
+      );
+      return `${apiKeyBilling.currencySymbol || '$'}${amount}`;
+    };
+    const usedPercent =
+      apiKeyBilling.totalAmount > 0
+        ? clampPercent((apiKeyBilling.usedAmount / apiKeyBilling.totalAmount) * 100)
+        : 0;
+    quotaItems.push(
+      {
+        key: 'api_key_remaining',
+        label: '剩余额度',
+        percentage: apiKeyBilling.remainingPercentage,
+        quotaClass: getCodexQuotaClass(apiKeyBilling.remainingPercentage),
+        valueText: formatApiKeyBillingAmount(apiKeyBilling.remainingAmount),
+        showProgress: true,
+        progressPercent: apiKeyBilling.remainingPercentage,
+        used: apiKeyBilling.usedAmount,
+        total: apiKeyBilling.totalAmount,
+        left: apiKeyBilling.remainingAmount,
+      },
+      {
+        key: 'api_key_used',
+        label: '已用额度',
+        percentage: usedPercent,
+        quotaClass: getCodexQuotaClass(apiKeyBilling.remainingPercentage),
+        valueText: formatApiKeyBillingAmount(apiKeyBilling.usedAmount),
+        showProgress: true,
+        progressPercent: usedPercent,
+        used: apiKeyBilling.usedAmount,
+        total: apiKeyBilling.totalAmount,
+        left: apiKeyBilling.remainingAmount,
+      },
+      {
+        key: 'api_key_total',
+        label: '总额度',
+        percentage: 100,
+        quotaClass: 'high',
+        valueText: formatApiKeyBillingAmount(apiKeyBilling.totalAmount),
+        showProgress: false,
+        used: apiKeyBilling.usedAmount,
+        total: apiKeyBilling.totalAmount,
+        left: apiKeyBilling.remainingAmount,
+      },
+    );
+  } else if (!isCodexApiKeyAccount(account)) {
+    quotaItems.push(
+      ...getCodexQuotaWindows(account.quota).map((window) => ({
+        key: window.id,
+        label: window.label,
+        percentage: window.percentage,
+        quotaClass: getCodexQuotaClass(window.percentage),
+        valueText: `${window.percentage}%`,
+        resetText: window.resetTime ? formatCodexResetTime(window.resetTime, t) : '',
+        resetAt: window.resetTime,
+      })),
+    );
+    const codeReviewMetric = getCodexCodeReviewQuotaMetric(account.quota);
+    if (codeReviewMetric) {
+      quotaItems.push({
+        key: 'code_review',
+        label: 'Code Review',
+        percentage: codeReviewMetric.percentage,
+        quotaClass: getCodexQuotaClass(codeReviewMetric.percentage),
+        valueText: `${codeReviewMetric.percentage}%`,
+        resetText: codeReviewMetric.resetTime ? formatCodexResetTime(codeReviewMetric.resetTime, t) : '',
+        resetAt: codeReviewMetric.resetTime,
+      });
+    }
   }
 
   return {

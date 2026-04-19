@@ -1,5 +1,5 @@
-use std::time::Instant;
 use serde::{Deserialize, Serialize};
+use std::time::Instant;
 use tauri::{AppHandle, Emitter};
 
 use crate::models::windsurf::{WindsurfAccount, WindsurfOAuthStartResponse};

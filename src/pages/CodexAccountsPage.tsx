@@ -402,6 +402,9 @@ export function CodexAccountsPage() {
   const [editingApiKeyCredentialsId, setEditingApiKeyCredentialsId] = useState<string | null>(null);
   const [editingApiKeyCredentialsValue, setEditingApiKeyCredentialsValue] = useState('');
   const [editingApiBaseUrlCredentialsValue, setEditingApiBaseUrlCredentialsValue] = useState('');
+  const [editingApiConsoleTokenValue, setEditingApiConsoleTokenValue] = useState('');
+  const [editingApiConsoleUsernameValue, setEditingApiConsoleUsernameValue] = useState('');
+  const [editingApiConsolePasswordValue, setEditingApiConsolePasswordValue] = useState('');
   const [editingApiProviderPresetId, setEditingApiProviderPresetId] = useState(
     DEFAULT_CODEX_API_PROVIDER_ID,
   );
@@ -1183,6 +1186,7 @@ export function CodexAccountsPage() {
         'custom',
         selectedQuickSwitchProvider.id,
         selectedQuickSwitchProvider.name,
+        quickSwitchAccount.api_console_token,
       );
       setMessage({
         text: t('codex.quickSwitch.success', {
@@ -1422,6 +1426,9 @@ export function CodexAccountsPage() {
     setEditingApiKeyCredentialsId(null);
     setEditingApiKeyCredentialsValue('');
     setEditingApiBaseUrlCredentialsValue('');
+    setEditingApiConsoleTokenValue('');
+    setEditingApiConsoleUsernameValue('');
+    setEditingApiConsolePasswordValue('');
     setEditingApiProviderPresetId(DEFAULT_CODEX_API_PROVIDER_ID);
     setEditingManagedProviderId('');
     setEditingManagedProviderApiKeyId('');
@@ -1443,6 +1450,9 @@ export function CodexAccountsPage() {
     setEditingApiKeyCredentialsId(account.id);
     setEditingApiKeyCredentialsValue(initialApiKey);
     setEditingApiBaseUrlCredentialsValue(initialBaseUrl);
+    setEditingApiConsoleTokenValue((account.api_console_token || '').trim());
+    setEditingApiConsoleUsernameValue('');
+    setEditingApiConsolePasswordValue('');
     setEditingApiProviderPresetId(
       providerMode === 'openai_builtin'
         ? OPENAI_OFFICIAL_PRESET_ID
@@ -1479,13 +1489,16 @@ export function CodexAccountsPage() {
 
     setSavingApiKeyCredentials(true);
     try {
-      await updateApiKeyCredentials(
+      const updatedAccount = await updateApiKeyCredentials(
         accountId,
         validation.apiKey,
         validation.apiBaseUrl,
         providerPayload.apiProviderMode,
         providerPayload.apiProviderId,
         providerPayload.apiProviderName,
+        editingApiConsoleTokenValue.trim() || undefined,
+        editingApiConsoleUsernameValue.trim() || undefined,
+        editingApiConsolePasswordValue.trim() || undefined,
       );
       if (validation.apiBaseUrl && providerPayload.apiProviderMode === 'custom') {
         try {
@@ -1500,10 +1513,17 @@ export function CodexAccountsPage() {
           console.warn('[CodexModelProviders] 更新凭据后写入供应商失败', providerErr);
         }
       }
+      await refreshQuota(updatedAccount.id).catch((quotaErr) => {
+        console.warn('[CodexQuota] 更新 API Key 凭据后刷新额度失败', quotaErr);
+      });
+      await fetchAccounts();
       setMessage({ text: t('instances.messages.updated', '实例已更新') });
       setEditingApiKeyCredentialsId(null);
       setEditingApiKeyCredentialsValue('');
       setEditingApiBaseUrlCredentialsValue('');
+      setEditingApiConsoleTokenValue('');
+      setEditingApiConsoleUsernameValue('');
+      setEditingApiConsolePasswordValue('');
       setEditingApiProviderPresetId(DEFAULT_CODEX_API_PROVIDER_ID);
       setEditingManagedProviderId('');
       setEditingManagedProviderApiKeyId('');
@@ -1519,12 +1539,17 @@ export function CodexAccountsPage() {
   }, [
     buildApiProviderPayload,
     editingApiBaseUrlCredentialsValue,
+    editingApiConsolePasswordValue,
+    editingApiConsoleTokenValue,
+    editingApiConsoleUsernameValue,
     editingApiKeyCredentialsId,
     editingApiKeyCredentialsValue,
     editingApiProviderPresetId,
     editingManagedProviderId,
     editingNewManagedProviderNameInput,
+    fetchAccounts,
     reloadManagedProviders,
+    refreshQuota,
     setMessage,
     t,
     upsertCodexModelProviderFromCredential,
@@ -2069,11 +2094,9 @@ export function CodexAccountsPage() {
       const isSavingApiKeyName = savingApiKeyNameId === account.id;
       const planClass = presentation.planClass || 'unknown';
       const isSelected = selected.has(account.id);
-      const quotaItems = isApiKeyAccount
-        ? []
-        : showCodeReviewQuota
-          ? presentation.quotaItems
-          : presentation.quotaItems.filter((item) => item.key !== 'code_review');
+      const quotaItems = showCodeReviewQuota
+        ? presentation.quotaItems
+        : presentation.quotaItems.filter((item) => item.key !== 'code_review');
       const quotaErrorMeta = resolveQuotaErrorMeta(account.quota_error);
       const hasQuotaError = Boolean(quotaErrorMeta.rawMessage);
       const showReauthorizeAction =
@@ -2089,6 +2112,7 @@ export function CodexAccountsPage() {
       const apiProviderLine = `${t('codex.api.provider.label', '供应商')}：${apiProviderName}`;
       const apiBaseUrlText = (account.api_base_url || '').trim() || '-';
       const apiBaseUrlLine = `${t('codex.api.baseUrl', 'Base URL')}：${apiBaseUrlText}`;
+      const canRefreshQuota = !isApiKeyAccount || apiBaseUrlText !== '-';
       const accountTags = (account.tags || []).map((tag) => tag.trim()).filter(Boolean);
       const visibleTags = accountTags.slice(0, 2);
       const moreTagCount = Math.max(0, accountTags.length - visibleTags.length);
@@ -2171,7 +2195,7 @@ export function CodexAccountsPage() {
           )}
           {accountTags.length > 0 && (<div className="card-tags">{visibleTags.map((tag, idx) => (<span key={`${account.id}-${tag}-${idx}`} className="tag-pill">{tag}</span>))}{moreTagCount > 0 && <span className="tag-pill more">+{moreTagCount}</span>}</div>)}
           <div className="codex-quota-section">
-            {isApiKeyAccount ? (
+            {isApiKeyAccount && quotaItems.length === 0 ? (
               <div className="quota-empty">
                 <button className="btn btn-secondary btn-sm" onClick={() => void handleOpenCodexUsage()}>
                   <ExternalLink size={14} />
@@ -2230,7 +2254,7 @@ export function CodexAccountsPage() {
               <button className={`card-action-btn ${!isCurrent ? 'success' : ''}`} onClick={() => handleSwitch(account.id)} disabled={!!switching} title={t('codex.switch', '切换')}>
                 {switching === account.id ? <RefreshCw size={14} className="loading-spinner" /> : <Play size={14} />}
               </button>
-              {!isApiKeyAccount && (
+              {canRefreshQuota && (
                 <button className="card-action-btn" onClick={() => handleRefresh(account.id)} disabled={refreshing === account.id} title={t('common.shared.refreshQuota', '刷新配额')}>
                   <RotateCw size={14} className={refreshing === account.id ? 'loading-spinner' : ''} />
                 </button>
@@ -2361,11 +2385,9 @@ export function CodexAccountsPage() {
       const isEditingApiKeyName = isApiKeyAccount && editingApiKeyNameId === account.id;
       const isSavingApiKeyName = savingApiKeyNameId === account.id;
       const planClass = presentation.planClass || 'unknown';
-      const quotaItems = isApiKeyAccount
-        ? []
-        : showCodeReviewQuota
-          ? presentation.quotaItems
-          : presentation.quotaItems.filter((item) => item.key !== 'code_review');
+      const quotaItems = showCodeReviewQuota
+        ? presentation.quotaItems
+        : presentation.quotaItems.filter((item) => item.key !== 'code_review');
       const quotaErrorMeta = resolveQuotaErrorMeta(account.quota_error);
       const hasQuotaError = Boolean(quotaErrorMeta.rawMessage);
       const showReauthorizeAction =
@@ -2381,6 +2403,7 @@ export function CodexAccountsPage() {
       const apiProviderLine = `${t('codex.api.provider.label', '供应商')}：${apiProviderName}`;
       const apiBaseUrlText = (account.api_base_url || '').trim() || '-';
       const apiBaseUrlLine = `${t('codex.api.baseUrl', 'Base URL')}：${apiBaseUrlText}`;
+      const canRefreshQuota = !isApiKeyAccount || apiBaseUrlText !== '-';
       return (
         <tr key={groupKey ? `${groupKey}-${account.id}` : account.id} className={isCurrent ? 'current' : ''}>
           <td><input type="checkbox" checked={selected.has(account.id)} onChange={() => toggleSelect(account.id)} /></td>
@@ -2457,7 +2480,7 @@ export function CodexAccountsPage() {
             {hasQuotaError && (<div className="account-sub-line"><span className="codex-status-pill quota-error" title={quotaErrorMeta.rawMessage}><CircleAlert size={12} />{quotaErrorMeta.statusCode || t('codex.quotaError.badge', '配额异常')}</span></div>)}</div></td>
           <td><span className={`tier-badge ${planClass}`}>{presentation.planLabel}</span></td>
           <td>
-            {isApiKeyAccount ? (
+            {isApiKeyAccount && quotaItems.length === 0 ? (
               <button className="btn btn-secondary btn-sm" onClick={() => void handleOpenCodexUsage()}>
                 <ExternalLink size={14} />
                 {t('codex.usage.open', '查看 OpenAI 用量')}
@@ -2519,7 +2542,7 @@ export function CodexAccountsPage() {
             <button className={`action-btn ${!isCurrent ? 'success' : ''}`} onClick={() => handleSwitch(account.id)} disabled={!!switching} title={t('codex.switch', '切换')}>
               {switching === account.id ? <RefreshCw size={14} className="loading-spinner" /> : <Play size={14} />}
             </button>
-            {!isApiKeyAccount && (
+            {canRefreshQuota && (
               <button className="action-btn" onClick={() => handleRefresh(account.id)} disabled={refreshing === account.id} title={t('common.shared.refreshQuota', '刷新配额')}>
                 <RotateCw size={14} className={refreshing === account.id ? 'loading-spinner' : ''} />
               </button>
@@ -3332,6 +3355,42 @@ export function CodexAccountsPage() {
                         value={editingApiBaseUrlCredentialsValue}
                         onChange={(e) => setEditingApiBaseUrlCredentialsValue(e.target.value)}
                         placeholder={t('codex.api.baseUrlPlaceholder', '不填写则是官方默认')}
+                        disabled={savingApiKeyCredentials}
+                      />
+                    </div>
+                  </div>
+                  <div className="oauth-link">
+                    <label>{t('codex.api.consoleToken', '控制台 Token（第三方真实额度）')}</label>
+                    <div className="oauth-url-box oauth-manual-input">
+                      <input
+                        type="password"
+                        value={editingApiConsoleTokenValue}
+                        onChange={(e) => setEditingApiConsoleTokenValue(e.target.value)}
+                        placeholder={t('codex.api.consoleTokenPlaceholder', '读取网页订阅额度用，可粘贴 localStorage user 或 token')}
+                        disabled={savingApiKeyCredentials}
+                      />
+                    </div>
+                  </div>
+                  <div className="oauth-link">
+                    <label>{t('codex.api.consoleUsername', '控制台账号（自动获取 Token）')}</label>
+                    <div className="oauth-url-box oauth-manual-input">
+                      <input
+                        type="text"
+                        value={editingApiConsoleUsernameValue}
+                        onChange={(e) => setEditingApiConsoleUsernameValue(e.target.value)}
+                        placeholder={t('codex.api.consoleUsernamePlaceholder', 'llmskill 登录邮箱或用户名')}
+                        disabled={savingApiKeyCredentials}
+                      />
+                    </div>
+                  </div>
+                  <div className="oauth-link">
+                    <label>{t('codex.api.consolePassword', '控制台密码（不保存）')}</label>
+                    <div className="oauth-url-box oauth-manual-input">
+                      <input
+                        type="password"
+                        value={editingApiConsolePasswordValue}
+                        onChange={(e) => setEditingApiConsolePasswordValue(e.target.value)}
+                        placeholder={t('codex.api.consolePasswordPlaceholder', '只用于登录一次换取 Token')}
                         disabled={savingApiKeyCredentials}
                       />
                     </div>

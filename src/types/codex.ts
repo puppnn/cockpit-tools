@@ -17,6 +17,7 @@ export interface CodexAccount {
   api_provider_mode?: CodexApiProviderMode;
   api_provider_id?: string;
   api_provider_name?: string;
+  api_console_token?: string;
   user_id?: string;
   plan_type?: string;
   account_id?: string;
@@ -84,6 +85,16 @@ export interface CodexCodeReviewQuotaMetric {
   percentage: number;
   label: string;
   resetTime?: number;
+}
+
+export interface CodexApiKeyBillingSummary {
+  remainingAmount: number;
+  usedAmount: number;
+  totalAmount: number;
+  remainingPercentage: number;
+  accessUntil?: number;
+  currencySymbol?: string;
+  source?: string;
 }
 
 export interface CodexInstanceThreadSyncItem {
@@ -400,6 +411,50 @@ export function getCodexCodeReviewQuotaMetric(
 
 export function isCodexApiKeyAccount(account: CodexAccount): boolean {
   return (account.auth_mode || '').trim().toLowerCase() === 'apikey';
+}
+
+/** 获取 API Key 第三方额度摘要 */
+export function getCodexApiKeyBillingSummary(
+  quota: CodexQuota | undefined,
+): CodexApiKeyBillingSummary | null {
+  const raw = toJsonRecord(quota?.raw_data);
+  const billing = toJsonRecord(raw?.api_key_billing);
+  if (!billing) return null;
+
+  const remainingAmount = toFiniteNumber(billing.remaining_amount);
+  const usedAmount = toFiniteNumber(billing.used_amount);
+  const rawTotalAmount = toFiniteNumber(billing.total_amount);
+  const source = toStringValue(billing.source);
+  if (
+    source === 'openai_compatible_billing' &&
+    rawTotalAmount !== undefined &&
+    rawTotalAmount >= 1_000_000
+  ) {
+    return null;
+  }
+  const totalAmount = rawTotalAmount ?? ((remainingAmount ?? 0) + (usedAmount ?? 0));
+  if (
+    remainingAmount === undefined &&
+    usedAmount === undefined &&
+    rawTotalAmount === undefined
+  ) {
+    return null;
+  }
+
+  const remainingPercentage =
+    toFiniteNumber(billing.remaining_percentage) ??
+    (totalAmount > 0 ? ((remainingAmount ?? 0) / totalAmount) * 100 : 100);
+  const accessUntil = toFiniteNumber(billing.access_until);
+
+  return {
+    remainingAmount: Math.max(0, remainingAmount ?? Math.max(0, totalAmount - (usedAmount ?? 0))),
+    usedAmount: Math.max(0, usedAmount ?? Math.max(0, totalAmount - (remainingAmount ?? 0))),
+    totalAmount: Math.max(0, totalAmount),
+    remainingPercentage: Math.max(0, Math.min(100, Math.round(remainingPercentage))),
+    accessUntil,
+    currencySymbol: toStringValue(billing.currency_symbol),
+    source,
+  };
 }
 
 /** 获取订阅类型显示名称 */

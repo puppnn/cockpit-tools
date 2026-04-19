@@ -12,6 +12,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
+use std::time::Duration;
 use toml_edit::{value, Document};
 
 static CODEX_QUOTA_ALERT_LAST_SENT: std::sync::LazyLock<Mutex<HashMap<String, i64>>> =
@@ -61,6 +62,204 @@ fn normalize_api_base_url(raw: Option<&str>) -> Option<String> {
         return None;
     }
     Some(trimmed.trim_end_matches('/').to_string())
+}
+
+fn build_console_root_candidates(base_url: &str) -> Vec<String> {
+    let normalized = base_url.trim().trim_end_matches('/');
+    if normalized.is_empty() {
+        return Vec::new();
+    }
+
+    let mut seen = HashSet::new();
+    let mut roots = Vec::new();
+    let mut push_root = |root: String| {
+        let root = root.trim().trim_end_matches('/').to_string();
+        if !root.is_empty() && seen.insert(root.clone()) {
+            roots.push(root);
+        }
+    };
+
+    let lower = normalized.to_ascii_lowercase();
+    if lower.contains("llmskill.cn") {
+        push_root("https://www.tokenforus.org".to_string());
+        push_root("https://tokenforus.org".to_string());
+    }
+
+    if lower.ends_with("/v1") {
+        push_root(normalized[..normalized.len() - 3].to_string());
+        push_root(normalized.to_string());
+    } else {
+        push_root(normalized.to_string());
+        push_root(format!("{}/v1", normalized));
+    }
+
+    roots
+}
+
+#[derive(Debug, Clone, Default)]
+struct ConsoleAuthPayload {
+    bearer_token: Option<String>,
+    session_cookie: Option<String>,
+    user_id: Option<i64>,
+}
+
+fn normalize_console_session_cookie(raw: &str) -> Option<String> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+    let without_prefix = trimmed.strip_prefix("session=").unwrap_or(trimmed);
+    let value = without_prefix
+        .split(';')
+        .next()
+        .map(str::trim)
+        .filter(|item| !item.is_empty())?;
+    Some(value.to_string())
+}
+
+fn encode_console_auth_payload(payload: &ConsoleAuthPayload) -> Option<String> {
+    if payload.bearer_token.is_none()
+        && payload.session_cookie.is_none()
+        && payload.user_id.is_none()
+    {
+        return None;
+    }
+    if payload.session_cookie.is_none() && payload.user_id.is_none() {
+        return payload.bearer_token.clone();
+    }
+    Some(
+        serde_json::json!({
+            "token": payload.bearer_token,
+            "session": payload.session_cookie,
+            "user_id": payload.user_id,
+        })
+        .to_string(),
+    )
+}
+
+async fn login_api_console_auth(
+    base_url: &str,
+    username: &str,
+    password: &str,
+) -> Result<ConsoleAuthPayload, String> {
+    let username = username.trim();
+    let password = password.trim();
+    if username.is_empty() || password.is_empty() {
+        return Err("控制台账号和密码不能为空".to_string());
+    }
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(20))
+        .build()
+        .map_err(|e| format!("创建控制台登录客户端失败: {}", e))?;
+    let payload = serde_json::json!({
+        "username": username,
+        "password": password,
+    });
+    let mut errors = Vec::new();
+
+    for root in build_console_root_candidates(base_url) {
+        let login_url = format!("{}/api/user/login?turnstile=", root);
+        let response = match client
+            .post(&login_url)
+            .header(ACCEPT, "application/json")
+            .json(&payload)
+            .send()
+            .await
+        {
+            Ok(value) => value,
+            Err(error) => {
+                errors.push(format!("{} 请求失败: {}", login_url, error));
+                continue;
+            }
+        };
+        let status = response.status();
+        let session_cookie = response
+            .headers()
+            .get_all("set-cookie")
+            .iter()
+            .filter_map(|item| item.to_str().ok())
+            .find_map(normalize_console_session_cookie);
+        let body = response
+            .text()
+            .await
+            .map_err(|e| format!("读取控制台登录响应失败: {}", e))?;
+        if !status.is_success() {
+            errors.push(format!(
+                "{} 返回 {} [body_len:{}]",
+                login_url,
+                status,
+                body.len()
+            ));
+            continue;
+        }
+
+        let value: serde_json::Value =
+            serde_json::from_str(&body).map_err(|e| format!("解析控制台登录 JSON 失败: {}", e))?;
+        if !value
+            .get("success")
+            .and_then(|item| item.as_bool())
+            .unwrap_or(false)
+        {
+            let message = value
+                .get("message")
+                .and_then(|item| item.as_str())
+                .unwrap_or("登录失败");
+            errors.push(format!("{} 返回错误: {}", login_url, message));
+            continue;
+        }
+
+        let data = value.get("data").unwrap_or(&value);
+        if data
+            .get("require_2fa")
+            .and_then(|item| item.as_bool())
+            .unwrap_or(false)
+        {
+            return Err("控制台账号开启了二次验证，请手动粘贴控制台 Token 或会话信息".to_string());
+        }
+        let bearer_token = data
+            .get("token")
+            .or_else(|| data.get("access_token"))
+            .and_then(|item| item.as_str())
+            .map(str::trim)
+            .filter(|item| !item.is_empty())
+            .map(str::to_string);
+        let user_id = data
+            .get("id")
+            .and_then(|item| item.as_i64())
+            .or_else(|| {
+                data.get("id")
+                    .and_then(|item| item.as_str())
+                    .and_then(|item| item.trim().parse::<i64>().ok())
+            })
+            .or_else(|| {
+                data.get("user_id")
+                    .and_then(|item| item.as_i64())
+                    .or_else(|| {
+                        data.get("user_id")
+                            .and_then(|item| item.as_str())
+                            .and_then(|item| item.trim().parse::<i64>().ok())
+                    })
+            });
+
+        if bearer_token.is_some() || (session_cookie.is_some() && user_id.is_some()) {
+            return Ok(ConsoleAuthPayload {
+                bearer_token,
+                session_cookie,
+                user_id,
+            });
+        }
+        errors.push(format!("{} 登录成功但没有返回可用会话", login_url));
+    }
+
+    Err(format!(
+        "控制台登录失败: {}",
+        if errors.is_empty() {
+            "没有可用登录接口".to_string()
+        } else {
+            errors.join("; ")
+        }
+    ))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -3185,13 +3384,16 @@ pub fn update_account_tags(account_id: &str, tags: Vec<String>) -> Result<CodexA
     Ok(account)
 }
 
-pub fn update_api_key_credentials(
+pub async fn update_api_key_credentials(
     account_id: &str,
     api_key: String,
     api_base_url: Option<String>,
     api_provider_mode: Option<CodexApiProviderMode>,
     api_provider_id: Option<String>,
     api_provider_name: Option<String>,
+    api_console_token: Option<String>,
+    api_console_username: Option<String>,
+    api_console_password: Option<String>,
 ) -> Result<CodexAccount, String> {
     let mut account =
         load_account(account_id).ok_or_else(|| format!("账号不存在: {}", account_id))?;
@@ -3223,7 +3425,32 @@ pub fn update_api_key_credentials(
         account.id = new_id.clone();
     }
 
+    let console_username = api_console_username
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    let console_password = api_console_password
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    let resolved_console_token = match (console_username, console_password) {
+        (Some(username), Some(password)) => {
+            let console_base_url = normalized_base_url
+                .as_deref()
+                .ok_or_else(|| "控制台登录需要第三方 Base URL".to_string())?;
+            encode_console_auth_payload(
+                &login_api_console_auth(console_base_url, username, password).await?,
+            )
+        }
+        (None, None) => api_console_token
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty())
+            .or_else(|| account.api_console_token.clone()),
+        _ => return Err("控制台账号和密码需要同时填写".to_string()),
+    };
+
     apply_api_key_fields(&mut account, &normalized_key, provider_config);
+    account.api_console_token = resolved_console_token;
     account.update_last_used();
     save_account(&account)?;
 
