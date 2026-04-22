@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Steruje tylko tym, czy wpis usługi API jest widoczny w przeglądzie Codex. Nie zatrzymuje lokalnej usługi API; możesz go ponownie włączyć tutaj lub w szybkich ustawieniach.",
       "codexLocalAccessEnabled": "Włącz usługę API",
       "codexLocalAccessEnabledDesc": "Określa, czy lokalna usługa Codex API faktycznie działa.",
-      "codexLocalAccessEnabledRequiresCollection": "Przed włączeniem lub wyłączeniem usługi najpierw dodaj konta do kolekcji usługi API."
+      "codexLocalAccessEnabledRequiresCollection": "Przed włączeniem lub wyłączeniem usługi najpierw dodaj konta do kolekcji usługi API.",
+      "codexRestartSpecifiedAppOnSwitch": "Restartuj wskazaną aplikację przy przełączaniu Codex",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Po włączeniu restartuje aplikację z poniższej ścieżki (dla scenariuszy z hostem wtyczek).",
+      "codexSpecifiedAppPath": "Ścieżka wskazanej aplikacji",
+      "codexSpecifiedAppPathDesc": "Ścieżka aplikacji restartowanej razem z przełączeniem Codex.",
+      "codexSpecifiedAppPathPlaceholder": "Np. /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Wyczyść"
     },
     "network": {
       "apiTitle": "API kokpitu antygrawitacyjnego",
@@ -1657,7 +1663,12 @@
         "available": "Zwykły widok",
         "save": "Zapisz kolekcję",
         "freeNotice": "Bezpłatne konta nie są jeszcze obsługiwane. Nie można wybrać kont bezpłatnych.",
-        "freeUnsupported": "Bezpłatne konta nie są jeszcze obsługiwane"
+        "freeUnsupported": "Bezpłatne konta nie są jeszcze obsługiwane",
+        "restrictFreeToggle": "Ogranicz konta Free",
+        "freeNoticeRestricted": "Konta Free są ograniczone. Wyłącz tę opcję, aby je wybrać.",
+        "freeNoticeUnstable": "Proxy kont Free może być niestabilne. Używaj ostrożnie.",
+        "restrictFreeDisableConfirmTitle": "Zezwól na konta Free",
+        "restrictFreeDisableConfirmMessage": "Proxy kont Free może być niestabilne. Na pewno ich użyć?"
       },
       "entryAction": "Dodaj do usługi API",
       "testAction": "Przetestuj usługę API",
@@ -1735,6 +1746,21 @@
         "daily": "Dzień",
         "weekly": "Tydzień",
         "monthly": "Miesiąc"
+      },
+      "enableBeforeActivateTitle": "Usługa nie jest włączona",
+      "enableBeforeActivateMessage": "Usługa API jest obecnie wyłączona i trzeba ją najpierw włączyć. Włączyć i przełączyć teraz?",
+      "enableAndActivateAction": "Włącz i przełącz",
+      "apiPortUrl": "URL portu API",
+      "modelId": "ID modelu",
+      "modelIdPlaceholder": "Wybierz ID modelu",
+      "serviceTierSaveSuccess": "Zaktualizowano szybkość usługi API",
+      "serviceTier": {
+        "label": "Szybkość",
+        "placeholder": "Wybierz szybkość",
+        "standard": "Standardowa",
+        "fast": "Szybka",
+        "standardHint": "Domyślna szybkość",
+        "fastHint": "Szybkość 1,5x, zużycie planu 2x"
       }
     },
     "local": {

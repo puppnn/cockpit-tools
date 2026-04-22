@@ -211,15 +211,62 @@ fn build_console_root_candidates(base_url: &str) -> Vec<String> {
     let mut roots = Vec::new();
     let mut push_root = |root: String| {
         let root = root.trim().trim_end_matches('/').to_string();
-        if !root.is_empty() && seen.insert(root.clone()) {
-            roots.push(root);
+        if root.is_empty() {
+            return;
+        }
+
+        let mut candidates = Vec::new();
+        candidates.push(root.clone());
+
+        if let Ok(parsed) = reqwest::Url::parse(&root) {
+            if let Some(host) = parsed.host_str() {
+                let path = parsed.path().trim_end_matches('/');
+                let path_suffix = if path.is_empty() || path == "/" {
+                    String::new()
+                } else {
+                    path.to_string()
+                };
+                let port_suffix = parsed
+                    .port()
+                    .map(|port| format!(":{}", port))
+                    .unwrap_or_default();
+                let mut push_variant = |scheme: &str, host_variant: &str| {
+                    candidates.push(format!(
+                        "{}://{}{}{}",
+                        scheme, host_variant, port_suffix, path_suffix
+                    ));
+                };
+
+                push_variant("https", host);
+                push_variant("http", host);
+
+                if let Some(without_www) = host.strip_prefix("www.") {
+                    push_variant(parsed.scheme(), without_www);
+                    push_variant("https", without_www);
+                    push_variant("http", without_www);
+                } else {
+                    let with_www = format!("www.{}", host);
+                    push_variant(parsed.scheme(), &with_www);
+                    push_variant("https", &with_www);
+                    push_variant("http", &with_www);
+                }
+            }
+        }
+
+        for candidate in candidates {
+            let candidate = candidate.trim().trim_end_matches('/').to_string();
+            if !candidate.is_empty() && seen.insert(candidate.clone()) {
+                roots.push(candidate);
+            }
         }
     };
 
     let lower = normalized.to_ascii_lowercase();
-    if lower.contains("llmskill.cn") {
+    if lower.contains("llmskill.cn") || lower.contains("tokenforus.org") {
         push_root("https://www.tokenforus.org".to_string());
         push_root("https://tokenforus.org".to_string());
+        push_root("http://www.tokenforus.org".to_string());
+        push_root("http://tokenforus.org".to_string());
     }
 
     if lower.ends_with("/v1") {

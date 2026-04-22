@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "僅控制 Codex 總覽中的 API 服務入口是否顯示，不會停止本機 API 服務；關閉後可在這裡或快速設定中重新開啟。",
       "codexLocalAccessEnabled": "啟用 API 服務",
       "codexLocalAccessEnabledDesc": "控制本機 Codex API 服務是否實際運行。",
-      "codexLocalAccessEnabledRequiresCollection": "需先將帳號加入 API 服務集合，才能啟用或停用服務。"
+      "codexLocalAccessEnabledRequiresCollection": "需先將帳號加入 API 服務集合，才能啟用或停用服務。",
+      "codexRestartSpecifiedAppOnSwitch": "切換 Codex 時重啟指定應用",
+      "codexRestartSpecifiedAppOnSwitchDesc": "啟用後依下方路徑重啟指定應用（適用於依賴外掛宿主的場景）",
+      "codexSpecifiedAppPath": "指定應用啟動路徑",
+      "codexSpecifiedAppPathDesc": "填寫需聯動重啟的應用路徑",
+      "codexSpecifiedAppPathPlaceholder": "例如 /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "清空"
     },
     "network": {
       "apiTitle": "反重力駕駛艙 API",
@@ -1657,7 +1663,12 @@
         "available": "一般面板",
         "save": "儲存集合",
         "freeNotice": "暫不支援 Free 帳號，Free 帳號不可勾選。",
-        "freeUnsupported": "暫不支援 Free 帳號"
+        "freeUnsupported": "暫不支援 Free 帳號",
+        "restrictFreeToggle": "限制 Free 帳號使用",
+        "freeNoticeRestricted": "已限制 Free 帳號，關閉後才可勾選。",
+        "freeNoticeUnstable": "Free 帳號反代可能不穩定，請謹慎使用。",
+        "restrictFreeDisableConfirmTitle": "確認允許 Free 帳號",
+        "restrictFreeDisableConfirmMessage": "Free 帳號反代可能不穩定，確定要使用嗎？"
       },
       "entryAction": "加入 API 服務",
       "testAction": "測試 API 服務",
@@ -1735,6 +1746,21 @@
         "daily": "日",
         "weekly": "週",
         "monthly": "月"
+      },
+      "enableBeforeActivateTitle": "服務未啟用",
+      "enableBeforeActivateMessage": "API 服務目前未啟用，需要先啟用服務。是否啟用並切號？",
+      "enableAndActivateAction": "啟用並切號",
+      "apiPortUrl": "API 連接埠 URL",
+      "modelId": "模型 ID",
+      "modelIdPlaceholder": "選擇模型 ID",
+      "serviceTierSaveSuccess": "API 服務速度已更新",
+      "serviceTier": {
+        "label": "速度",
+        "placeholder": "選擇速度",
+        "standard": "標準",
+        "fast": "快速",
+        "standardHint": "預設速度",
+        "fastHint": "1.5 倍速度，2 倍方案用量"
       }
     },
     "api": {

@@ -47,6 +47,7 @@ export type CursorPlanBadge =
 function normalizeCursorMembershipType(membershipType?: string | null): string {
   const normalized = (membershipType || '').toLowerCase().trim();
   if (!normalized) return '';
+  if (normalized === 'pro_student') return 'pro';
   if (normalized === 'business' || normalized === 'team') return 'enterprise';
   return normalized;
 }

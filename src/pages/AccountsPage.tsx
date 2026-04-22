@@ -126,6 +126,7 @@ import {
 import {
   consumeQueuedExternalProviderImportForPlatform,
   EXTERNAL_PROVIDER_IMPORT_EVENT,
+  normalizeAntigravityExternalImportToken,
 } from '../utils/externalProviderImport'
 import {
   ACCOUNTS_OVERVIEW_FILTER_PERSISTENCE_CHANGED_EVENT,
@@ -1357,17 +1358,33 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
 
   const consumeExternalProviderImport = useCallback(() => {
     const request = consumeQueuedExternalProviderImportForPlatform('antigravity')
-    if (!request) return
+    if (!request) {
+      console.info('[ExternalImport][AccountsPage] 当前无 antigravity 待处理导入请求')
+      return
+    }
+    console.info('[ExternalImport][AccountsPage] 消费到导入请求，准备打开导入弹框', {
+      page: request.page,
+      autoImport: request.autoImport,
+      tokenLength: request.token.length,
+      source: request.source ?? null,
+    })
     openAddModal('token')
-    setTokenInput(request.token)
+    const normalizedTokenInput = normalizeAntigravityExternalImportToken(request.token)
+    setTokenInput(normalizedTokenInput)
     setAddStatus('idle')
     setAddMessage('')
+    console.info('[ExternalImport][AccountsPage] 已打开导入弹框并写入 tokenInput', {
+      normalizedLength: normalizedTokenInput.length,
+      normalizedLooksLikeJson: normalizedTokenInput.trim().startsWith('{'),
+    })
   }, [openAddModal])
 
   useEffect(() => {
     const handleExternalImportEvent = () => {
+      console.info('[ExternalImport][AccountsPage] 收到前端外部导入事件')
       consumeExternalProviderImport()
     }
+    console.info('[ExternalImport][AccountsPage] 初始化时尝试消费外部导入队列')
     consumeExternalProviderImport()
     window.addEventListener(EXTERNAL_PROVIDER_IMPORT_EVENT, handleExternalImportEvent)
     return () => {

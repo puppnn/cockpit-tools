@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Steuert nur, ob der API-Service-Eintrag in der Codex-Übersicht angezeigt wird. Der lokale API-Service wird dadurch nicht gestoppt; du kannst ihn hier oder in den Schnelleinstellungen wieder einblenden.",
       "codexLocalAccessEnabled": "API-Service aktivieren",
       "codexLocalAccessEnabledDesc": "Steuert, ob der lokale Codex-API-Service tatsächlich läuft.",
-      "codexLocalAccessEnabledRequiresCollection": "Füge zuerst Konten zur API-Service-Sammlung hinzu, bevor du den Service aktivierst oder deaktivierst."
+      "codexLocalAccessEnabledRequiresCollection": "Füge zuerst Konten zur API-Service-Sammlung hinzu, bevor du den Service aktivierst oder deaktivierst.",
+      "codexRestartSpecifiedAppOnSwitch": "Beim Wechsel von Codex angegebene App neu starten",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Wenn aktiviert, wird die App unter dem folgenden Pfad neu gestartet (für Plugin-Host-Workflows).",
+      "codexSpecifiedAppPath": "Pfad der angegebenen App",
+      "codexSpecifiedAppPathDesc": "Pfad der App, die beim Codex-Wechsel mit neu gestartet wird.",
+      "codexSpecifiedAppPathPlaceholder": "z. B. /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Leeren"
     },
     "network": {
       "apiTitle": "Antigravity-Cockpit-API",
@@ -1657,7 +1663,12 @@
         "available": "Normale Übersicht",
         "save": "Sammlung speichern",
         "freeNotice": "Kostenlose Konten werden noch nicht unterstützt. Kostenlose Konten können nicht ausgewählt werden.",
-        "freeUnsupported": "Kostenlose Konten werden noch nicht unterstützt"
+        "freeUnsupported": "Kostenlose Konten werden noch nicht unterstützt",
+        "restrictFreeToggle": "Free-Konten begrenzen",
+        "freeNoticeRestricted": "Free-Konten sind eingeschränkt. Deaktiviere dies, um sie auszuwählen.",
+        "freeNoticeUnstable": "Proxy für Free-Konten kann instabil sein. Vorsichtig verwenden.",
+        "restrictFreeDisableConfirmTitle": "Free-Konten zulassen",
+        "restrictFreeDisableConfirmMessage": "Proxy für Free-Konten kann instabil sein. Wirklich verwenden?"
       },
       "entryAction": "Zum API-Dienst hinzufügen",
       "testAction": "API-Dienst testen",
@@ -1735,6 +1746,21 @@
         "daily": "Tag",
         "weekly": "Woche",
         "monthly": "Monat"
+      },
+      "enableBeforeActivateTitle": "Dienst nicht aktiviert",
+      "enableBeforeActivateMessage": "Der API-Dienst ist derzeit deaktiviert und muss zuerst aktiviert werden. Jetzt aktivieren und wechseln?",
+      "enableAndActivateAction": "Aktivieren und wechseln",
+      "apiPortUrl": "API-Port-URL",
+      "modelId": "Modell-ID",
+      "modelIdPlaceholder": "Modell-ID wählen",
+      "serviceTierSaveSuccess": "API-Service-Geschwindigkeit wurde aktualisiert",
+      "serviceTier": {
+        "label": "Geschwindigkeit",
+        "placeholder": "Geschwindigkeit wählen",
+        "standard": "Normal",
+        "fast": "Schnell",
+        "standardHint": "Standardgeschwindigkeit",
+        "fastHint": "1,5x Geschwindigkeit, 2x Tarifverbrauch"
       }
     },
     "local": {

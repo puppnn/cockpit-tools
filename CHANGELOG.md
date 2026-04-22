@@ -7,6 +7,55 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.22.8] - 2026-04-22
+
+### Added
+- **Codex Local API Service now supports a `Speed` selector (`Standard` / `Fast`) with persisted defaults**: the account-page API Service modal can save the default tier, and gateway request rewriting now injects `service_tier: "fast"` for `/v1/responses` (including chat-completions translated requests), while standard mode keeps the field unset.
+- **Codex switching now supports restarting a user-specified host app after switch/activate**: Settings and Quick Settings add the `Restart specified app when switching Codex` toggle plus path picker/input controls, and backend runtime restarts the configured app path after account switch or API Service activation.
+
+### Changed
+- **Local API Service upstream retry now honors retry hints with bounded jitter backoff**: transient `429/5xx/timeout` statuses can retry using `Retry-After` (HTTP header or upstream hint parser) under a total retry budget, instead of fixed single-account status retries.
+
+---
+## [0.22.7] - 2026-04-22
+
+### Added
+- **Codex API Service now exposes an OpenAI-compatible `/v1/chat/completions` entry that is translated to the official Responses protocol internally**: model snapshot aliases, tools/tool_choice, response_format, and streaming tool-call deltas are normalized in both directions so third-party clients can call the local gateway directly.
+- **Codex API Service management now shows `API Port URL` and selectable `Model ID` values**: the modal supports one-click copy and reads model options from backend runtime state.
+- **Desktop startup now includes an `AppRuntimeGuard` fallback layer**: render crashes and chunk-load failures show an in-app error panel with details and a refresh action.
+
+### Changed
+- **Codex API Service upstream dispatch now retries transient failures more predictably**: request-send errors and single-account transient 5xx/timeout statuses now use bounded backoff retries, while 429 usage-limit responses continue to honor model-level cooldown.
+- **Trae refresh flow now protects accounts bound to running clients/instances**: manual refresh, batch refresh, and token keeper switch to usage-only refresh for protected accounts, while still updating quota/usage snapshots.
+- **Trae switch/start flow now uses stricter pre/post account validation**: account is refreshed before inject/start, post-start performs strict check-login with silent remediation when needed, and switch now aborts if existing Trae process cannot be closed cleanly.
+- **Codex account switching now always runs session-visibility repair checks**: provider changes are explicitly logged while non-provider changes still run consistency checks.
+
+---
+## [0.22.6] - 2026-04-21
+
+### Added
+- **External provider import now handles deep-link wakeups across startup and runtime paths**: startup arguments, single-instance wakeups, `deep_link.on_open_url` / `get_current`, and macOS `RunEvent::Opened` now all route through the same import handler with pending payload delivery.
+- **Codex API Service member management now includes a persisted `Limit Free Accounts` toggle**: collection settings add `restrictFreeAccounts` (default `true`), so Free-plan accounts can be explicitly allowed when needed.
+
+### Changed
+- **Codex API Service account filtering now follows the persisted Free-account restriction end-to-end**: save flow, runtime collection sanitization, and request proxy candidate filtering now use the same rule instead of always hard-blocking Free plans.
+- **Antigravity external-import token handling now auto-normalizes raw OAuth refresh tokens before opening the add-account modal**: `1//...` payloads are automatically wrapped into JSON (`{"refresh_token":"..."}`) to reduce manual token conversion.
+
+---
+## [0.22.5] - 2026-04-20
+
+### Fixed
+- **Trae account upsert now uses `user_id` as the primary identity key and falls back to email only when needed**: imports no longer merge different users just because emails match, and placeholder `unknown` email values are excluded from identity matching.
+- **Cursor plan badge normalization now maps `pro_student` to `pro`**: student Pro subscriptions now render the expected Pro badge instead of exposing raw membership text.
+
+### Added
+- **Codex API Service switch now prompts to enable the service when it is currently disabled**: the account-page action shows a warning modal and supports one-click `Enable and Switch` before proceeding.
+
+### Changed
+- **Gemini default-instance settings now persist `working_dir` end-to-end**: list/update/start/stop flows all read and return the saved working directory instead of forcing it to empty.
+- **API Service activation paths no longer auto-run session visibility repair**: switching to service mode now focuses on applying the real profile change, while history-repair remains an explicit operation.
+
+---
 ## [0.22.4] - 2026-04-19
 
 ### Added

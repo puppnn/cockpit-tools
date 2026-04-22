@@ -181,6 +181,9 @@ pub struct UserConfig {
     /// Codex 启动路径（为空则使用默认路径）
     #[serde(default = "default_codex_app_path")]
     pub codex_app_path: String,
+    /// 切换 Codex 后需联动重启的指定应用路径
+    #[serde(default = "default_codex_specified_app_path")]
+    pub codex_specified_app_path: String,
     /// Zed 启动路径（为空则使用默认路径）
     #[serde(default = "default_zed_app_path")]
     pub zed_app_path: String,
@@ -232,6 +235,9 @@ pub struct UserConfig {
     /// 切换 Codex 时是否自动启动/重启 Codex App
     #[serde(default = "default_codex_launch_on_switch")]
     pub codex_launch_on_switch: bool,
+    /// 切换 Codex 时是否自动重启指定应用
+    #[serde(default = "default_codex_restart_specified_app_on_switch")]
+    pub codex_restart_specified_app_on_switch: bool,
     /// 是否在 Codex 总览中显示 API 服务入口
     #[serde(default = "default_codex_local_access_entry_visible")]
     pub codex_local_access_entry_visible: bool,
@@ -545,6 +551,9 @@ fn default_antigravity_app_path() -> String {
 fn default_codex_app_path() -> String {
     String::new()
 }
+fn default_codex_specified_app_path() -> String {
+    String::new()
+}
 fn default_zed_app_path() -> String {
     String::new()
 }
@@ -595,6 +604,9 @@ fn default_openclaw_auth_overwrite_on_switch() -> bool {
 }
 fn default_codex_launch_on_switch() -> bool {
     true
+}
+fn default_codex_restart_specified_app_on_switch() -> bool {
+    false
 }
 fn default_codex_local_access_entry_visible() -> bool {
     true
@@ -777,6 +789,7 @@ impl Default for UserConfig {
             opencode_app_path: default_opencode_app_path(),
             antigravity_app_path: default_antigravity_app_path(),
             codex_app_path: default_codex_app_path(),
+            codex_specified_app_path: default_codex_specified_app_path(),
             zed_app_path: default_zed_app_path(),
             vscode_app_path: default_vscode_app_path(),
             windsurf_app_path: default_windsurf_app_path(),
@@ -795,6 +808,8 @@ impl Default for UserConfig {
             ghcp_launch_on_switch: default_ghcp_launch_on_switch(),
             openclaw_auth_overwrite_on_switch: default_openclaw_auth_overwrite_on_switch(),
             codex_launch_on_switch: default_codex_launch_on_switch(),
+            codex_restart_specified_app_on_switch:
+                default_codex_restart_specified_app_on_switch(),
             codex_local_access_entry_visible: default_codex_local_access_entry_visible(),
             antigravity_dual_switch_no_restart_enabled:
                 default_antigravity_dual_switch_no_restart_enabled(),

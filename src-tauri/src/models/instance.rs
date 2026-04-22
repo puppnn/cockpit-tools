@@ -56,6 +56,8 @@ pub struct DefaultInstanceSettings {
     #[serde(default)]
     pub extra_args: String,
     #[serde(default)]
+    pub working_dir: Option<String>,
+    #[serde(default)]
     pub launch_mode: InstanceLaunchMode,
     #[serde(default = "default_follow_local_account")]
     pub follow_local_account: bool,
@@ -72,6 +74,7 @@ impl Default for DefaultInstanceSettings {
         Self {
             bind_account_id: None,
             extra_args: String::new(),
+            working_dir: None,
             launch_mode: InstanceLaunchMode::App,
             follow_local_account: true,
             last_pid: None,

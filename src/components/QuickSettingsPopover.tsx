@@ -71,6 +71,7 @@ interface GeneralConfig {
   opencode_app_path: string;
   antigravity_app_path: string;
   codex_app_path: string;
+  codex_specified_app_path: string;
   vscode_app_path: string;
   windsurf_app_path: string;
   kiro_app_path: string;
@@ -88,6 +89,7 @@ interface GeneralConfig {
   ghcp_launch_on_switch: boolean;
   openclaw_auth_overwrite_on_switch: boolean;
   codex_launch_on_switch: boolean;
+  codex_restart_specified_app_on_switch: boolean;
   codex_local_access_entry_visible: boolean;
   antigravity_dual_switch_no_restart_enabled: boolean;
   auto_switch_enabled: boolean;
@@ -830,6 +832,7 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
           opencodeAppPath: merged.opencode_app_path,
           antigravityAppPath: merged.antigravity_app_path,
           codexAppPath: merged.codex_app_path,
+          codexSpecifiedAppPath: merged.codex_specified_app_path,
           vscodeAppPath: merged.vscode_app_path,
           windsurfAppPath: merged.windsurf_app_path,
           kiroAppPath: merged.kiro_app_path,
@@ -847,6 +850,7 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
           ghcpLaunchOnSwitch: merged.ghcp_launch_on_switch,
           openclawAuthOverwriteOnSwitch: merged.openclaw_auth_overwrite_on_switch,
           codexLaunchOnSwitch: merged.codex_launch_on_switch,
+          codexRestartSpecifiedAppOnSwitch: merged.codex_restart_specified_app_on_switch,
           codexLocalAccessEntryVisible: merged.codex_local_access_entry_visible,
           antigravityDualSwitchNoRestartEnabled: merged.antigravity_dual_switch_no_restart_enabled,
           autoSwitchEnabled: merged.auto_switch_enabled,
@@ -1013,6 +1017,21 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
       }));
     } finally {
       setPathDetecting(false);
+    }
+  };
+
+  const handlePickCodexSpecifiedAppPath = async () => {
+    try {
+      const selected = await open({ multiple: false, directory: false });
+      const path = Array.isArray(selected) ? selected[0] : selected;
+      if (!path) return;
+      saveConfig({ codex_specified_app_path: path });
+    } catch (err) {
+      console.error('Failed to pick codex specified app path:', err);
+      setError(t('quickSettings.error.pickPathFailed', {
+        error: String(err),
+        defaultValue: '选择路径失败：{{error}}',
+      }));
     }
   };
 
@@ -1983,6 +2002,65 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
                     </button>
                   </div>
                 </div>
+
+                {type === 'codex' && (
+                  <>
+                    <div className="qs-row" style={{ marginTop: 8 }}>
+                      <div className="qs-row-label">
+                        <Zap size={15} />
+                        <span>
+                          {t(
+                            'settings.general.codexRestartSpecifiedAppOnSwitch',
+                            '切换 Codex 时重启指定应用',
+                          )}
+                        </span>
+                      </div>
+                      <div className="qs-row-control">
+                        <label className="qs-switch">
+                          <input
+                            type="checkbox"
+                            checked={config.codex_restart_specified_app_on_switch}
+                            onChange={(e) =>
+                              saveConfig({ codex_restart_specified_app_on_switch: e.target.checked })
+                            }
+                          />
+                          <span className="qs-switch-slider"></span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="qs-path-control">
+                      <input
+                        type="text"
+                        className="qs-path-input"
+                        value={config.codex_specified_app_path}
+                        placeholder={t(
+                          'settings.general.codexSpecifiedAppPathPlaceholder',
+                          '例如 /Applications/Host.app',
+                        )}
+                        onChange={(e) =>
+                          saveConfig({ codex_specified_app_path: e.target.value })
+                        }
+                      />
+                      <div className="qs-path-actions">
+                        <button
+                          className="qs-btn"
+                          onClick={() => void handlePickCodexSpecifiedAppPath()}
+                          title={t('settings.general.codexPathSelect', '选择')}
+                        >
+                          {t('settings.general.codexPathSelect', '选择')}
+                        </button>
+                        <button
+                          className="qs-btn"
+                          onClick={() => saveConfig({ codex_specified_app_path: '' })}
+                          title={t('settings.general.codexPathReset', '恢复默认')}
+                        >
+                          <RefreshCw size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

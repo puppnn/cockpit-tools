@@ -6,6 +6,7 @@ import "./SingleSelectDropdown.css";
 export interface SingleSelectOption {
   value: string;
   label: string;
+  description?: string;
 }
 
 interface SingleSelectDropdownProps {
@@ -15,6 +16,10 @@ interface SingleSelectDropdownProps {
   disabled?: boolean;
   ariaLabel?: string;
   placeholder?: string;
+  menuPlacement?: "down" | "up";
+  menuMaxHeight?: number;
+  menuMinWidth?: number;
+  menuAlign?: "left" | "right";
 }
 
 export function SingleSelectDropdown({
@@ -24,12 +29,18 @@ export function SingleSelectDropdown({
   disabled = false,
   ariaLabel,
   placeholder,
+  menuPlacement = "down",
+  menuMaxHeight = 280,
+  menuMinWidth,
+  menuAlign = "left",
 }: SingleSelectDropdownProps) {
   const [open, setOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<{
-    top: number;
+    top?: number;
+    bottom?: number;
     left: number;
     width: number;
+    maxHeight: number;
   } | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -46,10 +57,31 @@ export function SingleSelectDropdown({
     const updateMenuPosition = () => {
       const rect = triggerRef.current?.getBoundingClientRect();
       if (!rect) return;
+      const autoMinWidth = options.some((option) => !!option.description) ? 220 : 0;
+      const minimumWidth =
+        typeof menuMinWidth === "number" ? menuMinWidth : autoMinWidth;
+      const maxWidth = Math.max(160, window.innerWidth - 16);
+      const width = Math.min(Math.max(rect.width, minimumWidth), maxWidth);
+      const preferredLeft = menuAlign === "right" ? rect.right - width : rect.left;
+      const maxLeft = Math.max(8, window.innerWidth - width - 8);
+      const left = Math.min(Math.max(8, preferredLeft), maxLeft);
+      if (menuPlacement === "up") {
+        const availableHeight = Math.max(160, rect.top - 20);
+        setMenuStyle({
+          bottom: window.innerHeight - rect.top + 10,
+          left,
+          width,
+          maxHeight: Math.min(menuMaxHeight, availableHeight),
+        });
+        return;
+      }
+
+      const availableHeight = Math.max(160, window.innerHeight - rect.bottom - 20);
       setMenuStyle({
         top: rect.bottom + 10,
-        left: rect.left,
-        width: rect.width,
+        left,
+        width,
+        maxHeight: Math.min(menuMaxHeight, availableHeight),
       });
     };
 
@@ -71,7 +103,7 @@ export function SingleSelectDropdown({
       window.removeEventListener("resize", updateMenuPosition);
       window.removeEventListener("scroll", updateMenuPosition, true);
     };
-  }, [open]);
+  }, [menuAlign, menuMaxHeight, menuMinWidth, menuPlacement, open, options]);
 
   useEffect(() => {
     if (!disabled) return;
@@ -113,9 +145,11 @@ export function SingleSelectDropdown({
               className="single-select-dropdown-menu"
               style={{
                 position: "fixed",
-                top: `${menuStyle.top}px`,
+                top: menuStyle.top !== undefined ? `${menuStyle.top}px` : "auto",
+                bottom: menuStyle.bottom !== undefined ? `${menuStyle.bottom}px` : "auto",
                 left: `${menuStyle.left}px`,
                 width: `${menuStyle.width}px`,
+                maxHeight: `${menuStyle.maxHeight}px`,
                 zIndex: 11000,
               }}
               role="listbox"
@@ -123,11 +157,14 @@ export function SingleSelectDropdown({
             >
               {options.map((option) => {
                 const active = option.value === value;
+                const hasDescription = !!option.description;
                 return (
                   <button
                     key={option.value}
                     type="button"
-                    className={`single-select-dropdown-item${active ? " active" : ""}`}
+                    className={`single-select-dropdown-item${active ? " active" : ""}${
+                      hasDescription ? " has-description" : ""
+                    }`}
                     onClick={() => {
                       onChange(option.value);
                       setOpen(false);
@@ -135,11 +172,21 @@ export function SingleSelectDropdown({
                     role="option"
                     aria-selected={active}
                   >
-                    <span
-                      className="single-select-dropdown-item-label"
-                      title={option.label}
-                    >
-                      {option.label}
+                    <span className="single-select-dropdown-item-content">
+                      <span
+                        className="single-select-dropdown-item-label"
+                        title={option.label}
+                      >
+                        {option.label}
+                      </span>
+                      {hasDescription ? (
+                        <span
+                          className="single-select-dropdown-item-description"
+                          title={option.description}
+                        >
+                          {option.description}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="single-select-dropdown-item-check">
                       {active ? <Check size={15} /> : null}

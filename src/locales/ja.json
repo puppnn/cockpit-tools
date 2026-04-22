@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Codex 概要で API サービス入口を表示するかどうかだけを切り替えます。ローカル API サービス自体は停止せず、ここかクイック設定から再表示できます。",
       "codexLocalAccessEnabled": "APIサービスを有効化",
       "codexLocalAccessEnabledDesc": "ローカルの Codex API サービスを実際に稼働させるかどうかを切り替えます。",
-      "codexLocalAccessEnabledRequiresCollection": "サービスを有効化または無効化する前に、API サービスのコレクションへアカウントを追加してください。"
+      "codexLocalAccessEnabledRequiresCollection": "サービスを有効化または無効化する前に、API サービスのコレクションへアカウントを追加してください。",
+      "codexRestartSpecifiedAppOnSwitch": "Codex切り替え時に指定アプリを再起動",
+      "codexRestartSpecifiedAppOnSwitchDesc": "有効化すると、下のパスのアプリを再起動します（プラグインホスト向け）。",
+      "codexSpecifiedAppPath": "指定アプリの起動パス",
+      "codexSpecifiedAppPathDesc": "Codex切り替え時に連動再起動するアプリのパス",
+      "codexSpecifiedAppPathPlaceholder": "例: /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "クリア"
     },
     "network": {
       "apiTitle": "反重力コックピット API",
@@ -1657,7 +1663,12 @@
         "available": "通常一覧",
         "save": "コレクションを保存",
         "freeNotice": "無料アカウントはまだサポートされていません。無料アカウントは選択できません。",
-        "freeUnsupported": "無料アカウントはまだサポートされていません"
+        "freeUnsupported": "無料アカウントはまだサポートされていません",
+        "restrictFreeToggle": "Freeアカウントを制限",
+        "freeNoticeRestricted": "Freeアカウントは制限中です。選択するにはこの設定をオフにしてください。",
+        "freeNoticeUnstable": "Freeアカウントのプロキシは不安定な場合があります。注意して使用してください。",
+        "restrictFreeDisableConfirmTitle": "Freeアカウントを許可",
+        "restrictFreeDisableConfirmMessage": "Freeアカウントのプロキシは不安定な場合があります。使用してもよろしいですか？"
       },
       "entryAction": "API サービスに追加",
       "testAction": "API サービスをテスト",
@@ -1735,6 +1746,21 @@
         "daily": "日",
         "weekly": "週",
         "monthly": "月"
+      },
+      "enableBeforeActivateTitle": "サービスが未有効です",
+      "enableBeforeActivateMessage": "APIサービスは現在無効です。先に有効化する必要があります。有効化して切り替えますか？",
+      "enableAndActivateAction": "有効化して切り替え",
+      "apiPortUrl": "APIポートURL",
+      "modelId": "モデル ID",
+      "modelIdPlaceholder": "モデル ID を選択",
+      "serviceTierSaveSuccess": "APIサービスの速度を更新しました",
+      "serviceTier": {
+        "label": "速度",
+        "placeholder": "速度を選択",
+        "standard": "標準",
+        "fast": "高速",
+        "standardHint": "デフォルト速度",
+        "fastHint": "速度1.5倍、プラン消費2倍"
       }
     },
     "local": {

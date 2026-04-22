@@ -57,7 +57,7 @@ fn resolve_instance_launch_context(instance_id: &str) -> Result<GeminiLaunchCont
         let default_settings = modules::gemini_instance::load_default_settings()?;
         return Ok(GeminiLaunchContext {
             user_data_dir: default_dir.to_string_lossy().to_string(),
-            working_dir: None,
+            working_dir: default_settings.working_dir,
             extra_args: default_settings.extra_args,
             use_home_env: false,
         });
@@ -166,7 +166,7 @@ pub async fn gemini_list_instances() -> Result<Vec<InstanceProfileView>, String>
         id: DEFAULT_INSTANCE_ID.to_string(),
         name: String::new(),
         user_data_dir: default_dir_str,
-        working_dir: None,
+        working_dir: default_settings.working_dir.clone(),
         extra_args: default_settings.extra_args.clone(),
         bind_account_id: default_settings.bind_account_id.clone(),
         created_at: 0,
@@ -225,6 +225,7 @@ pub async fn gemini_update_instance(
         let default_dir_str = default_dir.to_string_lossy().to_string();
         let updated = modules::gemini_instance::update_default_settings(
             bind_account_id,
+            working_dir,
             extra_args,
             follow_local_account,
         )?;
@@ -233,7 +234,7 @@ pub async fn gemini_update_instance(
             id: DEFAULT_INSTANCE_ID.to_string(),
             name: String::new(),
             user_data_dir: default_dir_str,
-            working_dir: None,
+            working_dir: updated.working_dir,
             extra_args: updated.extra_args,
             bind_account_id: updated.bind_account_id,
             created_at: 0,
@@ -301,7 +302,7 @@ pub async fn gemini_start_instance(instance_id: String) -> Result<InstanceProfil
             id: DEFAULT_INSTANCE_ID.to_string(),
             name: String::new(),
             user_data_dir: default_dir_str,
-            working_dir: None,
+            working_dir: default_settings.working_dir.clone(),
             extra_args: default_settings.extra_args,
             bind_account_id: default_settings.bind_account_id,
             created_at: 0,
@@ -348,7 +349,7 @@ pub async fn gemini_stop_instance(instance_id: String) -> Result<InstanceProfile
             id: DEFAULT_INSTANCE_ID.to_string(),
             name: String::new(),
             user_data_dir: default_dir_str,
-            working_dir: None,
+            working_dir: default_settings.working_dir.clone(),
             extra_args: default_settings.extra_args,
             bind_account_id: default_settings.bind_account_id,
             created_at: 0,

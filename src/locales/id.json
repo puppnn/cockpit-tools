@@ -744,7 +744,13 @@
       "codexLocalAccessEntryVisibleDesc": "Hanya mengatur apakah entri Layanan API ditampilkan di ringkasan Codex. Ini tidak menghentikan layanan API lokal; Anda bisa menyalakannya lagi di sini atau di Pengaturan Cepat.",
       "codexLocalAccessEnabled": "Aktifkan Layanan API",
       "codexLocalAccessEnabledDesc": "Mengatur apakah layanan API Codex lokal benar-benar berjalan.",
-      "codexLocalAccessEnabledRequiresCollection": "Tambahkan akun ke koleksi Layanan API terlebih dahulu sebelum mengaktifkan atau menonaktifkan layanan."
+      "codexLocalAccessEnabledRequiresCollection": "Tambahkan akun ke koleksi Layanan API terlebih dahulu sebelum mengaktifkan atau menonaktifkan layanan.",
+      "codexRestartSpecifiedAppOnSwitch": "Mulai ulang aplikasi tertentu saat mengganti Codex",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Saat diaktifkan, aplikasi pada path berikut akan dimulai ulang (untuk alur host plugin).",
+      "codexSpecifiedAppPath": "Path aplikasi tertentu",
+      "codexSpecifiedAppPathDesc": "Path aplikasi yang ikut dimulai ulang saat ganti Codex.",
+      "codexSpecifiedAppPathPlaceholder": "Contoh /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Kosongkan"
     },
     "network": {
       "apiTitle": "API Antigravity Cockpit",
@@ -1706,7 +1712,12 @@
         "available": "Tampilan biasa",
         "save": "Simpan koleksi",
         "freeNotice": "Akun gratis belum didukung. Akun gratis tidak dapat dipilih.",
-        "freeUnsupported": "Akun gratis belum didukung"
+        "freeUnsupported": "Akun gratis belum didukung",
+        "restrictFreeToggle": "Batasi akun Free",
+        "freeNoticeRestricted": "Akun Free dibatasi. Nonaktifkan ini untuk memilihnya.",
+        "freeNoticeUnstable": "Proxy akun Free bisa tidak stabil. Gunakan dengan hati-hati.",
+        "restrictFreeDisableConfirmTitle": "Izinkan akun Free",
+        "restrictFreeDisableConfirmMessage": "Proxy akun Free bisa tidak stabil. Yakin ingin menggunakannya?"
       },
       "entryAction": "Tambahkan ke Layanan API",
       "testAction": "Uji Layanan API",
@@ -1784,6 +1795,21 @@
         "daily": "Hari",
         "weekly": "Minggu",
         "monthly": "Bulan"
+      },
+      "enableBeforeActivateTitle": "Layanan belum diaktifkan",
+      "enableBeforeActivateMessage": "Layanan API saat ini dinonaktifkan dan harus diaktifkan terlebih dahulu. Aktifkan dan alihkan sekarang?",
+      "enableAndActivateAction": "Aktifkan dan alihkan",
+      "apiPortUrl": "URL Port API",
+      "modelId": "ID Model",
+      "modelIdPlaceholder": "Pilih ID model",
+      "serviceTierSaveSuccess": "Kecepatan layanan API telah diperbarui",
+      "serviceTier": {
+        "label": "Kecepatan",
+        "placeholder": "Pilih kecepatan",
+        "standard": "Standar",
+        "fast": "Cepat",
+        "standardHint": "Kecepatan default",
+        "fastHint": "Kecepatan 1,5x, pemakaian paket 2x"
       }
     },
     "api": {

@@ -97,13 +97,59 @@ fn parse_query_map(url: &Url) -> HashMap<String, String> {
     map
 }
 
-fn parse_external_import_url(raw_url: &str) -> Option<ExternalProviderImportPayload> {
-    let parsed = Url::parse(raw_url).ok()?;
+fn summarize_candidate(candidate: &str) -> String {
+    let Ok(parsed) = Url::parse(candidate) else {
+        let preview = candidate.chars().take(140).collect::<String>();
+        return format!("raw='{}'", preview);
+    };
+
+    let mut keys: Vec<String> = Vec::new();
+    let mut token_len: Option<usize> = None;
+    for (key, value) in parsed.query_pairs() {
+        let normalized_key = normalize_lookup_key(key.as_ref());
+        if normalized_key.is_empty() {
+            continue;
+        }
+        if matches!(
+            normalized_key.as_str(),
+            "token"
+                | "import_token"
+                | "importtoken"
+                | "payload"
+                | "import_payload"
+                | "importpayload"
+        ) && token_len.is_none()
+        {
+            token_len = Some(value.trim().len());
+        }
+        keys.push(normalized_key);
+    }
+
+    format!(
+        "{}://{}{}?keys={:?},token_len={}",
+        parsed.scheme(),
+        parsed.host_str().unwrap_or_default(),
+        parsed.path(),
+        keys,
+        token_len
+            .map(|len| len.to_string())
+            .unwrap_or_else(|| "-".to_string())
+    )
+}
+
+fn parse_external_import_url_with_reason(
+    raw_url: &str,
+) -> Result<ExternalProviderImportPayload, String> {
+    let parsed = Url::parse(raw_url).map_err(|err| format!("URL 解析失败: {}", err))?;
     if !is_supported_scheme(parsed.scheme()) {
-        return None;
+        return Err(format!("协议不支持: {}", parsed.scheme()));
     }
     if !is_import_action(&parsed) {
-        return None;
+        return Err(format!(
+            "动作不支持: host='{}', path='{}'",
+            parsed.host_str().unwrap_or_default(),
+            parsed.path()
+        ));
     }
 
     let query = parse_query_map(&parsed);
@@ -115,8 +161,10 @@ fn parse_external_import_url(raw_url: &str) -> Option<ExternalProviderImportPayl
         .or_else(|| query.get("platform_id"))
         .or_else(|| query.get("platformid"))
         .or_else(|| query.get("target"))
-        .or_else(|| query.get("page"))?;
-    let (provider_id, page) = resolve_provider_and_page(provider_raw)?;
+        .or_else(|| query.get("page"))
+        .ok_or_else(|| "缺少平台参数（provider/platform/target/page）".to_string())?;
+    let (provider_id, page) = resolve_provider_and_page(provider_raw)
+        .ok_or_else(|| format!("平台值不支持: {}", provider_raw))?;
 
     let token = query
         .get("token")
@@ -124,11 +172,12 @@ fn parse_external_import_url(raw_url: &str) -> Option<ExternalProviderImportPayl
         .or_else(|| query.get("importtoken"))
         .or_else(|| query.get("payload"))
         .or_else(|| query.get("import_payload"))
-        .or_else(|| query.get("importpayload"))?
+        .or_else(|| query.get("importpayload"))
+        .ok_or_else(|| "缺少内容参数（token/import_token/payload/import_payload）".to_string())?
         .trim()
         .to_string();
     if token.is_empty() {
-        return None;
+        return Err("内容参数为空".to_string());
     }
 
     let auto_import = parse_boolean_like(
@@ -139,7 +188,7 @@ fn parse_external_import_url(raw_url: &str) -> Option<ExternalProviderImportPayl
             .or_else(|| query.get("autosubmit")),
     );
 
-    Some(ExternalProviderImportPayload {
+    Ok(ExternalProviderImportPayload {
         provider_id: provider_id.to_string(),
         page: page.to_string(),
         token,
@@ -149,8 +198,20 @@ fn parse_external_import_url(raw_url: &str) -> Option<ExternalProviderImportPayl
     })
 }
 
+#[cfg(test)]
+fn parse_external_import_url(raw_url: &str) -> Option<ExternalProviderImportPayload> {
+    parse_external_import_url_with_reason(raw_url).ok()
+}
+
 fn set_pending(payload: ExternalProviderImportPayload) {
     if let Ok(mut guard) = PENDING_EXTERNAL_PROVIDER_IMPORT.lock() {
+        logger::log_info(&format!(
+            "[ExternalImport] 写入待处理导入: provider={}, page={}, auto_import={}, token_len={}",
+            payload.provider_id,
+            payload.page,
+            payload.auto_import,
+            payload.token.len()
+        ));
         *guard = Some(payload);
     }
 }
@@ -159,7 +220,19 @@ pub fn take_pending_external_import() -> Option<ExternalProviderImportPayload> {
     let Ok(mut guard) = PENDING_EXTERNAL_PROVIDER_IMPORT.lock() else {
         return None;
     };
-    guard.take()
+    let payload = guard.take();
+    if let Some(item) = payload.as_ref() {
+        logger::log_info(&format!(
+            "[ExternalImport] 读取待处理导入: provider={}, page={}, auto_import={}, token_len={}",
+            item.provider_id,
+            item.page,
+            item.auto_import,
+            item.token.len()
+        ));
+    } else {
+        logger::log_info("[ExternalImport] 读取待处理导入: empty");
+    }
+    payload
 }
 
 fn emit_external_import_payload<R: Runtime>(
@@ -168,7 +241,15 @@ fn emit_external_import_payload<R: Runtime>(
 ) {
     if let Err(err) = app.emit(EXTERNAL_PROVIDER_IMPORT_EVENT, payload.clone()) {
         logger::log_warn(&format!("[ExternalImport] 发送外部导入事件失败: {}", err));
+        return;
     }
+    logger::log_info(&format!(
+        "[ExternalImport] 已发送外部导入事件: provider={}, page={}, auto_import={}, token_len={}",
+        payload.provider_id,
+        payload.page,
+        payload.auto_import,
+        payload.token.len()
+    ));
 }
 
 pub fn handle_external_import_args<R: Runtime>(
@@ -176,14 +257,39 @@ pub fn handle_external_import_args<R: Runtime>(
     args: &[String],
     source: &str,
 ) -> bool {
+    logger::log_info(&format!(
+        "[ExternalImport] 开始处理外部导入参数: source={}, arg_count={}",
+        source,
+        args.len()
+    ));
+    let mut saw_deep_link = false;
     for arg in args {
         let candidate = arg.trim();
         if candidate.is_empty() {
             continue;
         }
+        let candidate_is_deep_link =
+            candidate.starts_with("cockpit-tools://") || candidate.starts_with("cockpittools://");
+        if candidate_is_deep_link {
+            saw_deep_link = true;
+        }
+        let candidate_summary = summarize_candidate(candidate);
+        logger::log_info(&format!(
+            "[ExternalImport] 检查参数: source={}, is_deep_link={}, candidate={}",
+            source, candidate_is_deep_link, candidate_summary
+        ));
 
-        let Some(mut payload) = parse_external_import_url(candidate) else {
-            continue;
+        let mut payload = match parse_external_import_url_with_reason(candidate) {
+            Ok(payload) => payload,
+            Err(reason) => {
+                if candidate_is_deep_link {
+                    logger::log_warn(&format!(
+                        "[ExternalImport] 参数未通过解析: source={}, candidate={}, reason={}",
+                        source, candidate_summary, reason
+                    ));
+                }
+                continue;
+            }
         };
         payload.source = Some(source.to_string());
         payload.raw_url = Some(candidate.to_string());
@@ -196,10 +302,21 @@ pub fn handle_external_import_args<R: Runtime>(
         emit_external_import_payload(app, &payload);
 
         logger::log_info(&format!(
-            "[ExternalImport] 已接收外部导入请求: provider={}, page={}, source={}",
-            payload.provider_id, payload.page, source
+            "[ExternalImport] 已接收外部导入请求: provider={}, page={}, auto_import={}, source={}, candidate={}",
+            payload.provider_id, payload.page, payload.auto_import, source, candidate_summary
         ));
         return true;
+    }
+    if saw_deep_link {
+        logger::log_warn(&format!(
+            "[ExternalImport] 未匹配到可处理的 Deep Link: source={}",
+            source
+        ));
+    } else {
+        logger::log_info(&format!(
+            "[ExternalImport] 未发现 Deep Link 参数: source={}",
+            source
+        ));
     }
     false
 }

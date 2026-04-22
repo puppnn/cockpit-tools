@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Controlla solo se la voce del servizio API viene mostrata nella panoramica Codex. Non arresta il servizio API locale; puoi riattivarla qui o nelle Impostazioni rapide.",
       "codexLocalAccessEnabled": "Abilita servizio API",
       "codexLocalAccessEnabledDesc": "Controlla se il servizio API locale di Codex è effettivamente in esecuzione.",
-      "codexLocalAccessEnabledRequiresCollection": "Aggiungi prima gli account alla raccolta del servizio API prima di abilitare o disabilitare il servizio."
+      "codexLocalAccessEnabledRequiresCollection": "Aggiungi prima gli account alla raccolta del servizio API prima di abilitare o disabilitare il servizio.",
+      "codexRestartSpecifiedAppOnSwitch": "Riavvia l'app specificata al cambio Codex",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Se attivo, riavvia l'app nel percorso seguente (per flussi con host plugin).",
+      "codexSpecifiedAppPath": "Percorso app specificata",
+      "codexSpecifiedAppPathDesc": "Percorso dell'app da riavviare insieme al cambio Codex.",
+      "codexSpecifiedAppPathPlaceholder": "Ad esempio /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Cancella"
     },
     "network": {
       "apiTitle": "API della cabina di pilotaggio antigravità",
@@ -1657,7 +1663,12 @@
         "available": "Panoramica normale",
         "save": "Salva raccolta",
         "freeNotice": "Gli account gratuiti non sono ancora supportati. Non è possibile selezionare account gratuiti.",
-        "freeUnsupported": "Gli account gratuiti non sono ancora supportati"
+        "freeUnsupported": "Gli account gratuiti non sono ancora supportati",
+        "restrictFreeToggle": "Limita account Free",
+        "freeNoticeRestricted": "Gli account Free sono limitati. Disattiva questa opzione per selezionarli.",
+        "freeNoticeUnstable": "Il proxy degli account Free può essere instabile. Usalo con cautela.",
+        "restrictFreeDisableConfirmTitle": "Consenti account Free",
+        "restrictFreeDisableConfirmMessage": "Il proxy degli account Free può essere instabile. Vuoi usarli davvero?"
       },
       "entryAction": "Aggiungi al servizio API",
       "testAction": "Testa il servizio API",
@@ -1735,6 +1746,21 @@
         "daily": "Giorno",
         "weekly": "Settimana",
         "monthly": "Mese"
+      },
+      "enableBeforeActivateTitle": "Servizio non abilitato",
+      "enableBeforeActivateMessage": "Il servizio API è attualmente disattivato e deve essere prima abilitato. Abilitare e cambiare ora?",
+      "enableAndActivateAction": "Abilita e cambia",
+      "apiPortUrl": "URL porta API",
+      "modelId": "ID modello",
+      "modelIdPlaceholder": "Seleziona ID modello",
+      "serviceTierSaveSuccess": "La velocità del servizio API è stata aggiornata",
+      "serviceTier": {
+        "label": "Velocità",
+        "placeholder": "Seleziona velocità",
+        "standard": "Normale",
+        "fast": "Veloce",
+        "standardHint": "Velocità predefinita",
+        "fastHint": "Velocità 1,5x, consumo piano 2x"
       }
     },
     "local": {

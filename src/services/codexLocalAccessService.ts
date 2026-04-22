@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import type {
+  CodexLocalAccessServiceTier,
   CodexLocalAccessRoutingStrategy,
   CodexLocalAccessState,
 } from '../types/codexLocalAccess';
@@ -10,8 +11,12 @@ export async function getCodexLocalAccessState(): Promise<CodexLocalAccessState>
 
 export async function saveCodexLocalAccessAccounts(
   accountIds: string[],
+  restrictFreeAccounts: boolean,
 ): Promise<CodexLocalAccessState> {
-  return await invoke('codex_local_access_save_accounts', { accountIds });
+  return await invoke('codex_local_access_save_accounts', {
+    accountIds,
+    restrictFreeAccounts,
+  });
 }
 
 export async function removeCodexLocalAccessAccount(
@@ -38,6 +43,12 @@ export async function updateCodexLocalAccessRoutingStrategy(
   strategy: CodexLocalAccessRoutingStrategy,
 ): Promise<CodexLocalAccessState> {
   return await invoke('codex_local_access_update_routing_strategy', { strategy });
+}
+
+export async function updateCodexLocalAccessServiceTier(
+  serviceTier: CodexLocalAccessServiceTier | null,
+): Promise<CodexLocalAccessState> {
+  return await invoke('codex_local_access_update_service_tier', { serviceTier });
 }
 
 export async function setCodexLocalAccessEnabled(

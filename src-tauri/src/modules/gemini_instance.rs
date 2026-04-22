@@ -51,6 +51,7 @@ pub fn load_default_settings() -> Result<DefaultInstanceSettings, String> {
 
 pub fn update_default_settings(
     bind_account_id: Option<Option<String>>,
+    working_dir: Option<String>,
     extra_args: Option<String>,
     follow_local_account: Option<bool>,
 ) -> Result<DefaultInstanceSettings, String> {
@@ -65,6 +66,14 @@ pub fn update_default_settings(
 
     if let Some(bind) = bind_account_id {
         settings.bind_account_id = bind;
+    }
+
+    if let Some(dir) = working_dir {
+        settings.working_dir = if dir.trim().is_empty() {
+            None
+        } else {
+            Some(dir.trim().to_string())
+        };
     }
 
     if let Some(args) = extra_args {

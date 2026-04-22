@@ -3419,6 +3419,108 @@ fn collect_running_process_exe_by_pid() -> HashMap<u32, String> {
     map
 }
 
+fn collect_pids_by_custom_launch_path(path: &str) -> Vec<u32> {
+    let expected = normalize_path_for_compare(path);
+    if expected.is_empty() {
+        return Vec::new();
+    }
+
+    #[cfg(target_os = "macos")]
+    let expected_app_root = normalize_macos_app_root(std::path::Path::new(path))
+        .map(|value| normalize_path_for_compare(&value))
+        .filter(|value| !value.is_empty());
+
+    let mut pids = Vec::new();
+    for (pid, actual) in collect_running_process_exe_by_pid() {
+        if actual == expected {
+            pids.push(pid);
+            continue;
+        }
+        #[cfg(target_os = "macos")]
+        {
+            if let Some(expected_root) = expected_app_root.as_ref() {
+                let actual_root = normalize_macos_app_root(std::path::Path::new(&actual))
+                    .map(|value| normalize_path_for_compare(&value))
+                    .filter(|value| !value.is_empty());
+                if actual_root.as_ref() == Some(expected_root) {
+                    pids.push(pid);
+                }
+            }
+        }
+    }
+
+    pids.sort();
+    pids.dedup();
+    pids
+}
+
+fn start_custom_app_from_path(path: &str) -> Result<(), String> {
+    let path_obj = Path::new(path);
+    if !path_obj.exists() {
+        return Err(format!("指定应用路径不存在: {}", path));
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        if let Some(app_root) = normalize_macos_app_root(path_obj) {
+            let mut cmd = Command::new("open");
+            sanitize_macos_gui_launch_env(&mut cmd);
+            append_managed_proxy_env_to_open_args(&mut cmd);
+            cmd.args(["-n", "-a", &app_root]);
+            let output = cmd
+                .output()
+                .map_err(|err| format!("启动指定应用失败: {}", err))?;
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let stderr = stderr.trim();
+                return Err(if stderr.is_empty() {
+                    "启动指定应用失败".to_string()
+                } else {
+                    format!("启动指定应用失败: {}", stderr)
+                });
+            }
+            return Ok(());
+        }
+
+        let mut cmd = Command::new(path_obj);
+        apply_managed_proxy_env_to_command(&mut cmd);
+        sanitize_macos_gui_launch_env(&mut cmd);
+        spawn_detached_unix(&mut cmd)?;
+        return Ok(());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+
+        let mut cmd = Command::new(path_obj);
+        apply_managed_proxy_env_to_command(&mut cmd);
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        spawn_command_with_trace(&mut cmd).map_err(|err| format!("启动指定应用失败: {}", err))?;
+        return Ok(());
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        let mut cmd = Command::new(path_obj);
+        apply_managed_proxy_env_to_command(&mut cmd);
+        spawn_command_with_trace(&mut cmd).map_err(|err| format!("启动指定应用失败: {}", err))?;
+        return Ok(());
+    }
+
+    #[allow(unreachable_code)]
+    Err("当前系统暂不支持启动指定应用".to_string())
+}
+
+pub fn restart_specified_app_by_path(custom_path: &str, timeout_secs: u64) -> Result<(), String> {
+    let path = normalize_custom_path(Some(custom_path)).ok_or("指定应用启动路径不能为空")?;
+    let pids = collect_pids_by_custom_launch_path(&path);
+    if !pids.is_empty() {
+        close_pids(&pids, timeout_secs)?;
+    }
+    start_custom_app_from_path(&path)
+}
+
 fn filter_entries_by_expected_launch_path(
     app_label: &str,
     entries: Vec<(u32, Option<String>)>,
@@ -6900,6 +7002,10 @@ fn get_trae_pids() -> Vec<u32> {
     }
 
     pids
+}
+
+pub fn is_trae_running() -> bool {
+    !get_trae_pids().is_empty()
 }
 
 pub fn close_trae(timeout_secs: u64) -> Result<(), String> {

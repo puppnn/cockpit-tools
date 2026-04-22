@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Určuje pouze, zda se v přehledu Codex zobrazuje položka služby API. Místní službu API to nezastaví; můžete ji znovu zapnout zde nebo v rychlém nastavení.",
       "codexLocalAccessEnabled": "Zapnout službu API",
       "codexLocalAccessEnabledDesc": "Určuje, zda místní služba Codex API skutečně běží.",
-      "codexLocalAccessEnabledRequiresCollection": "Před zapnutím nebo vypnutím služby nejprve přidejte účty do kolekce služby API."
+      "codexLocalAccessEnabledRequiresCollection": "Před zapnutím nebo vypnutím služby nejprve přidejte účty do kolekce služby API.",
+      "codexRestartSpecifiedAppOnSwitch": "Při přepnutí Codex restartovat zadanou aplikaci",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Po zapnutí restartuje aplikaci na níže uvedené cestě (pro workflow s hostitelem pluginů).",
+      "codexSpecifiedAppPath": "Cesta k zadané aplikaci",
+      "codexSpecifiedAppPathDesc": "Cesta k aplikaci, která se restartuje spolu s přepnutím Codex.",
+      "codexSpecifiedAppPathPlaceholder": "Např. /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Vymazat"
     },
     "network": {
       "apiTitle": "Antigravity Cockpit API",
@@ -1657,7 +1663,12 @@
         "available": "Běžný přehled",
         "save": "Uložit kolekci",
         "freeNotice": "Bezplatné účty zatím nejsou podporovány. Nelze vybrat bezplatné účty.",
-        "freeUnsupported": "Bezplatné účty zatím nejsou podporovány"
+        "freeUnsupported": "Bezplatné účty zatím nejsou podporovány",
+        "restrictFreeToggle": "Omezit Free účty",
+        "freeNoticeRestricted": "Free účty jsou omezené. Vypněte tuto volbu, chcete-li je vybrat.",
+        "freeNoticeUnstable": "Proxy pro Free účty může být nestabilní. Používejte opatrně.",
+        "restrictFreeDisableConfirmTitle": "Povolit Free účty",
+        "restrictFreeDisableConfirmMessage": "Proxy pro Free účty může být nestabilní. Opravdu je chcete použít?"
       },
       "entryAction": "Přidat do API služby",
       "testAction": "Otestovat API službu",
@@ -1735,6 +1746,21 @@
         "daily": "Den",
         "weekly": "Týden",
         "monthly": "Měsíc"
+      },
+      "enableBeforeActivateTitle": "Služba není zapnutá",
+      "enableBeforeActivateMessage": "Služba API je momentálně vypnutá a je potřeba ji nejdříve zapnout. Zapnout a přepnout nyní?",
+      "enableAndActivateAction": "Zapnout a přepnout",
+      "apiPortUrl": "URL portu API",
+      "modelId": "ID modelu",
+      "modelIdPlaceholder": "Vyberte ID modelu",
+      "serviceTierSaveSuccess": "Rychlost API služby byla aktualizována",
+      "serviceTier": {
+        "label": "Rychlost",
+        "placeholder": "Vybrat rychlost",
+        "standard": "Standardní",
+        "fast": "Rychlá",
+        "standardHint": "Výchozí rychlost",
+        "fastHint": "Rychlost 1,5x, spotřeba tarifu 2x"
       }
     },
     "local": {

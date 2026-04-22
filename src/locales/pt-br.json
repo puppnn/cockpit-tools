@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Controla apenas se a entrada do serviço de API aparece na visão geral do Codex. Isso não interrompe o serviço de API local; você pode ativá-la novamente aqui ou nas Configurações rápidas.",
       "codexLocalAccessEnabled": "Ativar serviço de API",
       "codexLocalAccessEnabledDesc": "Controla se o serviço de API local do Codex está realmente em execução.",
-      "codexLocalAccessEnabledRequiresCollection": "Adicione contas à coleção do serviço de API antes de ativar ou desativar o serviço."
+      "codexLocalAccessEnabledRequiresCollection": "Adicione contas à coleção do serviço de API antes de ativar ou desativar o serviço.",
+      "codexRestartSpecifiedAppOnSwitch": "Reiniciar app especificado ao trocar Codex",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Ao ativar, reinicia o app no caminho abaixo (para fluxos com host de plugin).",
+      "codexSpecifiedAppPath": "Caminho do app especificado",
+      "codexSpecifiedAppPathDesc": "Caminho do app a reiniciar junto da troca do Codex.",
+      "codexSpecifiedAppPathPlaceholder": "Por exemplo /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Limpar"
     },
     "network": {
       "apiTitle": "API de cockpit antigravidade",
@@ -1657,7 +1663,12 @@
         "available": "Visão normal",
         "save": "Salvar coleção",
         "freeNotice": "Contas gratuitas ainda não são suportadas. Contas gratuitas não podem ser selecionadas.",
-        "freeUnsupported": "Contas gratuitas ainda não são suportadas"
+        "freeUnsupported": "Contas gratuitas ainda não são suportadas",
+        "restrictFreeToggle": "Limitar contas Free",
+        "freeNoticeRestricted": "Contas Free são limitadas. Desative isso para selecioná-las.",
+        "freeNoticeUnstable": "O proxy de contas Free pode ser instável. Use com cautela.",
+        "restrictFreeDisableConfirmTitle": "Permitir contas Free",
+        "restrictFreeDisableConfirmMessage": "O proxy de contas Free pode ser instável. Tem certeza de que deseja usá-las?"
       },
       "entryAction": "Adicionar ao serviço de API",
       "testAction": "Testar serviço de API",
@@ -1735,6 +1746,21 @@
         "daily": "Dia",
         "weekly": "Semana",
         "monthly": "Mês"
+      },
+      "enableBeforeActivateTitle": "Serviço desativado",
+      "enableBeforeActivateMessage": "O serviço de API está desativado no momento e precisa ser ativado primeiro. Ativar e alternar agora?",
+      "enableAndActivateAction": "Ativar e alternar",
+      "apiPortUrl": "URL da porta API",
+      "modelId": "ID do modelo",
+      "modelIdPlaceholder": "Selecione o ID do modelo",
+      "serviceTierSaveSuccess": "A velocidade do serviço de API foi atualizada",
+      "serviceTier": {
+        "label": "Velocidade",
+        "placeholder": "Selecionar velocidade",
+        "standard": "Padrão",
+        "fast": "Rápido",
+        "standardHint": "Velocidade padrão",
+        "fastHint": "Velocidade 1,5x, consumo do plano 2x"
       }
     },
     "local": {

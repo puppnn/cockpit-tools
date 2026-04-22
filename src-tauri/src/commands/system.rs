@@ -112,6 +112,8 @@ pub struct GeneralConfig {
     pub antigravity_app_path: String,
     /// Codex 启动路径（为空则使用默认路径）
     pub codex_app_path: String,
+    /// 切换 Codex 后需联动重启的指定应用路径
+    pub codex_specified_app_path: String,
     /// Zed 启动路径（为空则使用默认路径）
     pub zed_app_path: String,
     /// VS Code 启动路径（为空则使用默认路径）
@@ -146,6 +148,8 @@ pub struct GeneralConfig {
     pub openclaw_auth_overwrite_on_switch: bool,
     /// 切换 Codex 时是否自动启动/重启 Codex App
     pub codex_launch_on_switch: bool,
+    /// 切换 Codex 时是否自动重启指定应用
+    pub codex_restart_specified_app_on_switch: bool,
     /// 是否在 Codex 总览中显示 API 服务入口
     pub codex_local_access_entry_visible: bool,
     /// Antigravity 切号是否启用“本地落盘 + 扩展无感”且不重启
@@ -710,6 +714,7 @@ pub fn save_network_config(
         opencode_app_path: current.opencode_app_path,
         antigravity_app_path: current.antigravity_app_path,
         codex_app_path: current.codex_app_path,
+        codex_specified_app_path: current.codex_specified_app_path,
         zed_app_path: current.zed_app_path,
         vscode_app_path: current.vscode_app_path,
         windsurf_app_path: current.windsurf_app_path,
@@ -727,6 +732,7 @@ pub fn save_network_config(
         ghcp_launch_on_switch: current.ghcp_launch_on_switch,
         openclaw_auth_overwrite_on_switch: current.openclaw_auth_overwrite_on_switch,
         codex_launch_on_switch: current.codex_launch_on_switch,
+        codex_restart_specified_app_on_switch: current.codex_restart_specified_app_on_switch,
         codex_local_access_entry_visible: current.codex_local_access_entry_visible,
         antigravity_dual_switch_no_restart_enabled: current
             .antigravity_dual_switch_no_restart_enabled,
@@ -968,6 +974,7 @@ pub fn get_general_config(app: tauri::AppHandle) -> Result<GeneralConfig, String
         opencode_app_path: user_config.opencode_app_path,
         antigravity_app_path: user_config.antigravity_app_path,
         codex_app_path: user_config.codex_app_path,
+        codex_specified_app_path: user_config.codex_specified_app_path,
         zed_app_path: user_config.zed_app_path,
         vscode_app_path: user_config.vscode_app_path,
         windsurf_app_path: user_config.windsurf_app_path,
@@ -985,6 +992,8 @@ pub fn get_general_config(app: tauri::AppHandle) -> Result<GeneralConfig, String
         ghcp_launch_on_switch: user_config.ghcp_launch_on_switch,
         openclaw_auth_overwrite_on_switch: user_config.openclaw_auth_overwrite_on_switch,
         codex_launch_on_switch: user_config.codex_launch_on_switch,
+        codex_restart_specified_app_on_switch: user_config
+            .codex_restart_specified_app_on_switch,
         codex_local_access_entry_visible: user_config.codex_local_access_entry_visible,
         antigravity_dual_switch_no_restart_enabled: user_config
             .antigravity_dual_switch_no_restart_enabled,
@@ -1088,6 +1097,7 @@ pub fn save_general_config(
     opencode_app_path: String,
     antigravity_app_path: String,
     codex_app_path: String,
+    codex_specified_app_path: Option<String>,
     zed_app_path: Option<String>,
     vscode_app_path: String,
     windsurf_app_path: Option<String>,
@@ -1105,6 +1115,7 @@ pub fn save_general_config(
     ghcp_launch_on_switch: Option<bool>,
     openclaw_auth_overwrite_on_switch: Option<bool>,
     codex_launch_on_switch: bool,
+    codex_restart_specified_app_on_switch: Option<bool>,
     codex_local_access_entry_visible: Option<bool>,
     antigravity_dual_switch_no_restart_enabled: Option<bool>,
     auto_switch_enabled: Option<bool>,
@@ -1153,6 +1164,9 @@ pub fn save_general_config(
     let normalized_opencode_path = opencode_app_path.trim().to_string();
     let normalized_antigravity_path = antigravity_app_path.trim().to_string();
     let normalized_codex_path = codex_app_path.trim().to_string();
+    let normalized_codex_specified_app_path = codex_specified_app_path
+        .map(|value| value.trim().to_string())
+        .unwrap_or_else(|| current.codex_specified_app_path.clone());
     let normalized_zed_path = zed_app_path
         .map(|value| value.trim().to_string())
         .unwrap_or_else(|| current.zed_app_path.clone());
@@ -1293,6 +1307,7 @@ pub fn save_general_config(
         opencode_app_path: normalized_opencode_path,
         antigravity_app_path: normalized_antigravity_path,
         codex_app_path: normalized_codex_path,
+        codex_specified_app_path: normalized_codex_specified_app_path,
         zed_app_path: normalized_zed_path,
         vscode_app_path: normalized_vscode_path,
         windsurf_app_path: normalized_windsurf_path,
@@ -1311,6 +1326,8 @@ pub fn save_general_config(
         openclaw_auth_overwrite_on_switch: openclaw_auth_overwrite_on_switch
             .unwrap_or(current.openclaw_auth_overwrite_on_switch),
         codex_launch_on_switch,
+        codex_restart_specified_app_on_switch: codex_restart_specified_app_on_switch
+            .unwrap_or(current.codex_restart_specified_app_on_switch),
         codex_local_access_entry_visible: codex_local_access_entry_visible
             .unwrap_or(current.codex_local_access_entry_visible),
         antigravity_dual_switch_no_restart_enabled: antigravity_dual_switch_no_restart_enabled

@@ -29,6 +29,23 @@ type RawExternalProviderImportPayload = {
   url?: unknown;
 };
 
+function isJsonLikePayload(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed) return false;
+  if (
+    !(trimmed.startsWith('{') && trimmed.endsWith('}')) &&
+    !(trimmed.startsWith('[') && trimmed.endsWith(']'))
+  ) {
+    return false;
+  }
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return Boolean(parsed && typeof parsed === 'object');
+  } catch {
+    return false;
+  }
+}
+
 const IMPORT_TARGET_PAGES: ReadonlySet<Page> = new Set<Page>([
   'overview',
   'codex',
@@ -105,6 +122,16 @@ function resolvePage(providerId: PlatformId, rawPage: unknown): Page {
   return PLATFORM_PAGE_MAP[providerId];
 }
 
+export function normalizeAntigravityExternalImportToken(rawToken: string): string {
+  const trimmed = rawToken.trim();
+  if (!trimmed) return '';
+  if (isJsonLikePayload(trimmed)) return trimmed;
+  if (trimmed.startsWith('1//')) {
+    return JSON.stringify({ refresh_token: trimmed });
+  }
+  return trimmed;
+}
+
 export function normalizeExternalProviderImportPayload(
   raw: unknown,
 ): ExternalProviderImportPayload | null {
@@ -121,9 +148,19 @@ export function normalizeExternalProviderImportPayload(
   );
   if (!token) return null;
 
+  const page =
+    providerId === 'antigravity' ? 'overview' : resolvePage(providerId, payload.page);
+
+  console.info('[ExternalImport][Utils] payload 归一化结果', {
+    providerId,
+    page,
+    autoImport: parseBooleanLike(payload.autoImport ?? payload.autoSubmit),
+    tokenLength: token.length,
+  });
+
   return {
     providerId,
-    page: resolvePage(providerId, payload.page),
+    page,
     token,
     autoImport: parseBooleanLike(payload.autoImport ?? payload.autoSubmit),
     source: readString(payload.source),
@@ -132,16 +169,37 @@ export function normalizeExternalProviderImportPayload(
 }
 
 export function queueExternalProviderImport(payload: ExternalProviderImportPayload): void {
+  console.info('[ExternalImport][Utils] 写入队列', {
+    providerId: payload.providerId,
+    page: payload.page,
+    autoImport: payload.autoImport,
+    tokenLength: payload.token.length,
+  });
   pendingExternalProviderImport = payload;
 }
 
 export function consumeQueuedExternalProviderImportForPlatform(
   platformId: PlatformId,
 ): ExternalProviderImportPayload | null {
-  if (!pendingExternalProviderImport) return null;
-  if (pendingExternalProviderImport.providerId !== platformId) return null;
+  if (!pendingExternalProviderImport) {
+    console.info('[ExternalImport][Utils] 消费队列: 当前为空', { platformId });
+    return null;
+  }
+  if (pendingExternalProviderImport.providerId !== platformId) {
+    console.info('[ExternalImport][Utils] 消费队列: 平台不匹配', {
+      platformId,
+      queuedProviderId: pendingExternalProviderImport.providerId,
+    });
+    return null;
+  }
   const payload = pendingExternalProviderImport;
   pendingExternalProviderImport = null;
+  console.info('[ExternalImport][Utils] 消费队列成功', {
+    platformId,
+    page: payload.page,
+    autoImport: payload.autoImport,
+    tokenLength: payload.token.length,
+  });
   return payload;
 }
 

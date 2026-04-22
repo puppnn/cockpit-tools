@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Solo controla si el acceso del servicio API se muestra en la vista general de Codex. No detiene el servicio API local; puedes volver a mostrarlo aquí o en Ajustes rápidos.",
       "codexLocalAccessEnabled": "Activar servicio API",
       "codexLocalAccessEnabledDesc": "Controla si el servicio API local de Codex está realmente en ejecución.",
-      "codexLocalAccessEnabledRequiresCollection": "Añade cuentas a la colección del servicio API antes de activarlo o desactivarlo."
+      "codexLocalAccessEnabledRequiresCollection": "Añade cuentas a la colección del servicio API antes de activarlo o desactivarlo.",
+      "codexRestartSpecifiedAppOnSwitch": "Reiniciar la app especificada al cambiar Codex",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Si se activa, reinicia la app en la ruta inferior (para flujos con host de plugin).",
+      "codexSpecifiedAppPath": "Ruta de app especificada",
+      "codexSpecifiedAppPathDesc": "Ruta de la app que se reinicia junto con el cambio de Codex.",
+      "codexSpecifiedAppPathPlaceholder": "Por ejemplo /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Limpiar"
     },
     "network": {
       "apiTitle": "API de cabina antigravedad",
@@ -1657,7 +1663,12 @@
         "available": "Panel normal",
         "save": "Guardar colección",
         "freeNotice": "Las cuentas gratuitas aún no son compatibles. No se pueden seleccionar cuentas gratuitas.",
-        "freeUnsupported": "Las cuentas gratuitas aún no son compatibles"
+        "freeUnsupported": "Las cuentas gratuitas aún no son compatibles",
+        "restrictFreeToggle": "Limitar cuentas Free",
+        "freeNoticeRestricted": "Las cuentas Free están limitadas. Desactiva esto para seleccionarlas.",
+        "freeNoticeUnstable": "El proxy de cuentas Free puede ser inestable. Úsalo con cuidado.",
+        "restrictFreeDisableConfirmTitle": "Permitir cuentas Free",
+        "restrictFreeDisableConfirmMessage": "El proxy de cuentas Free puede ser inestable. ¿Seguro que quieres usarlas?"
       },
       "entryAction": "Agregar al servicio API",
       "testAction": "Probar servicio API",
@@ -1735,6 +1746,21 @@
         "daily": "Día",
         "weekly": "Semana",
         "monthly": "Mes"
+      },
+      "enableBeforeActivateTitle": "Servicio desactivado",
+      "enableBeforeActivateMessage": "El servicio de API está desactivado y debe activarse primero. ¿Activar y cambiar ahora?",
+      "enableAndActivateAction": "Activar y cambiar",
+      "apiPortUrl": "URL del puerto API",
+      "modelId": "ID del modelo",
+      "modelIdPlaceholder": "Selecciona ID de modelo",
+      "serviceTierSaveSuccess": "Se actualizó la velocidad del servicio API",
+      "serviceTier": {
+        "label": "Velocidad",
+        "placeholder": "Seleccionar velocidad",
+        "standard": "Estándar",
+        "fast": "Rápido",
+        "standardHint": "Velocidad predeterminada",
+        "fastHint": "Velocidad 1.5x, consumo de plan 2x"
       }
     },
     "local": {

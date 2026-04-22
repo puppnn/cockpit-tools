@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Yalnızca API Hizmeti girişinin Codex genel görünümünde gösterilip gösterilmeyeceğini kontrol eder. Yerel API hizmetini durdurmaz; buradan veya Hızlı Ayarlar'dan yeniden açabilirsiniz.",
       "codexLocalAccessEnabled": "API Hizmetini etkinleştir",
       "codexLocalAccessEnabledDesc": "Yerel Codex API hizmetinin gerçekten çalışıp çalışmayacağını kontrol eder.",
-      "codexLocalAccessEnabledRequiresCollection": "Hizmeti etkinleştirmeden veya devre dışı bırakmadan önce hesapları API Hizmeti koleksiyonuna ekleyin."
+      "codexLocalAccessEnabledRequiresCollection": "Hizmeti etkinleştirmeden veya devre dışı bırakmadan önce hesapları API Hizmeti koleksiyonuna ekleyin.",
+      "codexRestartSpecifiedAppOnSwitch": "Codex değiştirirken belirtilen uygulamayı yeniden başlat",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Açıldığında, aşağıdaki yoldaki uygulamayı yeniden başlatır (eklenti ana bilgisayarı akışları için).",
+      "codexSpecifiedAppPath": "Belirtilen uygulama yolu",
+      "codexSpecifiedAppPathDesc": "Codex değişimiyle birlikte yeniden başlatılacak uygulamanın yolu.",
+      "codexSpecifiedAppPathPlaceholder": "Örneğin /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Temizle"
     },
     "network": {
       "apiTitle": "Yerçekimine Karşı Kokpit API'si",
@@ -1657,7 +1663,12 @@
         "available": "Normal görünüm",
         "save": "Koleksiyonu kaydet",
         "freeNotice": "Ücretsiz hesaplar henüz desteklenmemektedir. Free accounts cannot be selected.",
-        "freeUnsupported": "Ücretsiz hesaplar henüz desteklenmiyor"
+        "freeUnsupported": "Ücretsiz hesaplar henüz desteklenmiyor",
+        "restrictFreeToggle": "Free hesapları sınırla",
+        "freeNoticeRestricted": "Free hesaplar sınırlıdır. Seçmek için bunu kapatın.",
+        "freeNoticeUnstable": "Free hesap proxy'si kararsız olabilir. Dikkatli kullanın.",
+        "restrictFreeDisableConfirmTitle": "Free hesaplara izin ver",
+        "restrictFreeDisableConfirmMessage": "Free hesap proxy'si kararsız olabilir. Kullanmak istediğinizden emin misiniz?"
       },
       "entryAction": "API hizmetine ekle",
       "testAction": "API hizmetini test et",
@@ -1735,6 +1746,21 @@
         "daily": "Gün",
         "weekly": "Hafta",
         "monthly": "Ay"
+      },
+      "enableBeforeActivateTitle": "Hizmet etkin değil",
+      "enableBeforeActivateMessage": "API hizmeti şu anda devre dışı ve önce etkinleştirilmesi gerekiyor. Şimdi etkinleştirip geçiş yapılsın mı?",
+      "enableAndActivateAction": "Etkinleştir ve geçiş yap",
+      "apiPortUrl": "API Port URL",
+      "modelId": "Model ID",
+      "modelIdPlaceholder": "Model ID seçin",
+      "serviceTierSaveSuccess": "API hizmeti hızı güncellendi",
+      "serviceTier": {
+        "label": "Hız",
+        "placeholder": "Hız seçin",
+        "standard": "Standart",
+        "fast": "Hızlı",
+        "standardHint": "Varsayılan hız",
+        "fastHint": "1,5x hız, 2x plan kullanımı"
       }
     },
     "local": {

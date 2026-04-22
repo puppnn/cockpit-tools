@@ -783,7 +783,7 @@ dependencies = [
 
 [[package]]
 name = "cockpit-tools"
-version = "0.22.4"
+version = "0.22.8"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -821,6 +821,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
+ "tauri-plugin-deep-link",
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
  "tauri-plugin-notification",

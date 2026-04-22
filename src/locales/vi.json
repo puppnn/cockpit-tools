@@ -698,7 +698,13 @@
       "codexLocalAccessEntryVisibleDesc": "Chỉ kiểm soát việc mục Dịch vụ API có hiển thị trong tổng quan Codex hay không. Thao tác này không dừng dịch vụ API cục bộ; bạn có thể bật lại tại đây hoặc trong Cài đặt nhanh.",
       "codexLocalAccessEnabled": "Bật Dịch vụ API",
       "codexLocalAccessEnabledDesc": "Kiểm soát việc dịch vụ Codex API cục bộ có thực sự chạy hay không.",
-      "codexLocalAccessEnabledRequiresCollection": "Hãy thêm tài khoản vào bộ sưu tập Dịch vụ API trước khi bật hoặc tắt dịch vụ."
+      "codexLocalAccessEnabledRequiresCollection": "Hãy thêm tài khoản vào bộ sưu tập Dịch vụ API trước khi bật hoặc tắt dịch vụ.",
+      "codexRestartSpecifiedAppOnSwitch": "Khởi động lại ứng dụng chỉ định khi chuyển Codex",
+      "codexRestartSpecifiedAppOnSwitchDesc": "Khi bật, sẽ khởi động lại ứng dụng ở đường dẫn bên dưới (cho luồng dùng host plugin).",
+      "codexSpecifiedAppPath": "Đường dẫn ứng dụng chỉ định",
+      "codexSpecifiedAppPathDesc": "Đường dẫn ứng dụng được khởi động lại cùng lúc chuyển Codex.",
+      "codexSpecifiedAppPathPlaceholder": "Ví dụ /Applications/Host.app",
+      "codexSpecifiedAppPathClear": "Xóa"
     },
     "network": {
       "apiTitle": "API Antigravity Cockpit",
@@ -1657,7 +1663,12 @@
         "available": "Bảng thông thường",
         "save": "Lưu bộ",
         "freeNotice": "Tài khoản miễn phí chưa được hỗ trợ. Tài khoản miễn phí không thể được chọn.",
-        "freeUnsupported": "Tài khoản miễn phí chưa được hỗ trợ"
+        "freeUnsupported": "Tài khoản miễn phí chưa được hỗ trợ",
+        "restrictFreeToggle": "Giới hạn tài khoản Free",
+        "freeNoticeRestricted": "Tài khoản Free bị giới hạn. Tắt tùy chọn này để chọn chúng.",
+        "freeNoticeUnstable": "Proxy tài khoản Free có thể không ổn định. Hãy dùng thận trọng.",
+        "restrictFreeDisableConfirmTitle": "Cho phép tài khoản Free",
+        "restrictFreeDisableConfirmMessage": "Proxy tài khoản Free có thể không ổn định. Bạn có chắc muốn dùng không?"
       },
       "entryAction": "Thêm vào dịch vụ API",
       "testAction": "Kiểm tra dịch vụ API",
@@ -1735,6 +1746,21 @@
         "daily": "Ngày",
         "weekly": "Tuần",
         "monthly": "Tháng"
+      },
+      "enableBeforeActivateTitle": "Dịch vụ chưa bật",
+      "enableBeforeActivateMessage": "Dịch vụ API hiện đang tắt và cần bật trước. Bật và chuyển ngay?",
+      "enableAndActivateAction": "Bật và chuyển",
+      "apiPortUrl": "URL cổng API",
+      "modelId": "ID mô hình",
+      "modelIdPlaceholder": "Chọn ID mô hình",
+      "serviceTierSaveSuccess": "Đã cập nhật tốc độ dịch vụ API",
+      "serviceTier": {
+        "label": "Tốc độ",
+        "placeholder": "Chọn tốc độ",
+        "standard": "Tiêu chuẩn",
+        "fast": "Nhanh",
+        "standardHint": "Tốc độ mặc định",
+        "fastHint": "Tốc độ 1.5x, dùng gói 2x"
       }
     },
     "local": {

@@ -13,6 +13,7 @@ use tauri::ActivationPolicy;
 use tauri::RunEvent;
 use tauri::WindowEvent;
 use tauri::{Emitter, Manager};
+use tauri_plugin_deep_link::DeepLinkExt;
 use tracing::info;
 
 /// 全局 AppHandle 存储
@@ -70,9 +71,19 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
-            if modules::external_import::handle_external_import_args(app, &args, "single-instance")
-            {
+            logger::log_info(&format!(
+                "[SingleInstance] 收到唤起请求: arg_count={}",
+                args.len()
+            ));
+            let handled =
+                modules::external_import::handle_external_import_args(app, &args, "single-instance");
+            logger::log_info(&format!(
+                "[SingleInstance] 外部导入处理结果: handled={}",
+                handled
+            ));
+            if handled {
                 return;
             }
             if let Err(err) = modules::floating_card_window::show_main_window(app) {
@@ -155,6 +166,61 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             apply_macos_activation_policy(&app.handle());
 
+            #[cfg(any(windows, target_os = "linux"))]
+            if let Err(err) = app.deep_link().register_all() {
+                logger::log_warn(&format!("[DeepLink] register_all 失败: {}", err));
+            } else {
+                logger::log_info("[DeepLink] register_all 已完成");
+            }
+
+            {
+                let app_handle = app.handle().clone();
+                app.deep_link().on_open_url(move |event| {
+                    let urls = event.urls();
+                    let args: Vec<String> = urls.iter().map(|url| url.to_string()).collect();
+                    logger::log_info(&format!(
+                        "[DeepLink] 收到 on_open_url 事件: url_count={}, urls={:?}",
+                        args.len(),
+                        args
+                    ));
+                    let handled = modules::external_import::handle_external_import_args(
+                        &app_handle,
+                        &args,
+                        "deep-link-open-url",
+                    );
+                    logger::log_info(&format!(
+                        "[DeepLink] on_open_url 外部导入处理结果: handled={}",
+                        handled
+                    ));
+                });
+            }
+
+            match app.deep_link().get_current() {
+                Ok(Some(urls)) => {
+                    let args: Vec<String> = urls.iter().map(|url| url.to_string()).collect();
+                    logger::log_info(&format!(
+                        "[DeepLink] 启动时 get_current 命中: url_count={}, urls={:?}",
+                        args.len(),
+                        args
+                    ));
+                    let handled = modules::external_import::handle_external_import_args(
+                        &app.handle(),
+                        &args,
+                        "deep-link-current",
+                    );
+                    logger::log_info(&format!(
+                        "[DeepLink] get_current 外部导入处理结果: handled={}",
+                        handled
+                    ));
+                }
+                Ok(None) => {
+                    logger::log_info("[DeepLink] 启动时 get_current: empty");
+                }
+                Err(err) => {
+                    logger::log_warn(&format!("[DeepLink] get_current 失败: {}", err));
+                }
+            }
+
             // 创建骨架托盘（无账号文件 I/O，秒出）
             if let Err(e) = modules::tray::create_tray_skeleton(app.handle()) {
                 logger::log_error(&format!("[Tray] 创建骨架托盘失败: {}", e));
@@ -190,11 +256,19 @@ pub fn run() {
             }
 
             let startup_args: Vec<String> = std::env::args().collect();
-            let _ = modules::external_import::handle_external_import_args(
+            logger::log_info(&format!(
+                "[Startup] 启动参数数量: {}",
+                startup_args.len()
+            ));
+            let startup_external_import_handled = modules::external_import::handle_external_import_args(
                 &app.handle(),
                 &startup_args,
                 "startup",
             );
+            logger::log_info(&format!(
+                "[Startup] 外部导入处理结果: handled={}",
+                startup_external_import_handled
+            ));
 
             Ok(())
         })
@@ -421,6 +495,7 @@ pub fn run() {
             commands::codex::codex_local_access_clear_stats,
             commands::codex::codex_local_access_update_port,
             commands::codex::codex_local_access_update_routing_strategy,
+            commands::codex::codex_local_access_update_service_tier,
             commands::codex::codex_local_access_set_enabled,
             commands::codex::codex_local_access_activate,
             // GitHub Copilot Commands
@@ -762,12 +837,32 @@ pub fn run() {
     app.run(|app_handle, event| {
         #[cfg(target_os = "macos")]
         {
-            if let RunEvent::Reopen { .. } = event {
-                if let Some(window) = app_handle.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.unminimize();
-                    let _ = window.set_focus();
+            match event {
+                RunEvent::Reopen { .. } => {
+                    if let Some(window) = app_handle.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
+                    }
                 }
+                RunEvent::Opened { urls } => {
+                    let args: Vec<String> = urls.iter().map(|url| url.to_string()).collect();
+                    logger::log_info(&format!(
+                        "[RunEvent] 收到 Opened 事件: url_count={}, urls={:?}",
+                        args.len(),
+                        args
+                    ));
+                    let handled = modules::external_import::handle_external_import_args(
+                        app_handle,
+                        &args,
+                        "run-event-opened",
+                    );
+                    logger::log_info(&format!(
+                        "[RunEvent] Opened 外部导入处理结果: handled={}",
+                        handled
+                    ));
+                }
+                _ => {}
             }
         }
         #[cfg(not(target_os = "macos"))]

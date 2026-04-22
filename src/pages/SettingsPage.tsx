@@ -93,6 +93,7 @@ interface GeneralConfig {
   opencode_app_path: string;
   antigravity_app_path: string;
   codex_app_path: string;
+  codex_specified_app_path: string;
   vscode_app_path: string;
   windsurf_app_path: string;
   kiro_app_path: string;
@@ -125,6 +126,7 @@ interface GeneralConfig {
   opencode_auth_overwrite_on_switch: boolean;
   openclaw_auth_overwrite_on_switch: boolean;
   codex_launch_on_switch: boolean;
+  codex_restart_specified_app_on_switch: boolean;
   codex_local_access_entry_visible: boolean;
   antigravity_dual_switch_no_restart_enabled: boolean;
   auto_switch_enabled: boolean;
@@ -344,6 +346,7 @@ export function SettingsPage() {
   const [opencodeAppPath, setOpencodeAppPath] = useState('');
   const [antigravityAppPath, setAntigravityAppPath] = useState('');
   const [codexAppPath, setCodexAppPath] = useState('');
+  const [codexSpecifiedAppPath, setCodexSpecifiedAppPath] = useState('');
   const [vscodeAppPath, setVscodeAppPath] = useState('');
   const [windsurfAppPath, setWindsurfAppPath] = useState('');
   const [kiroAppPath, setKiroAppPath] = useState('');
@@ -397,6 +400,7 @@ export function SettingsPage() {
   const [opencodeAuthOverwriteOnSwitch, setOpencodeAuthOverwriteOnSwitch] = useState(false);
   const [openclawAuthOverwriteOnSwitch, setOpenclawAuthOverwriteOnSwitch] = useState(false);
   const [codexLaunchOnSwitch, setCodexLaunchOnSwitch] = useState(true);
+  const [codexRestartSpecifiedAppOnSwitch, setCodexRestartSpecifiedAppOnSwitch] = useState(false);
   const [codexLocalAccessEntryVisible, setCodexLocalAccessEntryVisible] = useState(true);
   const [antigravityDualSwitchNoRestartEnabled, setAntigravityDualSwitchNoRestartEnabled] = useState(false);
   const [autoSwitchEnabled, setAutoSwitchEnabled] = useState(false);
@@ -777,6 +781,7 @@ export function SettingsPage() {
           opencodeAppPath,
           antigravityAppPath,
           codexAppPath,
+          codexSpecifiedAppPath,
           vscodeAppPath,
           windsurfAppPath,
           kiroAppPath,
@@ -791,6 +796,7 @@ export function SettingsPage() {
           opencodeAuthOverwriteOnSwitch,
           openclawAuthOverwriteOnSwitch,
           codexLaunchOnSwitch,
+          codexRestartSpecifiedAppOnSwitch,
           codexLocalAccessEntryVisible,
           antigravityDualSwitchNoRestartEnabled,
           autoSwitchEnabled,
@@ -892,6 +898,7 @@ export function SettingsPage() {
     opencodeAppPath,
     antigravityAppPath,
     codexAppPath,
+    codexSpecifiedAppPath,
     vscodeAppPath,
     windsurfAppPath,
     kiroAppPath,
@@ -906,6 +913,7 @@ export function SettingsPage() {
     opencodeAuthOverwriteOnSwitch,
     openclawAuthOverwriteOnSwitch,
     codexLaunchOnSwitch,
+    codexRestartSpecifiedAppOnSwitch,
     codexLocalAccessEntryVisible,
     antigravityDualSwitchNoRestartEnabled,
     autoSwitchEnabled,
@@ -1173,6 +1181,7 @@ export function SettingsPage() {
       setOpencodeAppPath(config.opencode_app_path || '');
       setAntigravityAppPath(config.antigravity_app_path || '');
       setCodexAppPath(config.codex_app_path || '');
+      setCodexSpecifiedAppPath(config.codex_specified_app_path || '');
       setVscodeAppPath(config.vscode_app_path || '');
       setWindsurfAppPath(config.windsurf_app_path || '');
       setKiroAppPath(config.kiro_app_path || '');
@@ -1208,6 +1217,9 @@ export function SettingsPage() {
       setOpencodeAuthOverwriteOnSwitch(config.opencode_auth_overwrite_on_switch ?? false);
       setOpenclawAuthOverwriteOnSwitch(config.openclaw_auth_overwrite_on_switch ?? false);
       setCodexLaunchOnSwitch(config.codex_launch_on_switch ?? true);
+      setCodexRestartSpecifiedAppOnSwitch(
+        config.codex_restart_specified_app_on_switch ?? false,
+      );
       setCodexLocalAccessEntryVisible(config.codex_local_access_entry_visible ?? true);
       setAntigravityDualSwitchNoRestartEnabled(
         config.antigravity_dual_switch_no_restart_enabled ?? false
@@ -1428,6 +1440,20 @@ export function SettingsPage() {
       setAppPathForTarget(target, path);
     } catch (err) {
       console.error('选择启动路径失败:', err);
+    }
+  };
+
+  const handlePickCodexSpecifiedAppPath = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        directory: false,
+      });
+      const path = Array.isArray(selected) ? selected[0] : selected;
+      if (!path) return;
+      setCodexSpecifiedAppPath(path);
+    } catch (err) {
+      console.error('选择指定应用路径失败:', err);
     }
   };
 
@@ -2621,6 +2647,72 @@ export function SettingsPage() {
                     />
                     <span className="slider"></span>
                   </label>
+                </div>
+              </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">
+                    {t(
+                      'settings.general.codexRestartSpecifiedAppOnSwitch',
+                      '切换 Codex 时重启指定应用',
+                    )}
+                  </div>
+                  <div className="row-desc">
+                    {t(
+                      'settings.general.codexRestartSpecifiedAppOnSwitchDesc',
+                      '开启后按下方路径重启指定应用（适用于依赖插件宿主的场景）',
+                    )}
+                  </div>
+                </div>
+                <div className="row-control">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={codexRestartSpecifiedAppOnSwitch}
+                      onChange={(e) =>
+                        setCodexRestartSpecifiedAppOnSwitch(e.target.checked)
+                      }
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">
+                    {t('settings.general.codexSpecifiedAppPath', '指定应用启动路径')}
+                  </div>
+                  <div className="row-desc">
+                    {t(
+                      'settings.general.codexSpecifiedAppPathDesc',
+                      '填写需联动重启的应用路径',
+                    )}
+                  </div>
+                </div>
+                <div className="row-control row-control--grow">
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
+                    <input
+                      type="text"
+                      className="settings-input settings-input--path"
+                      value={codexSpecifiedAppPath}
+                      placeholder={t(
+                        'settings.general.codexSpecifiedAppPathPlaceholder',
+                        '例如 /Applications/Host.app',
+                      )}
+                      onChange={(e) => setCodexSpecifiedAppPath(e.target.value)}
+                    />
+                    <button className="btn btn-secondary" onClick={handlePickCodexSpecifiedAppPath}>
+                      {t('settings.general.codexPathSelect', '选择')}
+                    </button>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setCodexSpecifiedAppPath('')}
+                    >
+                      {t('settings.general.codexSpecifiedAppPathClear', '清空')}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="settings-row settings-row--align-start">
